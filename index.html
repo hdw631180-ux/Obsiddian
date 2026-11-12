@@ -400,6 +400,7 @@ html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 .ix i.lg{animation:none;width:22px;height:22px;margin:0;background:#fff}.fi b{display:flex;align-items:center}.tg .lg{width:16px;height:16px;margin-right:5px}
 .srcs{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}.srcc{display:flex!important;align-items:center;gap:6px;margin:4px 0!important;font-size:13px;text-transform:none!important;letter-spacing:0!important}.srcc input{width:auto!important}
 #padTx{font:15px/1.6 ui-monospace,Consolas,monospace;min-height:46vh;resize:vertical}#dpad{width:min(720px,94vw)}
+.ix{display:grid;place-items:center;padding:5px;border-radius:50%;max-width:none;width:auto}.ix i.lg{width:26px;height:26px}.fi em{text-align:left}
 </style>
 </head>
 <body>
@@ -1830,11 +1831,11 @@ document.body.insertAdjacentHTML('beforeend','<div id="bh"></div><div id="bl"></
 $('#fh').onclick=()=>$('#feed').classList.toggle('off');
 const stOf=()=>!A().on?'off':up===false?'down':(busy||act)?'think':'idle';
 function feedAdd(n,txt,k,rgb){const f=$('#feed'),d=document.createElement('div');d.className='fi';d.style.setProperty('--c','rgb('+rgb.map(v=>Math.min(255,v*255+70|0)).join(',')+')');
- d.innerHTML='<b><i class="lg" data-m="'+MO(k)+'">'+LG(k)+'</i>'+esc(k||'web')+'</b><em>'+esc(n.title.slice(0,18))+'</em><span>'+esc(cut(txt,96))+'</span>';d.onclick=()=>{location.hash=n.id};$('#fh').after(d);while(f.querySelectorAll('.fi').length>4)f.querySelector('.fi:last-child').remove()}
+ d.innerHTML='<b><i class="lg" data-m="'+MO(k)+'">'+LG(k)+'</i></b><em>'+esc(n.title.slice(0,18))+'</em>';d.onclick=()=>{location.hash=n.id};$('#fh').after(d);while(f.querySelectorAll('.fi').length>4)f.querySelector('.fi:last-child').remove()}
 /* l’info voyage sur la fibre, de la cellule vers la note, dans la couleur de la cellule */
 function flow(n,i,txt,k){if(!ready||!P[n.id]||!cellP[i])return;const t=U.uT.value,a=cellP[i],b=P[n.id],c=ctrl(a,b),bs=window.__lobeBase,rgb=bs?[bs[i*3],bs[i*3+1],bs[i*3+2]]:[1,1,1],dur=2.2+a.distanceTo(b)*1.1,col='rgb('+rgb.map(v=>Math.min(255,v*255+70|0)).join(',')+')';
  fire(i,t,.5);for(let q=0;q<5;q++)ev.push([t+q*.16,tt=>wave(a,c,b,tt,dur,rgb)]);ev.push([t+dur,tt=>{ripple(b,tt,rgb);fire(Math.random()*CORT|0,tt,.5)}]);
- const el=document.createElement('div');el.className='ix';el.innerHTML='<i class="lg" data-m="'+MO(k)+'">'+LG(k)+'</i><b>'+esc(k||'web')+'</b><span>'+esc(cut(txt,112))+'</span>';el.style.setProperty('--c',col);el.onclick=()=>{location.hash=n.id};document.body.append(el);
+ const el=document.createElement('div');el.className='ix';el.innerHTML='<i class="lg" data-m="'+MO(k)+'">'+LG(k)+'</i>';el.setAttribute('aria-label',k||'web');el.style.setProperty('--c',col);el.onclick=()=>{location.hash=n.id};document.body.append(el);
  TAGS.push({a,c,b,t0:t,dur,el,end:t+dur+7});feedAdd(n,txt,k,rgb)}
 (function tk(){const t=U.uT.value;for(let k=TAGS.length-1;k>=0;k--){const g=TAGS[k];if(t>g.end){g.el.remove();TAGS.splice(k,1);continue}
  const u=Math.min(1,(t-g.t0)/g.dur),p=bz(g.a,g.c,g.b,u).applyMatrix4(brain.matrixWorld).project(cam),fi=Math.min(1,(t-g.t0)*3);
