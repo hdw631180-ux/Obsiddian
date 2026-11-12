@@ -1,0 +1,38 @@
+name: Agent de nuit
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # tous les jours à 02:00 (heure UTC)
+  workflow_dispatch:       # permet de le lancer à la main (bouton "Run workflow")
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-nuit
+  cancel-in-progress: false
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Lancer l'agent
+        env:
+          AI_KEY: ${{ secrets.AI_KEY }}   # ta clé API, à mettre dans Settings > Secrets
+          AI_PROVIDER: gemini             # gemini, anthropic, openai, groq, openrouter, mistral, custom
+          AI_MODEL: gemini-2.5-flash      # vide = modèle par défaut du fournisseur
+          AI_BASE_URL: ''                 # seulement pour "custom"
+          NOTES_DIR: ''                   # vide = tout le dépôt, ou le nom de ton dossier de notes
+          MAX_NEW_NOTES: '4'              # nombre maximum de nouvelles notes par nuit
+          AGENT_ROLE: ''                  # consigne facultative, ex : "ne parle que d'aérodynamique"
+        run: node agent/agent.mjs
+      - name: Enregistrer les notes
+        run: |
+          git config user.name "agent-coffre"
+          git config user.email "agent-coffre@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || (git commit -m "Agent de nuit : notes du $(date +%F)" && git push)

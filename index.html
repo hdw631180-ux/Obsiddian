@@ -122,6 +122,7 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 .ic h3{display:flex;justify-content:space-between;gap:10px}
 .ic h3 .by{margin:0;font-weight:300;letter-spacing:0}
 #kdel{margin-right:auto}
+.agt{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.agt .hint{margin:0}
 #dvb{font:17px/1.6 var(--se);margin-top:14px;max-height:60vh;overflow:auto}
 @media(max-width:700px){#ask select{width:100px}.agh{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
@@ -141,6 +142,7 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 <aside id="pn" aria-label="Note"><button id="x" type="button">Fermer</button><div id="nt"></div></aside>
 <dialog id="dc"><form id="fc" method="dialog">
 <strong>Réglages</strong>
+<p class="hint" id="fh" hidden>Cette page semble ouverte dans un aperçu ou depuis un fichier local, ce qui bloque souvent les appels aux IA. Teste-la depuis ton adresse GitHub Pages.</p>
 <label>Agents IA</label>
 <div id="al"></div>
 <div class="addrow"><select id="apv" aria-label="Fournisseur du nouvel agent"></select><button type="button" id="aadd">Ajouter un agent</button></div>
@@ -660,12 +662,19 @@ ${P.nk?'':`<input data-f="key" type="password" autocomplete="off" value="${escA(
 ${P.t=='o'?`<input data-f="url" value="${escA(a.url)}" placeholder="URL de base de l’API" aria-label="URL de base de l’API">`:''}
 <textarea data-f="role" rows="2" placeholder="Rôle (facultatif) : par exemple relecteur critique, ou coach d’étude" aria-label="Rôle">${esc(a.role||'')}</textarea>
 ${a.pv=='ollama'?'<p class="hint">Ollama doit tourner sur ton ordinateur et accepter cette page (variable OLLAMA_ORIGINS). Certains navigateurs bloquent cette connexion.</p>':''}
+<div class="agt"><button type="button" data-t>Tester la connexion</button><span class="hint" data-r></span></div>
 <label class="chk"><input type="checkbox" data-f="on"${a.on===false?'':' checked'}> Actif</label></div>`}).join(''):'<p class="hint">Aucun agent pour l’instant. Choisis un fournisseur ci-dessous.</p>'}
 $('#al').addEventListener('input',e=>{const r=e.target.closest('.ag'),f=e.target.dataset.f;if(!r||!f)return;const a=dr[r.dataset.i];
   if(f=='on'){a.on=e.target.checked;r.classList.toggle('off',!a.on)}
   else if(f=='pv'){if(a.name==short(a.pv))a.name=short(e.target.value);a.pv=e.target.value;a.model=PV[a.pv].m;a.url=PV[a.pv].u||'';drawAg()}
   else a[f]=e.target.value});
-$('#al').onclick=e=>{const x=e.target.closest('[data-x]');if(x){dr.splice(+x.closest('.ag').dataset.i,1);drawAg()}};
+$('#al').onclick=async e=>{const x=e.target.closest('[data-x]');if(x){dr.splice(+x.closest('.ag').dataset.i,1);drawAg();return}
+  const t=e.target.closest('[data-t]');if(!t)return;const row=t.closest('.ag'),a=dr[+row.dataset.i],out=row.querySelector('[data-r]');
+  if(!ck(a.key)&&!(PV[a.pv]||{}).nk){out.textContent='Colle d’abord ta clé API.';return}
+  t.disabled=true;out.textContent='Test en cours…';
+  try{await callAgent(a,'Réponds uniquement par OK.',[{role:'user',content:'Test'}],64);out.textContent='Connexion réussie.'}
+  catch(err){out.textContent='Échec : '+err.message}
+  t.disabled=false};
 $('#aadd').onclick=()=>{dr.push(mkAgent($('#apv').value));drawAg();const l=$('#al').lastElementChild;if(l)l.scrollIntoView({block:'nearest',behavior:'smooth'})};
 $('#bcfg').onclick=()=>{dr=JSON.parse(JSON.stringify(cfg.agents||[]));drawAg();$('#rp').value=cfg.repo||'';$('#dr').value=cfg.dir||'';$('#dc').showModal()};
 $('#fc').onsubmit=()=>{cfg={agents:dr.filter(a=>(a.name||'').trim()||a.key).map(a=>({...a,name:(a.name||'').trim()||short(a.pv),model:(a.model||'').trim(),key:(a.key||'').trim(),url:(a.url||'').trim(),role:(a.role||'').trim()})),repo:$('#rp').value.trim(),dir:$('#dr').value.trim()};bad.clear();store.set('cfg',cfg);fillAg()};
@@ -727,22 +736,23 @@ $('#bsync').onclick=async()=>{
 /* ---------- Appel des IA : Claude, Gemini et tout service compatible OpenAI ---------- */
 let rr=0;const bad=new Set();
 const hd=(r,d)=>{const m=d&&(typeof d.error=='string'?d.error:d.error&&d.error.message)||d&&d.message,e=new Error(m||('erreur '+r.status));e.status=r.status;return e};
+const ck=k=>String(k||'').replace(/[^\x21-\x7E]/g,'').replace(/^["'`]+|["'`]+$/g,'');
 async function callAgent(a,system,messages,max){
-  const P=PV[a.pv]||PV.custom,sys=a.role?system+'\n\nRôle de cet agent : '+a.role:system;let r,d;
+  const P=PV[a.pv]||PV.custom,key=ck(a.key),sys=a.role?system+'\n\nRôle de cet agent : '+a.role:system;let r,d;
   try{
     if(P.t=='a'){
-      r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':a.key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:a.model||MODEL,max_tokens:max,system:sys,messages})});
+      r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:a.model||MODEL,max_tokens:max,system:sys,messages})});
       d=await r.json().catch(()=>null);if(!r.ok)throw hd(r,d);
       return((d&&d.content)||[]).map(b=>b.text||'').join('')}
     if(P.t=='g'){
-      r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(String(a.model).replace(/^models\//,''))+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':a.key},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:messages.map(m=>({role:m.role=='assistant'?'model':'user',parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:max}})});
+      r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(String(a.model).replace(/^models\//,''))+':generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:messages.map(m=>({role:m.role=='assistant'?'model':'user',parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:Math.min(max*4,8192)}})});
       d=await r.json().catch(()=>null);if(!r.ok)throw hd(r,d);
       const c=d&&d.candidates&&d.candidates[0];return((c&&c.content&&c.content.parts)||[]).map(p=>p.text||'').join('')}
     const base=(a.url||P.u||'').replace(/\/+$/,'');if(!base)throw new Error('URL de base manquante');
-    r=await fetch(base+'/chat/completions',{method:'POST',headers:{'content-type':'application/json',...(a.key?{authorization:'Bearer '+a.key}:{})},body:JSON.stringify({model:a.model,[P.mt||'max_tokens']:max,messages:[{role:'system',content:sys},...messages]})});
+    r=await fetch(base+'/chat/completions',{method:'POST',headers:{'content-type':'application/json',...(key?{authorization:'Bearer '+key}:{})},body:JSON.stringify({model:a.model,[P.mt||'max_tokens']:max,messages:[{role:'system',content:sys},...messages]})});
     d=await r.json().catch(()=>null);if(!r.ok)throw hd(r,d);
     const c=d&&d.choices&&d.choices[0];return(c&&c.message&&c.message.content)||''
-  }catch(e){if(e instanceof TypeError)e.message='connexion impossible (réseau, CORS ou URL)';throw e}}
+  }catch(e){if(e instanceof TypeError)e.message=/header|ISO-8859|invalid/i.test(e.message)?'la clé contient un caractère invalide : recopie-la sans espace ni guillemets':'connexion bloquée ('+e.message+') : bloqueur de pub, VPN ou pare-feu, URL fausse, ou page ouverte dans un aperçu ou un fichier local qui bloque les appels externes';throw e}}
 /* choisit un agent (tour de rôle ou imposé), bascule sur le suivant en cas d’échec */
 async function ai(system,messages,max=1024,pref,one){
   const L=one?[one]:agents();if(!L.length)throw new Error('aucun agent actif, ajoute-en dans les réglages');
@@ -797,7 +807,7 @@ $('#irun').onclick=async()=>{const L=agents();if(!L.length){$('#di').close();ret
 $('#ires').onclick=e=>{if(e.target.id!='iadd')return;const loc=store.get('loc')||[];
   impNotes.forEach(n=>{const i=loc.findIndex(x=>x.id==n.id);if(i>=0)loc[i]=n;else loc.push(n)});store.set('loc',loc);load();$('#di').close()};
 
-drawDock();fillAg();initFx();
+$('#fh').hidden=!(location.protocol=='file:'||self!==top);drawDock();fillAg();initFx();
 size();addEventListener('resize',size);load();route();R.setAnimationLoop(frame);
 </script>
 </body>

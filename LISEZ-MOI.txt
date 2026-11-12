@@ -1,0 +1,12 @@
+AGENT DE NUIT - mode d'emploi
+
+Chaque nuit, GitHub lance agent.mjs. Il lit tes notes, demande à une IA un "Rapport" et quelques nouvelles notes,
+puis les ajoute dans le dossier "Agent" de ton depot. Il ne modifie jamais tes notes existantes.
+
+1. Mets ces fichiers dans ton depot : .github/workflows/agent.yml et agent/agent.mjs
+2. Settings > Secrets and variables > Actions > New repository secret
+   Nom : AI_KEY      Valeur : ta cle API
+3. Onglet Actions > "Agent de nuit" > Run workflow, pour tester tout de suite.
+4. Sur le site, clique sur Synchroniser pour voir les nouvelles notes.
+
+Reglages : ouvre .github/workflows/agent.yml et change les lignes sous "env:".
