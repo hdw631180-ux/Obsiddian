@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Coffre</title>
-<meta name="description" content="Coffre de notes en graphe 3D, avec agents IA et cellules personnalisables.">
+<title>Synapse</title>
+<meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
@@ -122,32 +122,95 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 .ic h3{display:flex;justify-content:space-between;gap:10px}
 .ic h3 .by{margin:0;font-weight:300;letter-spacing:0}
 #kdel{margin-right:auto}
-.agt{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.agt .hint{margin:0}
 #dvb{font:17px/1.6 var(--se);margin-top:14px;max-height:60vh;overflow:auto}
 @media(max-width:700px){#ask select{width:100px}.agh{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* ===== Chatbot à questions prédéfinies ===== */
+#menu{margin:0 0 12px}
+#ser,#qs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+#ser::-webkit-scrollbar{display:none}
+#ser{margin-bottom:8px}
+#qs{flex-wrap:wrap;max-height:96px;overflow-y:auto;color:var(--mu);font-size:13px}
+.chip{flex:none;padding:5px 12px;font-size:13px;letter-spacing:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}
+.chip.on{background:#fff;color:#000;border-color:#fff}
+.chip.q{color:var(--mu)}.chip.q:hover{color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.qt{font:12px var(--ui);color:var(--mu);margin-bottom:6px}
+#qp{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:72vh;overflow:auto;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);border:1px solid var(--ln);padding:18px;z-index:5}
+#qp:not([hidden]){animation:pop .3s cubic-bezier(.2,.7,.2,1)}
+#qp #qs{max-height:42vh;flex-wrap:wrap;overflow-y:auto}
+#qp #ask{margin-top:12px}
+#qx{float:right}
+.ax{float:right;padding:0 10px;margin:0 0 6px 10px}
+.tr{display:flex;align-items:center;gap:6px;color:var(--mu)}
+.tr input{width:90px;padding:0;border:0;accent-color:#fff}
+/* ===== Login / Auth ===== */
+#auth{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:#000;padding:24px}
+#auth[hidden]{display:none}
+#authbox{width:min(400px,100%);border:1px solid var(--ln);padding:32px 28px;background:rgba(0,0,0,.92)}
+#authbox .brand{text-align:center;margin-bottom:6px}
+#authbox .sub{text-align:center;color:var(--mu);font-size:13px;margin:0 0 28px}
+#authbox .tabs{display:flex;gap:8px;margin-bottom:22px}
+#authbox .tabs button{flex:1}
+#authbox .tabs button.on{background:#fff;color:#000;border-color:#fff}
+#authbox label{display:block;margin:14px 0 0;color:var(--mu);font-size:13px}
+#authbox .err{color:#ff6b6b;font-size:13px;margin:12px 0 0;min-height:1.2em}
+#authbox menu{display:flex;gap:8px;justify-content:flex-end;padding:0;margin:22px 0 0}
+#authbox .hint{color:var(--mu);font-size:12px;margin:16px 0 0;text-align:center}
+#userbar{font:12px var(--mo);color:var(--mu);margin-top:4px}
+#stafflist{font:14px/1.7 var(--ui);margin:12px 0}
+#stafflist .row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--ln)}
+#stafflist .row:last-child{border-bottom:0}
+#stafflist .u{font-weight:500}
+#stafflist .d{color:var(--mu);font-size:12px}
+#staffcode{margin-top:8px}
 </style>
 </head>
 <body>
+<div id="auth">
+  <div id="authbox">
+    <div class="brand">Synapse</div>
+    <p class="sub">Coffre de notes · graphe 3D</p>
+    <div class="tabs">
+      <button type="button" id="tabLogin" class="on">Connexion</button>
+      <button type="button" id="tabReg">Créer un compte</button>
+    </div>
+    <form id="fLogin">
+      <label for="lu">Identifiant</label>
+      <input id="lu" required autocomplete="username" maxlength="40">
+      <label for="lp">Mot de passe</label>
+      <input id="lp" type="password" required autocomplete="current-password" maxlength="80">
+      <p class="err" id="loginErr"></p>
+      <menu><button type="submit">Se connecter</button></menu>
+    </form>
+    <form id="fReg" hidden>
+      <label for="ru">Identifiant</label>
+      <input id="ru" required autocomplete="username" maxlength="40" pattern="[A-Za-z0-9._-]{3,40}" title="3 à 40 caractères : lettres, chiffres, . _ -">
+      <label for="rpw">Mot de passe</label>
+      <input id="rpw" type="password" required autocomplete="new-password" minlength="4" maxlength="80">
+      <label for="rpw2">Confirmer le mot de passe</label>
+      <input id="rpw2" type="password" required autocomplete="new-password" minlength="4" maxlength="80">
+      <p class="err" id="regErr"></p>
+      <menu><button type="submit">Créer le compte</button></menu>
+    </form>
+    <p class="hint">Comptes stockés uniquement dans ce navigateur. Aucune donnée n’est envoyée.</p>
+  </div>
+</div>
 <canvas id="cv" aria-label="Graphe 3D du coffre, en forme de cerveau"></canvas>
 <div class="ring r1"></div><div class="ring r2"></div>
 <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
 <div class="vg"></div><div id="labels"></div>
 <header id="top">
-<div><div class="brand">Coffre</div><div id="stats"></div></div>
+<div><div class="brand">Synapse</div><div id="stats"></div><div id="userbar"></div></div>
 <input id="s" type="search" placeholder="Rechercher une note" aria-label="Rechercher une note">
-<div id="acts"><button id="bimp">Améliorer</button><button id="bsync">Synchroniser</button><button id="bnew">Nouvelle note</button><button id="bcfg">Réglages</button></div>
+<div id="acts"><label class="tr" title="Transparence">◐<input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label><button id="bsync">Synchroniser</button><button id="bnew">Nouvelle note</button><button id="bcfg">Réglages</button><button id="bstaff">Staff</button><button id="blogout">Déconnexion</button></div>
 </header>
-<div id="bot"><div id="ans" hidden></div><div id="dock" role="toolbar" aria-label="Cellules"></div><form id="ask"><select id="ag" aria-label="Agent IA"></select><input id="q" placeholder="Pose une question sur ton coffre" autocomplete="off" aria-label="Question pour tes agents"></form></div>
+<div id="bot"><div id="ans" hidden></div><div id="dock" role="toolbar" aria-label="Cellules"></div></div>
+<div id="qp" hidden><button type="button" id="qx">Fermer</button><div class="qt">Questions sur ton coffre</div><div id="ser" aria-label="Séries de questions"></div><div id="qs"></div><form id="ask"><input id="q" placeholder="Filtre les questions ou tape un mot à chercher" autocomplete="off" aria-label="Filtrer les questions"></form></div>
 <aside id="pn" aria-label="Note"><button id="x" type="button">Fermer</button><div id="nt"></div></aside>
 <dialog id="dc"><form id="fc" method="dialog">
 <strong>Réglages</strong>
-<p class="hint" id="fh" hidden>Cette page semble ouverte dans un aperçu ou depuis un fichier local, ce qui bloque souvent les appels aux IA. Teste-la depuis ton adresse GitHub Pages.</p>
-<label>Agents IA</label>
-<div id="al"></div>
-<div class="addrow"><select id="apv" aria-label="Fournisseur du nouvel agent"></select><button type="button" id="aadd">Ajouter un agent</button></div>
-<p class="hint">Chaque agent a sa clé, son modèle et son rôle. Les requêtes sont réparties entre les agents actifs, avec bascule automatique si l’un échoue. Paliers gratuits (limites variables) : Gemini, Groq, OpenRouter (modèles « :free »). Ollama est gratuit et tourne sur ton ordinateur, sans clé.</p>
-<p class="hint">Les clés restent dans ce navigateur uniquement. Ne les écris jamais dans le fichier du site. Tes notes sont envoyées au fournisseur de chaque agent utilisé.</p>
+<p class="hint">Le chatbot répond à des questions prédéfinies, calculées sur tes notes dans ce navigateur : aucune IA, aucune clé, rien n’est envoyé.</p>
 <label for="rp">Dépôt GitHub du coffre (public)</label><input id="rp" placeholder="pseudo/mon-coffre">
 <label for="dr">Dossier à lire (facultatif)</label><input id="dr" placeholder="vide : tout le dépôt">
 <menu><button type="button" class="cl">Annuler</button><button>Enregistrer</button></menu>
@@ -161,22 +224,37 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 <menu><button type="button" class="cl">Annuler</button><button>Ajouter au cerveau</button></menu>
 </form></dialog>
 
-<dialog id="di"><strong>Améliorer le coffre</strong>
-<p class="hint" id="ist"></p>
-<p class="hint">Chaque analyse envoie tes notes (jusqu’à 70 000 caractères) à l’un de tes agents.</p>
-<div id="ires"></div>
-<menu><button type="button" class="cl">Fermer</button><button type="button" id="irun">Lancer</button></menu></dialog>
 
 <dialog id="dk"><form id="fk" method="dialog">
 <strong id="dkt">Nouvelle cellule</strong>
 <label for="ksg">Signe (un symbole ou un emoji)</label><input id="ksg" maxlength="4" placeholder="✦" required>
 <label for="knm">Nom</label><input id="knm" maxlength="24" required>
-<label for="kkd">Type</label><select id="kkd"><option value="link">Lien web</option><option value="note">Note du coffre</option><option value="text">Texte libre</option><option value="prompt">Question pour l’IA</option></select>
+<label for="kkd">Type</label><select id="kkd"><option value="link">Lien web</option><option value="note">Note du coffre</option><option value="text">Texte libre</option><option value="prompt">Question du chatbot</option></select>
 <label for="kvl">Contenu</label><textarea id="kvl" rows="4" required></textarea>
 <p class="hint" id="kh"></p>
 <menu><button type="button" id="kdel">Supprimer</button><button type="button" class="cl">Annuler</button><button>Enregistrer</button></menu>
 </form></dialog>
 <dialog id="dv"><strong id="dvt"></strong><div id="dvb"></div><menu><button type="button" class="cl">Fermer</button></menu></dialog>
+
+<dialog id="dstaff">
+  <strong>Accès staff</strong>
+  <p class="hint" id="staffHint">Entre le code staff pour voir la liste des comptes enregistrés sur ce navigateur.</p>
+  <div id="staffGate">
+    <label for="scode">Code staff</label>
+    <input id="scode" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••">
+    <p class="err" id="staffErr" style="color:#ff6b6b;font-size:13px;margin:10px 0 0;min-height:1.2em"></p>
+    <menu style="display:flex;gap:8px;justify-content:flex-end;padding:0;margin:22px 0 0">
+      <button type="button" class="cl">Annuler</button>
+      <button type="button" id="bstaffGo">Valider</button>
+    </menu>
+  </div>
+  <div id="staffPanel" hidden>
+    <div id="stafflist"></div>
+    <menu style="display:flex;gap:8px;justify-content:flex-end;padding:0;margin:22px 0 0">
+      <button type="button" class="cl">Fermer</button>
+    </menu>
+  </div>
+</dialog>
 
 <script type="text/plain" id="vault">
 === accueil | | Accueil | dashboard | permanent | 2026-11-12 | index
@@ -371,13 +449,99 @@ Les changements de rapport doivent être les plus rapides possible. L’étageme
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <script>
-const MODEL='claude-sonnet-5-5';
 const $=s=>document.querySelector(s);
-const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch{return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+/* ---------- Auth & comptes (localStorage uniquement) ---------- */
+const USERS_KEY='synapse_users';
+const SESSION_KEY='synapse_session';
+const STAFF_CODE='195180';
+const getUsers=()=>{try{return JSON.parse(localStorage.getItem(USERS_KEY))||[]}catch{return[]}};
+const setUsers=u=>{try{localStorage.setItem(USERS_KEY,JSON.stringify(u))}catch{}};
+const getSession=()=>{try{return JSON.parse(sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY))}catch{return null}};
+const setSession=u=>{try{sessionStorage.setItem(SESSION_KEY,JSON.stringify(u));localStorage.setItem(SESSION_KEY,JSON.stringify(u))}catch{}};
+const clearSession=()=>{try{sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(SESSION_KEY)}catch{}};
+/* hash simple (démo uniquement — pas une vraie sécurité) */
+const hash=s=>{let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return 'h'+Math.abs(h).toString(36)+s.length};
+let currentUser=null;
+function userKey(k){return currentUser?('u_'+currentUser.user+'_'+k):k}
+const store={
+  get(k){try{return JSON.parse(localStorage.getItem(userKey(k)))}catch{return null}},
+  set(k,v){try{localStorage.setItem(userKey(k),JSON.stringify(v))}catch{}}
+};
+function showAuth(){$('#auth').hidden=false;document.body.style.overflow='hidden'}
+function hideAuth(){$('#auth').hidden=true;document.body.style.overflow=''}
+function updateUserbar(){
+  const el=$('#userbar');
+  if(!el)return;
+  el.textContent=currentUser?('compte : '+currentUser.user):'';
+}
+function enterApp(user){
+  currentUser=user;
+  setSession({user:user.user,at:Date.now()});
+  hideAuth();
+  updateUserbar();
+  cfg=store.get('cfg')||{};
+  TR=store.get('tr')??1;
+  $('#tr').value=Math.round(TR*100);
+  applyTR&&applyTR();
+  cells=store.get('cells');
+  if(!Array.isArray(cells))cells=[
+   {sign:'⌂',name:'Accueil',kind:'note',val:'accueil'},
+   {sign:'Σ',name:'Résumé',kind:'prompt',val:'Résume le coffre'},
+   {sign:'✦',name:'Mémo',kind:'text',val:'Écris ici ce que tu veux : listes, liens, idées.\n\n- [ ] première tâche'},
+   {sign:'↗',name:'GitHub',kind:'link',val:'https://github.com'}];
+  syn=store.get('syn')||{};
+  drawDock&&drawDock();
+  load&&load();
+  route&&route();
+}
+/* UI login / register */
+$('#tabLogin').onclick=()=>{$('#tabLogin').classList.add('on');$('#tabReg').classList.remove('on');$('#fLogin').hidden=false;$('#fReg').hidden=true;$('#loginErr').textContent='';$('#regErr').textContent=''};
+$('#tabReg').onclick=()=>{$('#tabReg').classList.add('on');$('#tabLogin').classList.remove('on');$('#fReg').hidden=false;$('#fLogin').hidden=true;$('#loginErr').textContent='';$('#regErr').textContent=''};
+$('#fLogin').onsubmit=e=>{
+  e.preventDefault();
+  const u=$('#lu').value.trim(),p=$('#lp').value;
+  const found=getUsers().find(x=>x.user.toLowerCase()===u.toLowerCase()&&x.pass===hash(p));
+  if(!found){$('#loginErr').textContent='Identifiant ou mot de passe incorrect.';return}
+  enterApp(found);
+};
+$('#fReg').onsubmit=e=>{
+  e.preventDefault();
+  const u=$('#ru').value.trim(),p=$('#rpw').value,p2=$('#rpw2').value;
+  if(p!==p2){$('#regErr').textContent='Les mots de passe ne correspondent pas.';return}
+  if(u.length<3){$('#regErr').textContent='Identifiant trop court (min. 3).';return}
+  if(p.length<4){$('#regErr').textContent='Mot de passe trop court (min. 4).';return}
+  const users=getUsers();
+  if(users.some(x=>x.user.toLowerCase()===u.toLowerCase())){$('#regErr').textContent='Cet identifiant existe déjà.';return}
+  const neu={user:u,pass:hash(p),created:new Date().toISOString()};
+  users.push(neu);setUsers(users);
+  enterApp(neu);
+};
+$('#blogout').onclick=()=>{clearSession();currentUser=null;location.reload()};
+/* Staff */
+$('#bstaff').onclick=()=>{
+  $('#staffGate').hidden=false;$('#staffPanel').hidden=true;
+  $('#scode').value='';$('#staffErr').textContent='';
+  $('#staffHint').textContent='Entre le code staff pour voir la liste des comptes enregistrés sur ce navigateur.';
+  $('#dstaff').showModal();
+};
+$('#bstaffGo').onclick=()=>{
+  if($('#scode').value.trim()!==STAFF_CODE){$('#staffErr').textContent='Code incorrect.';return}
+  const users=getUsers();
+  const list=$('#stafflist');
+  if(!users.length){list.innerHTML='<p class="hint">Aucun compte enregistré.</p>'}
+  else{
+    list.innerHTML=users.map(u=>{
+      const d=u.created?new Date(u.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+      return `<div class="row"><span class="u">${esc(u.user)}</span><span class="d">créé ${d}</span></div>`;
+    }).join('');
+  }
+  $('#staffGate').hidden=true;$('#staffPanel').hidden=false;
+  $('#staffHint').textContent=users.length+' compte'+(users.length>1?'s':'')+' sur ce navigateur.';
+};
 const BR={'':1,'00_Inbox':.55,'01_Projects':1,'02_Areas':.85,'03_Resources':.7,'05_Daily':.5,'90_Templates':.35};
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const slug=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').toLowerCase();
-let cfg=store.get('cfg')||{},N=[],E=[],byKey={},hist=[],focus=null,isOpen=false;
+let cfg={},N=[],E=[],byKey={},hist=[],focus=null,isOpen=false;
 
 /* ---------- Données ---------- */
 const BASE=document.getElementById('vault').textContent.split(/^=== /m).slice(1).map(b=>{
@@ -389,8 +553,9 @@ function parse(path,txt){let fm={},body=txt;const m=txt.match(/^---\n([\s\S]*?)\
   return{id:slug(path.replace(/\.md$/i,'')),dir:p[0]||'',title:f,type:fm.type||'note',status:fm.status||'',date:(fm.date||'').slice(0,10),tags:(fm.tags||'').split(',').map(s=>s.trim().replace(/^#/,'')).filter(Boolean),body:body.trim()}}
 function setNotes(){const gh=store.get('gh')||[],all=[...(gh.length?[]:BASE),...gh,...(store.get('loc')||[])],seen={};
   N=all.filter(n=>!seen[n.id]&&(seen[n.id]=1));byKey={};
-  N.forEach(n=>[n.id,n.title].forEach(k=>byKey[k.toLowerCase()]=n));
+  N.forEach(n=>[n.id,n.title].forEach(k=>byKey[k.toLowerCase()]=n));stubs();
   N.forEach(n=>n.links=[...new Set([...n.body.matchAll(/\[\[([^\]|#]+)/g)].map(m=>(byKey[m[1].trim().toLowerCase()]||{}).id).filter(x=>x&&x!==n.id))]);
+  plastic();
   N.forEach(n=>n.back=N.filter(m=>m.links.includes(n.id)));
   E=N.flatMap(n=>n.links.map(l=>[n.id,l]))}
 
@@ -458,12 +623,12 @@ const FR=`varying float vA;varying vec3 vC;void main(){float d=length(gl_PointCo
 const FL='varying float vA;varying vec3 vC;void main(){gl_FragColor=vec4(vC,vA);}';
 const mk=(v,f)=>new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexShader:v,fragmentShader:f});
 const pm=mk(VS,FP),cm=mk(VC,FC),flm=mk(VL,FL),wm=mk(VW,FQ),rm=mk(VR,FR);
-const lineMat=o=>new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending});
+const LM=[],lineMat=o=>{const m=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending});m.userData.b=o;LM.push(m);return m};
 const attr=(g,n,a,s=1)=>g.setAttribute(n,new THREE.Float32BufferAttribute(a,s));
 const lp=(a,b,t)=>a.clone().lerp(b,t),bz=(a,c,b,t)=>lp(lp(a,c,t),lp(c,b,t),t);
 const cord=t=>V(0,-.3-1.6*t,-.2-.28*t+.06*Math.sin(t*5));
 const SEG=16,NP=760,NMAX=2400,CORT=200,WN=1400,RN=220;
-const RGB=h=>h<0?[1,1,1]:h<.34?[.35,.85,1]:h<.67?[.66,.55,1]:[1,.72,.32];
+const RGB=h=>h>1?[1,.3,.65]:h<0?[1,1,1]:h<.34?[.35,.85,1]:h<.67?[.66,.55,1]:[1,.72,.32];
 const pk=()=>{const r=Math.random();return r<.55?.1:r<.8?.5:.9};
 
 /* ===== Fibres : un seul tampon GPU, recyclé en continu ===== */
@@ -576,6 +741,77 @@ function rebuild(){
   $('#stats').innerHTML=`<div>${N.length} notes</div><div>${E.length} liens</div><div>${cellE.length} cellules</div><div id="nf"></div><div>synchro : ${store.get('sync')||'jamais'}</div>`}
 const load=()=>{setNotes();rebuild()};
 
+/* ===== Colonne vertébrale en fibres : apparaît quand on dézoome (molette) ===== */
+let TR=1;
+const spineG=new THREE.Group(),spL=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}),
+ trP=new THREE.PointsMaterial({size:.014,color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}),
+ spP=new THREE.PointsMaterial({size:.025,color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});
+{const NV=20,sc=t=>V(0,-1.95-1.55*t,-.54+.2*Math.sin(t*4.2)-.06*t),
+  fr=t=>{const c=sc(t),ey=sc(Math.min(1,t+.01)).sub(sc(Math.max(0,t-.01))).normalize(),ex=V(1,0,0),ez=V().crossVectors(ey,ex).normalize();return{c,ex,ey,ez,r:.05+.07*Math.pow(t,.8)}},
+  seg=[],pts=[],J=(p,j=.008)=>p.add(rv().multiplyScalar(j)),
+  at=(f,a,k=1,y=0)=>f.c.clone().addScaledVector(f.ex,Math.cos(a)*f.r*k).addScaledVector(f.ez,Math.sin(a)*f.r*k*.8).addScaledVector(f.ey,y),
+  L=(a,b)=>seg.push(J(a.clone()),J(b.clone()));
+ for(let i=0;i<NV;i++){const f=fr(i/(NV-1)),h=.028; /* corps de la vertèbre : 3 anneaux de fibres reliés */
+  for(const y of[h,0,-h])for(let a=0;a<18;a++)L(at(f,a/18*6.2832,1,y),at(f,(a+1)/18*6.2832,1,y));
+  for(let a=0;a<12;a++){const u=a/12*6.2832;L(at(f,u,1,h),at(f,u,1,-h))}
+  const ca=f.c.clone().addScaledVector(f.ez,-f.r*.75); /* arc neural, épine et apophyses transverses */
+  for(let a=0;a<12;a++){const u=a/12*6.2832,w=(a+1)/12*6.2832,g=x=>ca.clone().addScaledVector(f.ex,Math.cos(x)*f.r*.32).addScaledVector(f.ez,Math.sin(x)*f.r*.32);L(g(u),g(w))}
+  const b0=ca.clone().addScaledVector(f.ez,-f.r*.3),tip=f.c.clone().addScaledVector(f.ez,-f.r*(1.9+.4*i/NV)).addScaledVector(f.ey,-.06);L(b0,tip);L(b0.clone().addScaledVector(f.ey,.012),tip);
+  for(const s of[-1,1]){const e=f.c.clone().addScaledVector(f.ex,s*f.r*(2+.5*i/NV)).addScaledVector(f.ez,-f.r*.5);L(f.c.clone().addScaledVector(f.ex,s*f.r),e);L(ca,e);
+   if(i%2==0)L(e,e.clone().addScaledVector(f.ex,s*.1).addScaledVector(f.ey,-.08))}
+  }
+ for(let k=0;k<22;k++){const a=Math.random()*6.2832,ra=k<8,o=rv().multiplyScalar(.012),ph=Math.random()*6;let p=null; /* longues fibres : ligament avant (8) et moelle dans le canal (14) */
+  for(let n=0;n<=60;n++){const f=fr(n/60),q=(ra?at(f,a,1.04,0):f.c.clone().addScaledVector(f.ez,-f.r*.75).addScaledVector(f.ex,Math.cos(ph)*f.r*.12).addScaledVector(f.ez,Math.sin(ph)*f.r*.12)).add(o);if(p)seg.push(p,q);p=q}}
+ /* torse en petits points : cage thoracique, sternum, clavicules, bassin, puis contour de la peau */
+ const tj=p=>p.add(rv().multiplyScalar(.005)),Rxi=i=>.45+.4*Math.sin(Math.PI*Math.min(1,(i+1.5)/13)),skin=[];
+ for(let i=0;i<12;i++){const f=fr(i/(NV-1)),Rx=Rxi(i),Rz=Rx*.45,end=Math.PI-(i<7?.05:.5+.03*(i-7));
+  for(const s of[-1,1])for(let n=0;n<=28;n++){const ph=.12+(end-.12)*n/28;
+   pts.push(tj(f.c.clone().addScaledVector(f.ex,s*(f.r+(Rx-f.r)*Math.sin(ph))).addScaledVector(f.ez,Rz*(.9-Math.cos(ph))).addScaledVector(f.ey,-.14*n/28)))}}
+ for(let m=0;m<=40;m++){const i=m/40*7,f=fr(i/(NV-1)),Rz=Rxi(i)*.45;for(const x of[-.02,0,.02])pts.push(tj(f.c.clone().addScaledVector(f.ex,x).addScaledVector(f.ez,Rz*1.9).addScaledVector(f.ey,-.14)))}
+ const f0=fr(0),st=f0.c.clone().addScaledVector(f0.ez,Rxi(0)*.45*1.9).addScaledVector(f0.ey,.02);
+ for(const s of[-1,1]){const sh=f0.c.clone().addScaledVector(f0.ex,s*1.3).addScaledVector(f0.ez,.3).addScaledVector(f0.ey,.03);
+  for(let n=0;n<=30;n++){const u=n/30;pts.push(tj(lp(st,sh,u).addScaledVector(f0.ez,-.12*Math.sin(u*Math.PI)).addScaledVector(f0.ey,.03*Math.sin(u*Math.PI))))}
+  for(let n=0;n<40;n++)pts.push(sh.clone().add(rv().multiplyScalar(.07*Math.cbrt(Math.random()))))}
+ const fp=fr(1);
+ for(const s of[-1,1]){for(let n=0;n<=30;n++){const u=n/30,w=Math.sin(u*Math.PI*.85);
+   pts.push(tj(fp.c.clone().addScaledVector(fp.ex,s*(.15+.65*w)).addScaledVector(fp.ey,-.03-.14*Math.sin(u*Math.PI)).addScaledVector(fp.ez,.55*u)));
+   pts.push(tj(fp.c.clone().addScaledVector(fp.ex,s*(.12+.48*w)).addScaledVector(fp.ey,-.2-.1*Math.sin(u*Math.PI)).addScaledVector(fp.ez,.45*u)))}}
+ for(let n=0;n<50;n++){const u=Math.random(),x=(Math.random()*2-1)*.1*(1-u);pts.push(tj(fp.c.clone().addScaledVector(fp.ex,x).addScaledVector(fp.ey,-.03-.2*u).addScaledVector(fp.ez,-.05-.05*u)))}
+ for(let k=0;k<=30;k++){const t=k/30,f=fr(t),w=(.78-.33*Math.sin(Math.min(1,t/.6)*Math.PI/2)+(t>.6?.14*Math.pow((t-.6)/.4,1.5):0))*1.6,dz=.5*(1.9*.45*Math.max(.66,Rxi(t*19))*1.1+.28);
+  for(let a=0;a<54;a++){const th=a/54*6.2832;skin.push(tj(f.c.clone().addScaledVector(f.ex,w*Math.cos(th)).addScaledVector(f.ez,dz*(1+Math.sin(th))-.28)))}}
+ const sl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),spL),sp2=new THREE.Points(new THREE.BufferGeometry().setFromPoints(pts),spP),sk2=new THREE.Points(new THREE.BufferGeometry().setFromPoints(skin),trP);
+ sl.frustumCulled=sp2.frustumCulled=sk2.frustumCulled=false;brain.add(spineG)}
+
+/* ===== Cube central : animé, il ouvre les questions quand on clique dessus ===== */
+const cube=new THREE.Group(),cubeS={x:-99,y:-99,r:0,h:0,over:false};
+{const cm2=o=>new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending}),bx=new THREE.BoxGeometry(.36,.36,.36),ob=new THREE.LineSegments(new THREE.EdgesGeometry(bx),cm2(.95)),ib=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.2,.2)),cm2(1)),
+ fm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+ ob.material.color.set(0xff2020);ib.material.color.set(0xff7a45);fm.color.set(0xff1010);ob.add(new THREE.Mesh(bx,fm));cube.add(ob,ib);cube.userData={ob,ib};brain.add(cube)}
+function cubeFrame(t,dt){const{ob,ib}=cube.userData,W=innerWidth,H=innerHeight;
+  ob.rotation.set(t*.55,t*.8,t*.3);ib.rotation.set(-t*.77,-t*1.12,-t*.42);cube.position.y=Math.sin(t*1.6)*.04;
+  cubeS.h+=((cubeS.over?1:0)-cubeS.h)*Math.min(1,dt*10);cube.scale.setScalar(1+.07*Math.sin(t*3)+.35*cubeS.h);
+  v3.copy(cube.position).applyMatrix4(brain.matrixWorld).project(cam);v4.set(.3,0,0).add(cube.position).applyMatrix4(brain.matrixWorld).project(cam);
+  cubeS.x=(v3.x+1)/2*W;cubeS.y=(1-v3.y)/2*H;cubeS.r=Math.hypot((v4.x-v3.x)*W/2,(v4.y-v3.y)*H/2)+14;
+  cubeS.over=!drag&&Math.hypot(ptr.x-cubeS.x,ptr.y-cubeS.y)<cubeS.r;
+  scanM.opacity+=((srch?.45+.3*Math.sin(t*10):0)-scanM.opacity)*Math.min(1,dt*8);if(srch&&Math.random()<.4)fire(srch.ci[Math.random()*srch.ci.length|0],t,2);
+  const fz=Math.max(0,Math.min(1,(zf-1.1)/.6));spL.opacity=.55*fz*TR;spP.opacity=.9*fz*TR;trP.opacity=.5*fz*TR;spineG.visible=fz>.01}
+/* ===== Recherche du chatbot : elle prend du temps et s’affiche en rose dans la zone du cerveau explorée ===== */
+const REG=[['tout le cerveau',()=>1],['lobe pariétal (haut)',c=>c.y>.2],['lobes temporaux (côtés)',c=>Math.abs(c.x)>.42&&c.y<.25],['lobe frontal (avant)',c=>c.z>.35],['lobe occipital (arrière)',c=>c.z<-.3]],
+ SAMP=[...Array(500)].map(()=>shell(rv(),.96)),
+ scanM=new THREE.PointsMaterial({size:.07,color:0xff4fa3,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}),
+ scanP=new THREE.Points(new THREE.BufferGeometry(),scanM);
+scanP.frustumCulled=false;brain.add(scanP);
+let srch=null,busyQ=false;
+function think(si,fn){if(busyQ)return;busyQ=true;$('#qp').hidden=true;
+  const[nm,pr]=REG[si]||REG[0],all=[...Array(CORT).keys()],ci=all.filter(i=>pr(cellP[i])),pts=SAMP.filter(pr);
+  scanP.geometry.setFromPoints(pts.length?pts:SAMP);srch={ci:ci.length?ci:all};
+  say('Synapse cherche… zone explorée : '+nm,1);
+  setTimeout(()=>{srch=null;busyQ=false;fn()},1500+Math.min(N.length*10,1500)+Math.random()*700)}
+const openQ=()=>{$('#qp').hidden=false;$('#ans').hidden=true;drawMenu()};
+$('#qx').onclick=()=>$('#qp').hidden=true;
+const applyTR=()=>LM.forEach(m=>m.opacity=m.userData.b*TR);
+$('#tr').oninput=e=>{TR=e.target.value/100;if(currentUser)store.set('tr',TR);applyTR()};
+
 /* ---------- Boucle de rendu ---------- */
 const v3=V(0,0,0),v4=V(0,0,0);
 let S=1,D=10,zf=1,rot={x:.35,y:-.6},tgt=null,drag=null,ptr={x:-99,y:-99},hov=-1,sp=[];
@@ -590,13 +826,13 @@ function initFx(){pr=R.getPixelRatio();if(!(THREE.EffectComposer&&THREE.UnrealBl
 function size(){R.setSize(innerWidth,innerHeight,false);if(comp)comp.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();U.uPx.value=R.getPixelRatio()}
 function frame(){
   const raw=clock.getDelta(),dt=Math.min(raw,.05),t=clock.elapsedTime,k=1-Math.exp(-dt*3.2),k2=1-Math.exp(-dt*7),k4=1-Math.exp(-dt*14);adapt(raw,t);
-  U.uFade.value+=(1-U.uFade.value)*Math.min(1,dt*.9);
+  U.uFade.value+=(TR-U.uFade.value)*Math.min(1,dt*.9);
   S+=((3.2+1.3*Math.cbrt(N.length))-S)*Math.min(1,dt*1.4);brain.scale.setScalar(S);
   if(tgt!=null){let d=tgt-rot.y;rot.y+=Math.atan2(Math.sin(d),Math.cos(d))*k;rot.x+=(.15-rot.x)*k}
   else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*.08}iv.x*=Math.exp(-dt*3.5);iv.y*=Math.exp(-dt*3.5)}
   brain.rotation.set(rot.x,rot.y,0);
   brain.position.x+=((isOpen&&innerWidth>900?-S*.3:0)-brain.position.x)*k;
-  D+=((S*1.55*zf*Math.max(1,1.5/cam.aspect))-D)*k;U.uN.value=D-S;U.uW.value=2*S;U.uT.value=t;cam.position.set(reduce?0:Math.sin(t*.15)*S*.03,reduce?0:Math.sin(t*.11)*S*.025,D);cam.lookAt(0,0,0);
+  D+=((S*1.55*zf*Math.max(1,1.5/cam.aspect))-D)*k;U.uN.value=D-S;U.uW.value=2*S;U.uT.value=t;const cy=-Math.max(0,zf-1)*S*.7;cam.position.set(reduce?0:Math.sin(t*.15)*S*.03,cy+(reduce?0:Math.sin(t*.11)*S*.025),D);cam.lookAt(0,cy,0);
   brain.updateMatrixWorld();cam.updateMatrixWorld();cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
   const W=innerWidth,H=innerHeight,aS=nodes.geometry.attributes.aS,aA=nodes.geometry.attributes.aA;
   hov=drag?-1:pick(ptr.x,ptr.y);if(hv.length!=N.length){hv=N.map(()=>0);dmv=N.map(()=>0);lo=N.map(()=>0)}
@@ -608,18 +844,18 @@ function frame(){
     aA.array[i]=(BR[n.dir]??.7)*(1-.85*dmv[i])*(1+.6*hv[i]);
     if(lb[i]){lb[i].style.transform=`translate(${sp[i].x+10}px,${sp[i].y-7}px)`;
       lo[i]+=((e<.3?0:focus?(dm?.1:1):hov==i?1:Math.max(.1,Math.min(.9,1.15-(dep-(D-S))/(2*S)*1.1)))-lo[i])*k2;lb[i].style.opacity=lo[i].toFixed(3)}});
-  aS.needsUpdate=aA.needsUpdate=true;netFrame(t,dt);
-  cv.style.cursor=hov>=0?'pointer':drag?'grabbing':'grab';
+  aS.needsUpdate=aA.needsUpdate=true;netFrame(t,dt);cubeFrame(t,dt);
+  cv.style.cursor=cubeS.over||hov>=0?'pointer':drag?'grabbing':'grab';
   comp?comp.render(dt):R.render(scene,cam)}
 
 /* ---------- Interactions ---------- */
 cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,m:0};ptr={x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId);tgt=null;iv.x=iv.y=0};
 cv.onpointermove=e=>{ptr={x:e.clientX,y:e.clientY};if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);
   rot.y+=dx*.006;rot.x=Math.max(-1,Math.min(1,rot.x+dy*.004));iv.y=dx*.006;iv.x=dy*.004;lm=performance.now();drag.x=e.clientX;drag.y=e.clientY}};
-cv.onpointerup=e=>{if(performance.now()-lm>90)iv.x=iv.y=0;if(drag&&drag.m<6){const i=pick(e.clientX,e.clientY);if(i>=0)location.hash=N[i].id}drag=null};
-cv.onwheel=e=>{e.preventDefault();zf=Math.max(.55,Math.min(1.5,zf*(1+e.deltaY*.001)))};
+cv.onpointerup=e=>{if(performance.now()-lm>90)iv.x=iv.y=0;if(drag&&drag.m<6){if(Math.hypot(e.clientX-cubeS.x,e.clientY-cubeS.y)<cubeS.r)openQ();else{const i=pick(e.clientX,e.clientY);if(i>=0)location.hash=N[i].id}}drag=null};
+cv.onwheel=e=>{e.preventDefault();zf=Math.max(.55,Math.min(3,zf*(1+e.deltaY*.001)))};
 
-function open(id){const n=byKey[id.toLowerCase()];if(!n)return close();
+function open(id){const n=byKey[id.toLowerCase()];if(!n)return close();learn(n);
   $('#nt').innerHTML=`<h1>${esc(n.title)}</h1><dl class="props"><dt>Type</dt><dd>${esc(n.type)}</dd><dt>Statut</dt><dd>${esc(n.status)}</dd><dt>Date</dt><dd>${esc(n.date)}</dd><dt>Tags</dt><dd>${n.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</dd></dl>`
     +md(n.body)+(n.back.length?`<h2>Liens entrants</h2><ul>${n.back.map(b=>`<li><a class="wl" href="#${b.id}">${esc(b.title)}</a></li>`).join('')}</ul>`:'');
   {const nt=$('#nt');nt.classList.remove('sw');void nt.offsetWidth;nt.classList.add('sw')}$('#pn').classList.add('on');$('#pn').scrollTo(0,0);isOpen=true;
@@ -628,7 +864,7 @@ function close(){$('#pn').classList.remove('on');isOpen=false;focus=null;tgt=nul
   if(location.hash)history.replaceState(null,'',location.pathname+location.search)}
 const route=()=>{const h=decodeURIComponent(location.hash.slice(1));h?open(h):close()};
 addEventListener('hashchange',route);
-addEventListener('keydown',e=>{if(e.key=='Escape'){close();$('#ans').hidden=true}});
+addEventListener('keydown',e=>{if(e.key=='Escape'){close();$('#ans').hidden=true;$('#qp').hidden=true}});
 $('#x').onclick=close;
 $('#s').oninput=e=>{const q=e.target.value.trim().toLowerCase();
   focus=q?new Set(N.filter(n=>(n.title+' '+n.tags.join(' ')+' '+n.body).toLowerCase().includes(q)).map(n=>n.id)):null};
@@ -636,62 +872,12 @@ $('#s').onkeydown=e=>{if(e.key=='Enter'&&focus&&focus.size)location.hash=[...foc
 
 /* ---------- Réglages, nouvelles notes, synchro ---------- */
 document.querySelectorAll('.cl').forEach(b=>b.onclick=()=>b.closest('dialog').close());
-/* ---------- Agents IA : plusieurs fournisseurs, rôles, bascule automatique ---------- */
-const PV={
- anthropic:{n:'Claude (Anthropic)',t:'a',m:MODEL},
- openai:{n:'OpenAI',t:'o',u:'https://api.openai.com/v1',m:'gpt-4o-mini',mt:'max_completion_tokens'},
- gemini:{n:'Google Gemini (palier gratuit)',t:'g',m:'gemini-2.5-flash'},
- groq:{n:'Groq (palier gratuit)',t:'o',u:'https://api.groq.com/openai/v1',m:'llama-3.3-70b-versatile'},
- openrouter:{n:'OpenRouter (modèles gratuits)',t:'o',u:'https://openrouter.ai/api/v1',m:'meta-llama/llama-3.3-70b-instruct:free'},
- mistral:{n:'Mistral',t:'o',u:'https://api.mistral.ai/v1',m:'mistral-small-latest'},
- ollama:{n:'Ollama (local, gratuit)',t:'o',u:'http://localhost:11434/v1',m:'llama3.2',nk:1},
- custom:{n:'Autre (compatible OpenAI)',t:'o',u:'',m:''}};
-const short=p=>PV[p].n.replace(/ \(.*\)/,'');
-const escA=v=>esc(String(v==null?'':v)).replace(/"/g,'&quot;');
-const mkAgent=(pv,o={})=>({id:'a'+Math.random().toString(36).slice(2,8),pv,name:short(pv),model:PV[pv].m,url:PV[pv].u||'',key:'',role:'',on:true,...o});
-if(!cfg.agents){const ks=cfg.keys||(cfg.key?[cfg.key]:[]);cfg.agents=ks.map((k,i)=>mkAgent('anthropic',{key:k,name:'Claude '+(i+1)}));store.set('cfg',cfg)}
-const agents=()=>(cfg.agents||[]).filter(a=>a.on!==false&&!bad.has(a.id)&&(a.key||(PV[a.pv]||{}).nk));
-
-let dr=[];
-const PVOPT=Object.entries(PV).map(([k,v])=>`<option value="${k}">${esc(v.n)}</option>`).join('');
-$('#apv').innerHTML=PVOPT;
-function drawAg(){$('#al').innerHTML=dr.length?dr.map((a,i)=>{const P=PV[a.pv]||PV.custom;return`<div class="ag${a.on===false?' off':''}" data-i="${i}">
-<div class="agh"><input class="an" data-f="name" value="${escA(a.name)}" placeholder="Nom de l’agent" aria-label="Nom de l’agent"><select data-f="pv" aria-label="Fournisseur">${PVOPT.replace('value="'+a.pv+'"','value="'+a.pv+'" selected')}</select><button type="button" data-x aria-label="Supprimer l’agent">×</button></div>
-<input data-f="model" value="${escA(a.model)}" placeholder="Modèle" aria-label="Modèle">
-${P.nk?'':`<input data-f="key" type="password" autocomplete="off" value="${escA(a.key)}" placeholder="Clé API" aria-label="Clé API">`}
-${P.t=='o'?`<input data-f="url" value="${escA(a.url)}" placeholder="URL de base de l’API" aria-label="URL de base de l’API">`:''}
-<textarea data-f="role" rows="2" placeholder="Rôle (facultatif) : par exemple relecteur critique, ou coach d’étude" aria-label="Rôle">${esc(a.role||'')}</textarea>
-${a.pv=='ollama'?'<p class="hint">Ollama doit tourner sur ton ordinateur et accepter cette page (variable OLLAMA_ORIGINS). Certains navigateurs bloquent cette connexion.</p>':''}
-<div class="agt"><button type="button" data-t>Tester la connexion</button><span class="hint" data-r></span></div>
-<label class="chk"><input type="checkbox" data-f="on"${a.on===false?'':' checked'}> Actif</label></div>`}).join(''):'<p class="hint">Aucun agent pour l’instant. Choisis un fournisseur ci-dessous.</p>'}
-$('#al').addEventListener('input',e=>{const r=e.target.closest('.ag'),f=e.target.dataset.f;if(!r||!f)return;const a=dr[r.dataset.i];
-  if(f=='on'){a.on=e.target.checked;r.classList.toggle('off',!a.on)}
-  else if(f=='pv'){if(a.name==short(a.pv))a.name=short(e.target.value);a.pv=e.target.value;a.model=PV[a.pv].m;a.url=PV[a.pv].u||'';drawAg()}
-  else a[f]=e.target.value});
-$('#al').onclick=async e=>{const x=e.target.closest('[data-x]');if(x){dr.splice(+x.closest('.ag').dataset.i,1);drawAg();return}
-  const t=e.target.closest('[data-t]');if(!t)return;const row=t.closest('.ag'),a=dr[+row.dataset.i],out=row.querySelector('[data-r]');
-  if(!ck(a.key)&&!(PV[a.pv]||{}).nk){out.textContent='Colle d’abord ta clé API.';return}
-  t.disabled=true;out.textContent='Test en cours…';
-  try{await callAgent(a,'Réponds uniquement par OK.',[{role:'user',content:'Test'}],64);out.textContent='Connexion réussie.'}
-  catch(err){out.textContent='Échec : '+err.message}
-  t.disabled=false};
-$('#aadd').onclick=()=>{dr.push(mkAgent($('#apv').value));drawAg();const l=$('#al').lastElementChild;if(l)l.scrollIntoView({block:'nearest',behavior:'smooth'})};
-$('#bcfg').onclick=()=>{dr=JSON.parse(JSON.stringify(cfg.agents||[]));drawAg();$('#rp').value=cfg.repo||'';$('#dr').value=cfg.dir||'';$('#dc').showModal()};
-$('#fc').onsubmit=()=>{cfg={agents:dr.filter(a=>(a.name||'').trim()||a.key).map(a=>({...a,name:(a.name||'').trim()||short(a.pv),model:(a.model||'').trim(),key:(a.key||'').trim(),url:(a.url||'').trim(),role:(a.role||'').trim()})),repo:$('#rp').value.trim(),dir:$('#dr').value.trim()};bad.clear();store.set('cfg',cfg);fillAg()};
-function fillAg(){const s=$('#ag'),cur=s.value||store.get('ag')||'auto',L=(cfg.agents||[]).filter(a=>a.on!==false);
-  s.innerHTML='<option value="auto">Auto</option>'+L.map(a=>`<option value="${escA(a.id)}">${esc(a.name)}</option>`).join('')+(L.length>1?'<option value="*">Tous</option>':'');
-  s.value=[...s.options].some(o=>o.value==cur)?cur:'auto'}
-$('#ag').onchange=e=>store.set('ag',e.target.value);
+$('#bcfg').onclick=()=>{$('#rp').value=cfg.repo||'';$('#dr').value=cfg.dir||'';$('#dc').showModal()};
+$('#fc').onsubmit=()=>{cfg={repo:$('#rp').value.trim(),dir:$('#dr').value.trim()};store.set('cfg',cfg)};
 
 /* ---------- Cellules : raccourcis que tu remplis comme tu veux ---------- */
-const KD={link:'Adresse du site, par exemple https://…',note:'Titre ou identifiant d’une note du coffre',text:'Ce que tu veux : Markdown et [[liens]] acceptés',prompt:'Question envoyée à tes agents en un clic'};
-let cells=store.get('cells');
-if(!Array.isArray(cells))cells=[
- {sign:'⌂',name:'Accueil',kind:'note',val:'accueil'},
- {sign:'Σ',name:'Résumé',kind:'prompt',val:'Résume mon coffre en 5 points et propose la prochaine action.'},
- {sign:'✦',name:'Mémo',kind:'text',val:'Écris ici ce que tu veux : listes, liens, idées.\n\n- [ ] première tâche'},
- {sign:'↗',name:'GitHub',kind:'link',val:'https://github.com'}];
-let editMode=false,ek=-1;
+const KD={link:'Adresse du site, par exemple https://…',note:'Titre ou identifiant d’une note du coffre',text:'Ce que tu veux : Markdown et [[liens]] acceptés',prompt:'Mots d’une question du chatbot, par exemple « tâches à faire »'};
+let cells=null,editMode=false,ek=-1;
 const safeUrl=v=>{v=(v||'').trim();if(/^(https?:\/\/|mailto:)/i.test(v))return v;return /^[\w-]+(\.[\w-]+)+(\/|$|\?|#)/.test(v)?'https://'+v:''};
 const saveCells=()=>store.set('cells',cells);
 function mkCell(tag,cls,sg,nm,t){const el=document.createElement(tag),s1=document.createElement('span'),s2=document.createElement('span');
@@ -704,7 +890,7 @@ function drawDock(){const d=$('#dock');d.textContent='';
   add.onclick=()=>editCell(-1);tg.setAttribute('aria-pressed',editMode);tg.onclick=()=>{editMode=!editMode;drawDock();$('#dock .tool').focus()};d.append(add,tg)}
 function runCell(c){const v=c.val||'';
   if(c.kind=='note'){const n=byKey[v.trim().toLowerCase()];n?location.hash=n.id:say('Note introuvable : '+v)}
-  else if(c.kind=='prompt'){$('#q').value=v;$('#ask').requestSubmit()}
+  else if(c.kind=='prompt'){const m=best(v);m?runQ(m):($('#q').value=v,$('#ask').requestSubmit())}
   else if(c.kind=='text'){$('#dvt').textContent=c.name;$('#dvb').innerHTML=md(v);$('#dv').showModal()}}
 $('#dvb').onclick=e=>{if(e.target.closest('a'))$('#dv').close()};
 const kHint=()=>{$('#kh').textContent=KD[$('#kkd').value]};
@@ -733,82 +919,105 @@ $('#bsync').onclick=async()=>{
   }catch(e){say('Synchronisation impossible : '+e.message)}
   b.textContent='Synchroniser';b.disabled=false};
 
-/* ---------- Appel des IA : Claude, Gemini et tout service compatible OpenAI ---------- */
-let rr=0;const bad=new Set();
-const hd=(r,d)=>{const m=d&&(typeof d.error=='string'?d.error:d.error&&d.error.message)||d&&d.message,e=new Error(m||('erreur '+r.status));e.status=r.status;return e};
-const ck=k=>String(k||'').replace(/[^\x21-\x7E]/g,'').replace(/^["'`]+|["'`]+$/g,'');
-async function callAgent(a,system,messages,max){
-  const P=PV[a.pv]||PV.custom,key=ck(a.key),sys=a.role?system+'\n\nRôle de cet agent : '+a.role:system;let r,d;
-  try{
-    if(P.t=='a'){
-      r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:a.model||MODEL,max_tokens:max,system:sys,messages})});
-      d=await r.json().catch(()=>null);if(!r.ok)throw hd(r,d);
-      return((d&&d.content)||[]).map(b=>b.text||'').join('')}
-    if(P.t=='g'){
-      r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(String(a.model).replace(/^models\//,''))+':generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:messages.map(m=>({role:m.role=='assistant'?'model':'user',parts:[{text:m.content}]})),generationConfig:{maxOutputTokens:Math.min(max*4,8192)}})});
-      d=await r.json().catch(()=>null);if(!r.ok)throw hd(r,d);
-      const c=d&&d.candidates&&d.candidates[0];return((c&&c.content&&c.content.parts)||[]).map(p=>p.text||'').join('')}
-    const base=(a.url||P.u||'').replace(/\/+$/,'');if(!base)throw new Error('URL de base manquante');
-    r=await fetch(base+'/chat/completions',{method:'POST',headers:{'content-type':'application/json',...(key?{authorization:'Bearer '+key}:{})},body:JSON.stringify({model:a.model,[P.mt||'max_tokens']:max,messages:[{role:'system',content:sys},...messages]})});
-    d=await r.json().catch(()=>null);if(!r.ok)throw hd(r,d);
-    const c=d&&d.choices&&d.choices[0];return(c&&c.message&&c.message.content)||''
-  }catch(e){if(e instanceof TypeError)e.message=/header|ISO-8859|invalid/i.test(e.message)?'la clé contient un caractère invalide : recopie-la sans espace ni guillemets':'connexion bloquée ('+e.message+') : bloqueur de pub, VPN ou pare-feu, URL fausse, ou page ouverte dans un aperçu ou un fichier local qui bloque les appels externes';throw e}}
-/* choisit un agent (tour de rôle ou imposé), bascule sur le suivant en cas d’échec */
-async function ai(system,messages,max=1024,pref,one){
-  const L=one?[one]:agents();if(!L.length)throw new Error('aucun agent actif, ajoute-en dans les réglages');
-  const s=pref==null?rr++:pref;let err;
-  for(let n=0;n<L.length;n++){const a=L[(s+n)%L.length];
-    try{const text=await callAgent(a,system,messages,max);if(!text.trim())throw new Error('réponse vide');return{text,agent:a}}
-    catch(e){err=new Error(a.name+' : '+e.message);if(e.status==401||e.status==403)bad.add(a.id)}}
-  throw err}
-const vaultCtx=()=>N.map(n=>`## ${n.title} [[${n.id}]] (${n.dir}; ${n.tags.join(', ')})\n${n.body.slice(0,1200)}`).join('\n\n').slice(0,70000);
-const SYS='Tu es l’assistant d’un coffre Obsidian d’ingénieur. Réponds en français, de façon concise, en t’appuyant sur les notes ci-dessous. Cite chaque note utilisée avec son lien exact, par exemple [[aero-base]]. Si les notes ne contiennent pas la réponse, dis-le.\n\n';
-$('#ask').onsubmit=async e=>{e.preventDefault();const q=$('#q').value.trim();if(!q)return;
-  const L=agents();if(!L.length){say('Ajoute au moins un agent IA dans les réglages pour discuter.');return $('#bcfg').click()}
-  const sel=$('#ag').value,one=sel!='auto'&&sel!='*'?(cfg.agents||[]).find(x=>x.id==sel):null,
-    msgs=[...hist,{role:'user',content:q}],sys=SYS+vaultCtx();
-  say(sel=='*'?'Tes agents lisent ton coffre…':'Lecture du coffre…',1);$('#q').value='';
-  try{let html,ans,foc;
-    if(sel=='*'){const rs=await Promise.allSettled(L.map(x=>ai(sys,msgs,1024,0,x))),ok=rs.filter(r=>r.status=='fulfilled');
-      if(!ok.length)throw rs[0].reason;
-      html=rs.map((r,i)=>`<h2>${esc(L[i].name)}</h2>`+(r.status=='fulfilled'?md(r.value.text):`<p class="dead">${esc(r.reason.message)}</p>`)).join('');
-      ans=ok[0].value.text;foc=ok.map(r=>r.value.text).join('\n')}
-    else{const r=await ai(sys,msgs,1024,null,one||undefined);ans=foc=r.text;html=md(ans)+`<div class="by">${esc(r.agent.name)}</div>`}
-    hist=[...hist,{role:'user',content:q},{role:'assistant',content:ans}].slice(-10);
-    const box=$('#ans');box.classList.remove('busy');box.hidden=false;box.innerHTML=html;
-    const ids=[...foc.matchAll(/\[\[([^\]|#]+)/g)].map(m=>(byKey[m[1].trim().toLowerCase()]||{}).id).filter(Boolean);
-    if(ids.length){focus=new Set(ids);setTimeout(()=>{if(!isOpen&&!$('#s').value)focus=null},8000)}
-  }catch(err){say('Erreur : '+err.message);$('#q').value=q}};
+/* ---------- Plasticité : le cerveau se modifie seul, par règles simples (aucune IA), en temps réel ---------- */
+let syn={},lastOpen=null,lastT=0;
+const sk=(a,b)=>a<b?a+'|'+b:b+'|'+a;
+/* 1) un lien [[vers une note absente]] fait naître une note à compléter (jamais enregistrée : elle disparaît dès que tu écris la vraie) */
+function stubs(){const m={};N.filter(n=>n.type!='template').forEach(n=>[...n.body.matchAll(/\[\[([^\]|#]+)/g)].forEach(x=>{const t=x[1].trim(),k=t.toLowerCase();if(!byKey[k])(m[k]=m[k]||{t,by:new Set()}).by.add(n.title)}));
+  Object.values(m).forEach(({t,by})=>{const n={id:slug(t)||'note-'+N.length,dir:'00_Inbox',title:t,type:'capture',status:'inbox',date:new Date().toISOString().slice(0,10),tags:['auto'],auto:1,body:'Note créée par le cerveau : '+[...by].map(x=>`[[${x}]]`).join(', ')+' la citent, mais elle n’existait pas. À compléter.'};N.push(n);[n.id,n.title].forEach(k=>byKey[k.toLowerCase()]=n)})}
+/* 2) deux notes qui partagent au moins 2 tags se relient (3 liens max par note) ; 3) deux notes que tu ouvres 3 fois de suite se relient */
+function plastic(){N.forEach(n=>n.ext={});
+  const add=(a,b,w)=>{if(a&&b&&a!==b&&!a.links.includes(b.id)&&!b.links.includes(a.id)){a.links.push(b.id);a.ext[b.id]=w;return 1}};
+  for(const k in syn)if(syn[k]>=3){const[x,y]=k.split('|');add(byKey[x],byKey[y],'appris')}
+  const R=lite(),c={};
+  for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){const a=R[i],b=R[j];if((c[a.id]||0)>2||(c[b.id]||0)>2)continue;
+    if(a.tags.filter(t=>t!='auto'&&b.tags.includes(t)).length>1&&add(a,b,'tags')){c[a.id]=(c[a.id]||0)+1;c[b.id]=(c[b.id]||0)+1}}}
+function learn(n){const t=Date.now();
+  if(lastOpen&&lastOpen!==n.id&&t-lastT<120000){const k=sk(lastOpen,n.id);syn[k]=(syn[k]||0)+1;store.set('syn',syn);if(syn[k]==3)setTimeout(load,0)}
+  lastOpen=n.id;lastT=t}
+/* ---------- Chatbot : séries de questions prédéfinies (tout est calculé ici : ni IA, ni clé, aucun envoi de données) ---------- */
+const lk=n=>`[[${n.id}|${n.title.replace(/[\[\]|]/g,' ')}]]`,dirOf=n=>n.dir||'racine',deg=n=>n.links.length+n.back.length,
+ nw=n=>(n.body.match(/\S+/g)||[]).length,pl=(k,s,p)=>k+' '+(k>1?p||s+'s':s),
+ ls=(a,f,m=25)=>a.length?a.slice(0,m).map(x=>'- '+f(x)).join('\n')+(a.length>m?`\n- … et ${a.length-m} autres`:''):'Aucune.',
+ tally=(a,f)=>Object.entries(a.reduce((o,x)=>{const k=f(x)||'—';o[k]=(o[k]||0)+1;return o},{})).sort((x,y)=>y[1]-x[1]||x[0].localeCompare(y[0])),
+ real=()=>N.filter(n=>n.type!='template'),
+ lite=()=>N.filter(n=>!['template','daily','dashboard'].includes(n.type)),
+ tasks=done=>real().flatMap(n=>n.body.split('\n').map(l=>l.match(/^\s*[-*] \[( |x)\] (.*)/i)).filter(m=>m&&(m[1]!=' ')==done).map(m=>({n,t:m[2]}))),
+ broken=()=>real().flatMap(n=>[...n.body.matchAll(/\[\[([^\]|#]+)/g)].map(m=>m[1].trim()).filter(t=>!byKey[t.toLowerCase()]).map(t=>({n,t}))),
+ recent=()=>[...N].sort((a,b)=>(b.date||'').localeCompare(a.date||'')),
+ byDeg=()=>[...N].sort((a,b)=>deg(b)-deg(a)||a.title.localeCompare(b.title)),
+ plain=s=>s.replace(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g,(m,t,l)=>l||t).replace(/[#>*`]/g,'').replace(/\s+/g,' ').trim(),
+ suggest=()=>{const R=lite(),o=[];for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){const a=R[i],b=R[j],s=a.tags.filter(t=>b.tags.includes(t));if(s.length&&!a.links.includes(b.id)&&!b.links.includes(a.id))o.push({a,b,s})}return o.sort((x,y)=>y.s.length-x.s.length)},
+ detail=id=>{const n=byKey[id.toLowerCase()];return`**${n.title}** : ${[n.type,n.status,n.date].filter(Boolean).join(', ')||'note'}.\n\nTags : ${n.tags.join(', ')||'aucun'}.\n\n${plain(n.body).slice(0,260)}…\n\n**Liens sortants**\n${ls(n.links.map(i=>byKey[i]),lk)}\n\n**Liens entrants**\n${ls(n.back,lk)}`};
+const SERIES=[
+{sg:'◎',name:'Vue d’ensemble',qs:[
+ {q:'Résume le coffre',a:()=>{if(!N.length)return'Le coffre est vide.';const t=tally(N,dirOf),h=byDeg()[0];return`Le coffre contient **${pl(N.length,'note')}** et **${pl(E.length,'lien')}**, dans ${pl(t.length,'dossier')}.\n\n${ls(t,x=>x[0]+' : '+x[1])}\n\nNote la plus connectée : ${lk(h)} (${pl(deg(h),'lien')}).\n\nTâches à faire : **${tasks(false).length}**. Notes dans l’Inbox : **${N.filter(n=>n.dir=='00_Inbox').length}**.`}},
+ {q:'Combien de notes par dossier ?',a:()=>ls(tally(N,dirOf),x=>`${x[0]} : ${pl(x[1],'note')}`)},
+ {q:'Quels types et statuts de notes ?',a:()=>`**Types**\n${ls(tally(N,n=>n.type),x=>x.join(' : '))}\n\n**Statuts**\n${ls(tally(N,n=>n.status),x=>x.join(' : '))}`},
+ {q:'Quelles sont les notes les plus récentes ?',a:()=>ls(recent(),n=>`${lk(n)} : ${n.date||'sans date'}`,8)},
+ {q:'Quelles sont les notes les plus longues ?',a:()=>ls([...real()].sort((a,b)=>nw(b)-nw(a)),n=>`${lk(n)} : ${pl(nw(n),'mot')}`,8)}]},
+{sg:'⌖',name:'Navigation',qs:[
+ {q:'Quelles notes sont les plus connectées ?',a:()=>ls(byDeg(),n=>`${lk(n)} : ${pl(deg(n),'lien')}`,8)},
+ {q:'Quelles notes sont orphelines ?',a:()=>ls(real().filter(n=>!deg(n)),lk)},
+ {q:'Quelles notes le cerveau a-t-il créées ?',a:()=>ls(N.filter(n=>n.auto),lk)+'\n\nChaque lien [[vers une note absente]] fait naître une note à compléter dans l’Inbox. Écris-la pour qu’elle devienne une vraie note.'},
+ {q:'Ouvre une note au hasard',a:()=>{const R=real();if(!R.length)return'Le coffre est vide.';const n=R[Math.floor(Math.random()*R.length)];return`Tirée au hasard : ${lk(n)}.\n\n${plain(n.body).slice(0,200)}…`}},
+ {q:'Qu’a appris le cerveau ?',a:()=>{const ex=N.flatMap(n=>Object.entries(n.ext||{}).map(([i,w])=>({a:n,b:byKey[i],w}))),pe=Object.entries(syn).filter(x=>x[1]<3).map(([k,v])=>{const[x,y]=k.split('|');return{a:byKey[x],b:byKey[y],v}}).filter(x=>x.a&&x.b);return`**Liens créés par le cerveau**\n${ls(ex,x=>`${lk(x.a)} ↔ ${lk(x.b)} : ${x.w=='appris'?'tu passes souvent de l’une à l’autre':'au moins 2 tags en commun'}`)}\n\n**En cours d’apprentissage** (3 passages d’une note à l’autre créent le lien)\n${ls(pe,x=>`${lk(x.a)} ↔ ${lk(x.b)} : ${x.v}/3`)}`}},
+ {q:'Oublie ce que tu as appris',a:()=>{syn={};store.set('syn',syn);load();return'Mémoire d’apprentissage effacée : les liens appris ont disparu du graphe.'}},
+ {q:'Que sait-on d’une note précise ?',pick:()=>byDeg().map(n=>[n.title,n.id]),a:detail}]},
+{sg:'#',name:'Tags et dossiers',qs:[
+ {q:'Quels sont les tags les plus utilisés ?',a:()=>ls(tally(N.flatMap(n=>n.tags),t=>t),x=>`${x[0]} : ${pl(x[1],'note')}`,12)},
+ {q:'Quelles notes portent un tag précis ?',pick:()=>tally(N.flatMap(n=>n.tags),t=>t).map(x=>[x[0],x[0]]),a:t=>ls(N.filter(n=>n.tags.includes(t)),lk)},
+ {q:'Que contient un dossier précis ?',pick:()=>tally(N,dirOf).map(x=>[x[0],x[0]]),a:d=>ls(N.filter(n=>dirOf(n)==d),n=>`${lk(n)} : ${n.date||'sans date'}`)},
+ {q:'Quelles notes n’ont aucun tag ?',a:()=>ls(real().filter(n=>!n.tags.length),lk)}]},
+{sg:'☐',name:'Travail en cours',qs:[
+ {q:'Quelles tâches restent à faire ?',a:()=>ls(tasks(false),x=>`${lk(x.n)} : ${x.t}`,30)},
+ {q:'Quelles tâches sont terminées ?',a:()=>ls(tasks(true),x=>`${lk(x.n)} : ${x.t}`,30)},
+ {q:'Que contient l’Inbox ?',a:()=>ls(N.filter(n=>n.dir=='00_Inbox'||n.status=='inbox'),n=>`${lk(n)} : ${n.date||'sans date'}`)},
+ {q:'Quels projets sont en cours ?',a:()=>ls(N.filter(n=>n.type=='projet'||n.dir=='01_Projects'),n=>`${lk(n)} : ${n.status||'sans statut'}`)},
+ {q:'Quelles notes ne sont pas encore permanentes ?',a:()=>ls(lite().filter(n=>n.status&&n.status!='permanent'),n=>`${lk(n)} : ${n.status}`)}]},
+{sg:'✓',name:'Qualité du coffre',qs:[
+ {q:'Quels liens pourrait-on ajouter ?',a:()=>ls(suggest(),x=>`${lk(x.a)} et ${lk(x.b)} : tags communs (${x.s.join(', ')})`,10)},
+ {q:'Quelles notes sont trop courtes ?',a:()=>ls(lite().filter(n=>nw(n)<25),n=>`${lk(n)} : ${pl(nw(n),'mot')}`)},
+ {q:'Quelles notes n’ont aucun lien sortant ?',a:()=>ls(lite().filter(n=>!n.links.length),lk)},
+ {q:'Quelles notes n’ont pas de date ou de statut ?',a:()=>ls(real().filter(n=>!n.date||!n.status),lk)},
+ {q:'Bilan de santé du coffre',a:()=>{const c=[['Notes orphelines',real().filter(n=>!deg(n)).length],['Notes à compléter (créées par le cerveau)',N.filter(n=>n.auto).length],['Notes sans tag',real().filter(n=>!n.tags.length).length],['Notes très courtes',lite().filter(n=>nw(n)<25).length],['Tâches à faire',tasks(false).length]],p=c.reduce((t,x)=>t+x[1],0);return`${ls(c,x=>`${x[0]} : **${x[1]}**`)}\n\n${p?pl(p,'point')+' à regarder.':'Rien à signaler : le coffre est en bon état.'}`}}]}];
+const nz=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),
+ ALLQ=SERIES.flatMap((s,i)=>s.qs.map(q=>({...q,si:i}))),
+ hay=x=>nz(x.q+' '+SERIES[x.si].name),
+ strict=t=>{const w=nz(t).split(/\s+/).filter(Boolean);return w.length?ALLQ.filter(x=>w.every(k=>hay(x).includes(k))):[]},
+ best=t=>{const w=nz(t).split(/[^a-z0-9]+/).filter(k=>k.length>2);let b=null,m=0;ALLQ.forEach(x=>{const c=w.filter(k=>hay(x).includes(k)).length;if(c>m){m=c;b=x}});return b};
+let act=0;
+function show(title,body,picks){$('#qp').hidden=true;const a=$('#ans');a.hidden=false;a.classList.remove('busy');
+  a.innerHTML=`<div class="qt">${esc(title)}</div>`+md(body);const xb=document.createElement('button');xb.type='button';xb.className='ax';xb.textContent='×';xb.title='Fermer';xb.onclick=()=>a.hidden=true;a.prepend(xb);
+  if(picks){const w=document.createElement('div');w.className='chips';picks.forEach(([l,f])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=l;b.onclick=f;w.append(b)});a.append(w)}
+  a.scrollTo(0,0);const ids=[...body.matchAll(/\[\[([^\]|#]+)/g)].map(m=>(byKey[m[1].trim().toLowerCase()]||{}).id).filter(Boolean);
+  if(ids.length){focus=new Set(ids);setTimeout(()=>{if(!isOpen&&!$('#s').value)focus=null},8000)}}
+function runQ(q){const si=q.si||0;if(!q.pick)return think(si,()=>show(q.q,q.a()));
+  const o=q.pick();if(!o.length)return show(q.q,'Rien à choisir pour l’instant.');
+  show(q.q,o.length>30?'Choisis (les 30 premiers) :':'Choisis :',o.slice(0,30).map(([l,v])=>[l,()=>think(si,()=>show(q.q+' → '+l,q.a(v)))]))}
+function drawMenu(list){const s=$('#ser'),q=$('#qs');s.textContent=q.textContent='';
+  SERIES.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.className='chip'+(list||i!=act?'':' on');b.textContent=x.sg+' '+x.name;b.onclick=()=>{act=i;$('#q').value='';drawMenu()};s.append(b)});
+  const L=list||SERIES[act].qs;if(!L.length)q.textContent='Aucune question ne correspond : appuie sur Entrée pour chercher ce mot dans les notes.';
+  L.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='chip q';b.textContent=x.q;b.onclick=()=>runQ(x);q.append(b)})}
+$('#q').oninput=e=>{const t=e.target.value.trim();drawMenu(t?strict(t):null)};
+$('#ask').onsubmit=e=>{e.preventDefault();const t=$('#q').value.trim();if(!t)return;const m=strict(t);
+  if(m.length)return runQ(m[0]);
+  const k=nz(t),r=N.filter(n=>nz(n.title+' '+n.tags.join(' ')+' '+n.body).includes(k));
+  think(0,()=>show('Notes contenant « '+t+' »',r.length?ls(r,lk):'Aucune note ne contient ce mot. Clique sur le cube pour voir les questions.'))};
 
-/* une requête d’amélioration par clé, toutes lancées en parallèle */
-const FOCI=[
- ['Liens manquants','Repère les liens manquants entre notes qui se complètent. Format : une ligne par lien, « [[source]] → [[cible]] : raison courte ». Maximum 10 liens.'],
- ['Notes à créer','Propose 4 notes manquantes utiles à ce coffre. Réponds UNIQUEMENT avec des blocs, chacun commençant par une ligne « === id-en-minuscules | dossier | Titre | type | statut | date | tags » puis 3 à 6 lignes de contenu avec des liens [[id]] vers des notes existantes. Aucun autre texte.'],
- ['Clarté et reformulation','Choisis les 3 notes les plus faibles ou floues et propose une version réécrite plus claire et plus précise de chacune.'],
- ['Vérification technique','Signale les affirmations imprécises, douteuses ou à vérifier, avec la note concernée et une correction proposée. Si tout est correct, dis-le.'],
- ['Structure et tags','Analyse le dossier, les tags et le frontmatter. Propose des corrections concrètes (dossier, tags, statut), note par note.'],
- ['Plan d’action','Dresse un plan d’action priorisé (5 à 8 tâches) pour faire progresser ce coffre et les projets qu’il contient, avec des cases à cocher « - [ ] ».']];
-let impNotes=[];
-const parseNotes=a=>a.split(/^=== /m).slice(1).map(b=>{const k=b.indexOf('\n'),[id,dir,title,type,status,date,tags]=b.slice(0,k).split('|').map(s=>s.trim());
-  return{id:slug(id||title||'note'),dir:dir||'00_Inbox',title:title||id,type:type||'zettel',status:status||'inbox',date:date||new Date().toISOString().slice(0,10),tags:tags?tags.split(',').map(s=>s.trim()):[],body:b.slice(k+1).trim()}}).filter(n=>n.title);
-$('#bimp').onclick=()=>{const A=agents().length;$('#ist').textContent=A?`${FOCI.length} analyses réparties entre ${A} agent${A>1?'s':''}, sur ${N.length} notes.`:'Ajoute d’abord un agent IA dans les réglages.';$('#di').showModal()};
-$('#irun').onclick=async()=>{const L=agents();if(!L.length){$('#di').close();return $('#bcfg').click()}
-  const b=$('#irun');b.disabled=true;b.textContent='Analyse…';
-  const ctx=vaultCtx(),cur=isOpen&&$('#nt h1')?` Note actuellement ouverte : « ${$('#nt h1').textContent} » (à traiter en priorité).`:'';
-  $('#ires').innerHTML=FOCI.map((f,i)=>`<div class="ic"><h3>${f[0]}<span class="by" id="ib${i}"></span></h3><div id="ic${i}">En attente…</div></div>`).join('');
-  const queue=[...FOCI.keys()];
-  const work=async()=>{while(queue.length){const i=queue.shift(),el=$('#ic'+i);el.textContent='En cours…';
-    try{const r=await ai('Tu es un relecteur expert d’un coffre Obsidian d’ingénieur en Formule 1. Réponds en français. '+FOCI[i][1]+cur+'\n\nNOTES DU COFFRE :\n'+ctx,[{role:'user',content:'Lance l’analyse.'}],1500,i),a=r.text;
-      $('#ib'+i).textContent=r.agent.name;
-      if(i==1){impNotes=parseNotes(a);el.innerHTML=`<p>${impNotes.length} note(s) proposée(s) : ${impNotes.map(x=>esc(x.title)).join(', ')||'aucune'}.</p>`+(impNotes.length?'<button type="button" id="iadd">Ajouter au cerveau</button>':'')}
-      else el.innerHTML=md(a)}catch(err){el.textContent='Erreur : '+err.message}}};
-  await Promise.all(Array.from({length:Math.min(Math.max(L.length,2),FOCI.length)},work));
-  b.disabled=false;b.textContent='Relancer'};
-$('#ires').onclick=e=>{if(e.target.id!='iadd')return;const loc=store.get('loc')||[];
-  impNotes.forEach(n=>{const i=loc.findIndex(x=>x.id==n.id);if(i>=0)loc[i]=n;else loc.push(n)});store.set('loc',loc);load();$('#di').close()};
+drawMenu();initFx();
+size();addEventListener('resize',size);R.setAnimationLoop(frame);
 
-$('#fh').hidden=!(location.protocol=='file:'||self!==top);drawDock();fillAg();initFx();
-size();addEventListener('resize',size);load();route();R.setAnimationLoop(frame);
+/* ---------- Démarrage : session ou écran de connexion ---------- */
+(function boot(){
+  const sess=getSession();
+  if(sess&&sess.user){
+    const u=getUsers().find(x=>x.user===sess.user);
+    if(u){enterApp(u);return}
+  }
+  clearSession();
+  showAuth();
+})();
 </script>
 </body>
 </html>
