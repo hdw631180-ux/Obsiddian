@@ -48,3 +48,11 @@ L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'auto
 - Toutes les 14 s environ, une cellule du cerveau part explorer un sujet du coffre : le navigateur interroge Wikipédia (Ollama n'a pas d'accès web par lui-même), Ollama résume en un fait utile (sans Ollama, un extrait brut est gardé), et la découverte est rangée sur la note (section « Découvertes du web », 8 maximum par note, stockées dans le navigateur).
 - L'info voyage sur la fibre, dans la couleur de la cellule, jusqu'à la note ; clique sur l'étiquette pour ouvrir la note.
 - Réglage : case « Cellules explorateurs » dans les réglages.
+
+## V8 : cerveau Ollama, explorateurs multi-sources
+
+- Le cube est l'étiquette vivante d'Ollama : halo et couleur selon l'état (cyan prêt, rose réfléchit, rouge hors ligne), modèle et nombre de cellules en vol.
+- Chaque cellule du cerveau peut partir : Ollama choisit la requête, le navigateur interroge Wikipédia FR/EN, Hacker News et OpenAlex, Ollama résume en un fait.
+- L'info voyage sur la fibre de la couleur de la cellule dans une étiquette (source + texte), puis arrive sur la note ; le **Flux du cerveau** (bas gauche, écrans larges) liste les dernières découvertes.
+- Réglages : liste des modèles installés, bascule automatique si le modèle choisi est absent, 1 à 4 cellules en vol simultanées.
+- Conseil : `qwen2.5:0.5b` est très limité ; préfère `qwen2.5:3b` ou `llama3.2:3b`.
