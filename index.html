@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Synapse V8</title>
 <meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
-<meta name="theme-color" content="#000000"><link rel="manifest" href="manifest.json"><script>if(innerWidth<700&&!/[?&]full/.test(location.search))location.replace("m.html"+location.hash)</script>
+<meta name="theme-color" content="#000000"><link rel="manifest" href="manifest.json"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Synapse">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
 <style>
@@ -331,6 +331,69 @@ button{border-radius:8px;transition:border-color .2s,background .2s,transform .1
 #bl{position:fixed;left:0;top:0;pointer-events:none;z-index:2;font:500 10px var(--ui);letter-spacing:.2em;text-transform:uppercase;color:var(--c,#6fe8ff);white-space:nowrap;text-shadow:0 0 10px #000}
 @media(max-width:1100px){#feed{display:none}}
 body.light #ans,body.light .ix,body.light .fi{background:rgba(247,244,238,.92);color:#111}body.light .ix span,body.light .fi{color:#111}
+/* ===== Mobile V9 : la même interface que le PC, adaptée au tactile ===== */
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
+@supports(height:100dvh){html,body{height:100dvh}}
+@media(pointer:coarse){
+  button,.fchip,.chip{min-height:40px}
+  #sidePlus{width:46px;height:46px}
+  #sideClose{width:42px;height:42px}
+  #sidePanel .side-acts button{min-height:44px}
+  #quickPills .pill{padding:8px 11px}
+}
+@media(max-width:700px){
+  input,textarea,select{font-size:16px}
+  #hud-top,#hud-bot,#minimap{display:none}
+  .c{width:16px;height:16px}
+  .tl,.tr{top:max(8px,env(safe-area-inset-top))}.bl,.br{bottom:max(8px,env(safe-area-inset-bottom))}
+  #top{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:8px;padding:max(12px,env(safe-area-inset-top)) 16px 12px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.85),rgba(0,0,0,.4) 70%,transparent)}
+  .brand{font-size:20px;letter-spacing:.32em}
+  #stats{display:flex;flex-wrap:wrap;gap:0 14px;margin-top:2px;font-size:10px}
+  #stats div{border:0;padding:0}
+  #statsPanel{display:none}
+  #topbar{position:relative;width:100%;min-width:0}
+  #topbar .row:first-child{flex-wrap:nowrap}
+  #s{flex:1;min-width:0;width:auto}
+  #bghost,#b2d{flex:none;padding:9px 10px}
+  #quickPills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  #quickPills::-webkit-scrollbar{display:none}
+  #quickPills .pill{flex:none}
+  #sres{position:absolute;left:0;right:0;top:100%;transform:none;width:auto;max-height:45dvh;margin-top:6px}
+  #sres button{padding:12px 14px;font-size:14px}
+  #sidePlus{left:max(10px,env(safe-area-inset-left))}
+  #sidePanel{width:min(86vw,320px)}
+  #sideTabs button{padding:10px 4px}
+  .mode-grid button{min-height:68px}
+  #bot{width:100%;padding:0 10px max(34px,calc(env(safe-area-inset-bottom) + 24px))}
+  #ans{max-height:38dvh;font-size:16px;padding:12px 14px}
+  #dock{margin-bottom:8px;-webkit-overflow-scrolling:touch}
+  .cell{width:62px;height:56px}
+  #statusline{bottom:max(10px,env(safe-area-inset-bottom));font-size:10px;max-width:94vw}
+  #qp{width:calc(100vw - 20px);max-height:80dvh;padding:14px}
+  #qp #qs{max-height:36dvh}
+  #qx,#x{min-height:42px;padding:8px 16px}
+  #pn{width:100%;border-left:0;font-size:17px;padding:max(16px,env(safe-area-inset-top)) 18px max(60px,env(safe-area-inset-bottom))}
+  #nt h1{font-size:26px}
+  #nt h2,#ans h2{font-size:20px}
+  #nt img{max-width:100%;height:auto}
+  #nt table{display:block;max-width:100%;overflow-x:auto}
+  .props{font-size:13px;gap:6px 12px;padding:10px 12px}
+  dialog{width:94vw;max-width:94vw;max-height:calc(100dvh - 24px);overflow:auto;padding:18px}
+  #di,#dc{width:94vw;max-height:calc(100dvh - 24px)}
+  dialog menu{flex-wrap:wrap}
+  dialog button{min-height:42px}
+  #auth{padding:14px;overflow:auto}
+  #authbox{padding:24px 20px;margin:auto}
+  .lb{font-size:11px}
+  .ix{max-width:min(260px,70vw)}
+  .mb .ring2{width:40px;height:40px}
+}
+@media(max-height:480px) and (orientation:landscape){
+  #stats,#quickPills{display:none}
+  #top{padding-top:max(8px,env(safe-area-inset-top));gap:4px}
+  #ans{max-height:50dvh}
+  #bot{padding-bottom:max(30px,env(safe-area-inset-bottom))}
+}
 </style>
 </head>
 <body>
@@ -698,7 +761,7 @@ $('#bstaffGo').onclick=()=>{
   $('#staffHint').textContent=users.length+' compte'+(users.length>1?'s':'')+' sur ce navigateur.';
 };
 const BR={'':1,'00_Inbox':.55,'01_Projects':1,'02_Areas':.85,'03_Resources':.7,'05_Daily':.5,'90_Templates':.35};
-const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches,MOB=matchMedia('(pointer:coarse)').matches||innerWidth<700;
 const slug=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').toLowerCase();
 let cfg={},N=[],E=[],byKey={},hist=[],focus=null,isOpen=false;
 
@@ -738,7 +801,7 @@ function md(src){const L=src.split('\n');let h='',i=0,m;
 
 /* ---------- Scène 3D (WebGL) ---------- */
 const cv=$('#cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});
-R.setClearColor(0x000000);R.setPixelRatio(Math.min(devicePixelRatio||1,2));
+R.setClearColor(0x000000);R.setPixelRatio(Math.min(devicePixelRatio||1,MOB?1.5:2));
 R.powerPreference='high-performance';
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,1,.1,100),brain=new THREE.Group(),clock=new THREE.Clock();
 scene.add(brain);
@@ -1220,13 +1283,13 @@ requestAnimationFrame(_tickFps);
 /* ---------- Boucle de rendu ---------- */
 const v3=V(0,0,0),v4=V(0,0,0);
 let S=1,D=10,zf=1,rot={x:.35,y:-.6},tgt=null,drag=null,ptr={x:-99,y:-99},hov=-1,sp=[];
-const pick=(x,y)=>{let b=-1,bd=676;sp.forEach((s,i)=>{const d=(s.x-x)**2+(s.y-y)**2;if(d<bd){bd=d;b=i}});return b};
+const pick=(x,y)=>{let b=-1,bd=MOB?1600:676;sp.forEach((s,i)=>{const d=(s.x-x)**2+(s.y-y)**2;if(d<bd){bd=d;b=i}});return b};
 let comp=null,pr=1,fe=.016,qt=0;const iv={x:0,y:0};let lm=0,hv=[],dmv=[],lo=[];
 /* qualité adaptative : si l’affichage ralentit, la résolution baisse par paliers (jamais l’inverse, pour éviter les va-et-vient) */
 function setPr(v){pr=v;R.setPixelRatio(v);if(comp)comp.setPixelRatio(v);size()}
 function adapt(raw,t){if(t<2||raw>.3)return;fe+=(raw-fe)*.08;qt+=raw;if(qt<1.2)return;qt=0;if(fe>.022&&pr>1)setPr(Math.max(1,pr-.25));else if(fe>.03&&comp){comp=null}}
 function initFx(){pr=R.getPixelRatio();if(!(THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.RenderPass))return;
-  pr=Math.min(devicePixelRatio||1,2);R.setPixelRatio(pr);comp=new THREE.EffectComposer(R);comp.addPass(new THREE.RenderPass(scene,cam));
+  pr=Math.min(devicePixelRatio||1,MOB?1.5:2);R.setPixelRatio(pr);comp=new THREE.EffectComposer(R);comp.addPass(new THREE.RenderPass(scene,cam));
   comp.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.6,.55,.06))}
 function size(){R.setSize(innerWidth,innerHeight,false);if(comp)comp.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();U.uPx.value=R.getPixelRatio()}
 let zfT=1, frameN=0; /* zoom cible + compteur */
@@ -1294,10 +1357,18 @@ function frame(){
   comp?comp.render(dt):R.render(scene,cam)}
 
 /* ---------- Interactions ---------- */
-cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,m:0};ptr={x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId);tgt=null;iv.x=iv.y=0};
-cv.onpointermove=e=>{ptr={x:e.clientX,y:e.clientY};if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);
+const tp=new Map();let pinch=null;
+cv.onpointerdown=e=>{tp.set(e.pointerId,{x:e.clientX,y:e.clientY});cv.setPointerCapture(e.pointerId);
+  if(tp.size>=2){const[a,b]=[...tp.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:zfT};drag=null;iv.x=iv.y=0;return}
+  drag={x:e.clientX,y:e.clientY,m:0};ptr={x:e.clientX,y:e.clientY};tgt=null;iv.x=iv.y=0};
+cv.onpointermove=e=>{if(tp.has(e.pointerId))tp.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&tp.size>=2){const[a,b]=[...tp.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1;zfT=Math.max(.55,Math.min(3,pinch.z*pinch.d/d));return}
+  ptr={x:e.clientX,y:e.clientY};if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);
   rot.y+=dx*.0055;rot.x=Math.max(-1,Math.min(1,rot.x+dy*.0038));iv.y=dx*.005;iv.x=dy*.0035;lm=performance.now();drag.x=e.clientX;drag.y=e.clientY}};
-cv.onpointerup=e=>{if(performance.now()-lm>90)iv.x=iv.y=0;if(drag&&drag.m<6){if(Math.hypot(e.clientX-cubeS.x,e.clientY-cubeS.y)<cubeS.r)openQ();else{const i=pick(e.clientX,e.clientY);if(i>=0)location.hash=N[i].id}}drag=null};
+cv.onpointerup=e=>{tp.delete(e.pointerId);if(pinch){if(tp.size<2)pinch=null;drag=null;return}
+  if(performance.now()-lm>90)iv.x=iv.y=0;if(drag&&drag.m<(e.pointerType==='touch'?12:6)){if(Math.hypot(e.clientX-cubeS.x,e.clientY-cubeS.y)<cubeS.r)openQ();else{const i=pick(e.clientX,e.clientY);if(i>=0)location.hash=N[i].id}}
+  drag=null;if(e.pointerType==='touch')ptr={x:-99,y:-99}};
+cv.onpointercancel=e=>{tp.delete(e.pointerId);if(tp.size<2)pinch=null;drag=null;ptr={x:-99,y:-99}};
 cv.onwheel=e=>{e.preventDefault();zfT=Math.max(.55,Math.min(3,zfT*(1+e.deltaY*.0009)))};
 
 /* ---------- Historique de navigation ---------- */
@@ -1659,7 +1730,7 @@ function drawMinimap(){
 }
 
 initFx();
-size();addEventListener('resize',size);R.setAnimationLoop(frame);
+size();addEventListener('resize',size);if(MOB){const sl=$('#statusline');if(sl)sl.textContent='prêt · touche + pour le menu · pince pour zoomer'}R.setAnimationLoop(frame);
 const _oldRebuild=rebuild;
 rebuild=function(){_oldRebuild();updateStatsPanel();drawFilters();drawMinimap()};
 
