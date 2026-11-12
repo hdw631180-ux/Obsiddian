@@ -28,13 +28,6 @@ Ouvre simplement `index.html` dans un navigateur moderne (WebGL requis), ou dép
 - Les comptes et les données restent dans le navigateur de chaque visiteur (localStorage).
 - Aucune clé API. Rien n’est envoyé vers un serveur, sauf vers ton Ollama local si tu actives l’IA (voir plus bas).
 
-## V7 — WebGPU + Labo
-
-- **WebGPU** (calcul + rendu des particules sur le GPU, jusqu'à 400 000 particules) ; repli automatique sur le rendu WebGL si le navigateur ne le supporte pas.
-- Onglet **Labo** dans le menu `+` : 30 réglages, 12 palettes, 8 préréglages, 18 actions.
-- **Ctrl+K** : palette de commandes. Raccourcis : `g` GPU, `c` capture PNG, `p` palette, `b` explosion, `f` plein écran, `x` CRT, `[` `]` particules…
-- Série de questions « Fun & GPU » dans le chatbot, feux de départ F1, grain de film, halo du curseur, moniteur de performance, Konami code.
-
 ## IA locale (Ollama + qwen2.5:0.5b)
 
 Dans le chatbot (clic sur le cube, ou touche `i`), tape une question libre puis Entrée : l'IA répond au fil de l'eau, avec les notes les plus proches de ta question comme contexte. Une question qui correspond à une question prédéfinie reste traitée par le chatbot classique.
@@ -48,3 +41,10 @@ Dans le chatbot (clic sur le cube, ou touche `i`), tape une question libre puis 
 3. Dans **Réglages**, vérifie l'adresse (`http://localhost:11434`) et le modèle, puis clique sur **Tester la connexion**.
 
 L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'autorisation d'accéder au réseau local : accepte.
+
+## Cerveau Synapse et cellules explorateurs
+
+- Le cube est le cerveau : toute question tapée dans le chatbot part vers Ollama, avec les notes proches et un extrait Wikipédia récent comme contexte.
+- Toutes les 14 s environ, une cellule du cerveau part explorer un sujet du coffre : le navigateur interroge Wikipédia (Ollama n'a pas d'accès web par lui-même), Ollama résume en un fait utile (sans Ollama, un extrait brut est gardé), et la découverte est rangée sur la note (section « Découvertes du web », 8 maximum par note, stockées dans le navigateur).
+- L'info voyage sur la fibre, dans la couleur de la cellule, jusqu'à la note ; clique sur l'étiquette pour ouvrir la note.
+- Réglage : case « Cellules explorateurs » dans les réglages.
