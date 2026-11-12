@@ -394,6 +394,12 @@ html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
   #ans{max-height:50dvh}
   #bot{padding-bottom:max(30px,env(safe-area-inset-bottom))}
 }
+/* V10 : logos des sources, sources, bloc-notes */
+.lg{position:relative;display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:#111;font:700 9px var(--ui);overflow:hidden;vertical-align:middle;margin-right:6px;flex:none;box-shadow:0 0 10px color-mix(in srgb,var(--c,#fff) 70%,transparent)}
+.lg::before{content:attr(data-m)}.lg img{position:absolute;inset:2px;width:calc(100% - 4px);height:calc(100% - 4px);object-fit:contain;background:#fff;border-radius:50%}
+.ix i.lg{animation:none;width:22px;height:22px;margin:0;background:#fff}.fi b{display:flex;align-items:center}.tg .lg{width:16px;height:16px;margin-right:5px}
+.srcs{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}.srcc{display:flex!important;align-items:center;gap:6px;margin:4px 0!important;font-size:13px;text-transform:none!important;letter-spacing:0!important}.srcc input{width:auto!important}
+#padTx{font:15px/1.6 ui-monospace,Consolas,monospace;min-height:46vh;resize:vertical}#dpad{width:min(720px,94vw)}
 </style>
 </head>
 <body>
@@ -1780,7 +1786,7 @@ const render=(txt,run)=>{const a=$('#ans');a.hidden=false;a.classList.toggle('bu
  if(run){const b=document.createElement('button');b.type='button';b.className='ax';b.textContent='Arrêter';b.onclick=()=>ctl&&ctl.abort();a.prepend(b)}a.scrollTop=a.scrollHeight};
 /* ---- Question à l'IA : réponse affichée au fil de l'eau ---- */
 async function askAI(q){if(busy)return;const a=A();busy=true;$('#qp').hidden=true;hud('réfléchit');
- const webs=(await Promise.allSettled([WK(q,'fr',3500),WK(q,'en',3500),HN(q),OA(q)])).map(r=>r.value).filter(Boolean).slice(0,3),web=webs[0]||null;
+ const webs=(await ALL(q,3500)).map(r=>r.value).filter(Boolean).slice(0,3),web=webs[0]||null;
  const src=a.ctx?pick(q):[],sys='Tu es Synapse, le cerveau du coffre de notes de l’utilisateur : des cellules explorent le web pour l’enrichir. Réponds en français, de façon courte et précise. '+'Notes du coffre : '+real().slice(0,40).map(n=>n.title).join(', ')+'.\n\n'+(webs.length?'Sources web récentes :\n'+webs.map(w=>'- ('+w.k+') '+w.s+' : '+w.x.slice(0,500)).join('\n')+'\n\n':'')+(src.length?'Appuie-toi sur les notes ci-dessous ; si la réponse n’y est pas, dis-le.\n\n'+src.map(n=>'### '+n.title+'\n'+plain(n.body).slice(0,600)+dd(n).map(d=>'\n- (web) '+d.t).join('')).join('\n\n'):''),
   msgs=[{role:'system',content:sys},...hist.slice(-6),{role:'user',content:q}];
  let out='',brain=null;try{brain=[...Array(CORT).keys()];srch={ci:brain};scanP.geometry.setFromPoints(SAMP)}catch{}
@@ -1816,7 +1822,7 @@ const OA=async q=>{const j=await J('https://api.openalex.org/works?search='+enco
 async function gen(pr,np=90){const a=A(),r=await fetch(base()+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(60000),body:JSON.stringify({model:a.model,prompt:pr,stream:false,options:{temperature:.3,num_predict:np,num_ctx:2048}})});if(!r.ok)throw 0;up=true;return((await r.json()).response||'').trim()}
 const DMAX=12,dAll=()=>store.get('disc')||{},dd=n=>dAll()[n.id]||[];
 function dAdd(n,o){const m=dAll(),l=m[n.id]||[];if(l.some(x=>x.u===o.u))return 0;l.push(o);if(l.length>DMAX)l.shift();m[n.id]=l;store.set('disc',m);return 1}
-window.discHTML=n=>{const l=dd(n);return l.length?'<h2>Découvertes du web</h2><ul>'+l.slice().reverse().map(d=>'<li><span class="tg">'+esc(d.k||'web')+'</span> '+esc(d.t)+' <a class="wl" href="'+esc(d.u)+'" target="_blank" rel="noopener">'+esc(d.s)+'</a></li>').join('')+'</ul>':''};
+window.discHTML=n=>{const l=dd(n);return l.length?'<h2>Découvertes du web</h2><ul>'+l.slice().reverse().map(d=>'<li><span class="tg"><i class="lg" data-m="'+MO(d.k)+'">'+LG(d.k,d.u)+'</i>'+esc(d.k||'web')+'</span> '+esc(d.t)+' <a class="wl" href="'+esc(d.u)+'" target="_blank" rel="noopener">'+esc(d.s)+'</a></li>').join('')+'</ul>':''};
 const TAGS=[],ST={off:['#ff3b3b','hors ligne'],down:['#ff3b3b','injoignable'],idle:['#6fe8ff','prêt'],think:['#ff4fa3','réfléchit']};
 let act=0;
 /* le cube est le cerveau Ollama : sa couleur, son halo et son étiquette disent ce qu’il fait */
@@ -1824,11 +1830,11 @@ document.body.insertAdjacentHTML('beforeend','<div id="bh"></div><div id="bl"></
 $('#fh').onclick=()=>$('#feed').classList.toggle('off');
 const stOf=()=>!A().on?'off':up===false?'down':(busy||act)?'think':'idle';
 function feedAdd(n,txt,k,rgb){const f=$('#feed'),d=document.createElement('div');d.className='fi';d.style.setProperty('--c','rgb('+rgb.map(v=>Math.min(255,v*255+70|0)).join(',')+')');
- d.innerHTML='<b>'+esc(k||'web')+'</b><em>'+esc(n.title.slice(0,18))+'</em><span>'+esc(cut(txt,96))+'</span>';d.onclick=()=>{location.hash=n.id};$('#fh').after(d);while(f.querySelectorAll('.fi').length>4)f.querySelector('.fi:last-child').remove()}
+ d.innerHTML='<b><i class="lg" data-m="'+MO(k)+'">'+LG(k)+'</i>'+esc(k||'web')+'</b><em>'+esc(n.title.slice(0,18))+'</em><span>'+esc(cut(txt,96))+'</span>';d.onclick=()=>{location.hash=n.id};$('#fh').after(d);while(f.querySelectorAll('.fi').length>4)f.querySelector('.fi:last-child').remove()}
 /* l’info voyage sur la fibre, de la cellule vers la note, dans la couleur de la cellule */
 function flow(n,i,txt,k){if(!ready||!P[n.id]||!cellP[i])return;const t=U.uT.value,a=cellP[i],b=P[n.id],c=ctrl(a,b),bs=window.__lobeBase,rgb=bs?[bs[i*3],bs[i*3+1],bs[i*3+2]]:[1,1,1],dur=2.2+a.distanceTo(b)*1.1,col='rgb('+rgb.map(v=>Math.min(255,v*255+70|0)).join(',')+')';
  fire(i,t,.5);for(let q=0;q<5;q++)ev.push([t+q*.16,tt=>wave(a,c,b,tt,dur,rgb)]);ev.push([t+dur,tt=>{ripple(b,tt,rgb);fire(Math.random()*CORT|0,tt,.5)}]);
- const el=document.createElement('div');el.className='ix';el.innerHTML='<i></i><b>'+esc(k||'web')+'</b><span>'+esc(cut(txt,112))+'</span>';el.style.setProperty('--c',col);el.onclick=()=>{location.hash=n.id};document.body.append(el);
+ const el=document.createElement('div');el.className='ix';el.innerHTML='<i class="lg" data-m="'+MO(k)+'">'+LG(k)+'</i><b>'+esc(k||'web')+'</b><span>'+esc(cut(txt,112))+'</span>';el.style.setProperty('--c',col);el.onclick=()=>{location.hash=n.id};document.body.append(el);
  TAGS.push({a,c,b,t0:t,dur,el,end:t+dur+7});feedAdd(n,txt,k,rgb)}
 (function tk(){const t=U.uT.value;for(let k=TAGS.length-1;k>=0;k--){const g=TAGS[k];if(t>g.end){g.el.remove();TAGS.splice(k,1);continue}
  const u=Math.min(1,(t-g.t0)/g.dur),p=bz(g.a,g.c,g.b,u).applyMatrix4(brain.matrixWorld).project(cam),fi=Math.min(1,(t-g.t0)*3);
@@ -1838,18 +1844,18 @@ function flow(n,i,txt,k){if(!ready||!P[n.id]||!cellP[i])return;const t=U.uT.valu
   o.ob.material.color.set(c);o.ib.material.color.set(s=='think'?0xffd0e8:s=='idle'?0xffffff:0xff7a45)}
  requestAnimationFrame(tk)})();
 /* chaque cellule du cerveau peut partir : Ollama choisit la recherche, le web répond, Ollama résume */
-async function plan(n){const f=n.title+(n.tags[0]&&Math.random()<.4?' '+n.tags[0]:'');if(!A().on)return f;
+async function plan(n){const f=n.title+(n.tags[0]&&Math.random()<.4?' '+n.tags[0]:'')+(Math.random()<.5?' '+(topK(n)[Math.random()*3|0]||''):'');if(!A().on)return f;
  try{const g=await gen('Note « '+n.title+' » : '+plain(n.body).slice(0,260)+'\n\nDéjà trouvé : '+dd(n).map(d=>d.s).join(' ; ')+'\n\nDonne UNE requête de recherche (2 à 5 mots, sans guillemets) pour découvrir une information nouvelle liée à cette note. Réponds uniquement par la requête.',24),q=g.split('\n')[0].replace(/["«»]/g,'').trim();return q.length>2&&q.length<60?q:f}catch{return f}}
 async function explore(n,i){act++;hud('explore ×'+act);
- try{fire(i,U.uT.value,.5);const q=await plan(n),R=(await Promise.allSettled([WK(q),WK(q,'en'),HN(q),OA(q)])).map(r=>r.value).filter(Boolean),seen=new Set(dd(n).map(d=>d.u)),L=R.filter(r=>!seen.has(r.u));if(!L.length)return;
-  const w=L[Math.random()*L.length|0];let txt=cut(w.x.split(/(?<=[.!?])\s/).slice(0,2).join(' '),240);
+ try{fire(i,U.uT.value,.5);const q=await plan(n),R=(await ALL(q)).map(r=>r.value).filter(Boolean),seen=new Set(dd(n).map(d=>d.u)),L=[...R,...(await PG(n))].filter(r=>!seen.has(r.u));if(!L.length)return;
+  const w=rk(q,n,L)[0]||L[0];let txt=cut(w.x.split(/(?<=[.!?])\s/).slice(0,2).join(' '),240);
   if(A().on){try{const g=await gen('Note « '+n.title+' » : '+plain(n.body).slice(0,300)+'\n\nSource ('+w.k+') : '+w.x.slice(0,700)+'\n\nÉcris en français UN fait nouveau et utile (30 mots maximum) tiré de la source, qui enrichit la note. Réponds uniquement par la phrase.');if(g&&g.length>15)txt=cut(g,260)}catch{}}
   if(dAdd(n,{t:txt,u:w.u,s:w.s,k:w.k,q,d:Date.now()}))flow(n,i,txt,w.k)}
  catch{}finally{act--;hud(act?'explore ×'+act:A().on?'prêt':'off')}}
 const XO=()=>store.get('exp')!==0,XN=()=>store.get('expN')||2;
 setInterval(()=>{if(!XO()||document.hidden||!ready||!navigator.onLine||act>=XN())return;const R=real();if(!R.length)return;
  const n=R.map(x=>[x,Math.random()*(1+DMAX-dd(x).length)]).sort((a,b)=>b[1]-a[1])[0][0];explore(n,Math.random()*CORT|0)},4500);
-$('#aiCtx').parentNode.insertAdjacentHTML('afterend','<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="expOn" style="width:auto"> Cellules explorateurs (Wikipédia, Hacker News, OpenAlex + Ollama)</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules en vol en même temps <select id="expN" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>');
+$('#aiCtx').parentNode.insertAdjacentHTML('afterend','<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="expOn" style="width:auto"> Cellules explorateurs (sources du web + Ollama)</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules en vol en même temps <select id="expN" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>');
 $('#expOn').onchange=e=>store.set('exp',+e.target.checked);$('#expN').onchange=e=>store.set('expN',+e.target.value);
 $('#bcfg').addEventListener('click',()=>{$('#expOn').checked=XO();$('#expN').value=XN()});
 hud(A().on?'…':'off');if(A().on)setTimeout(test,1500);setInterval(()=>{if(A().on&&!document.hidden)test()},30000);
@@ -1863,7 +1869,7 @@ async function synth(n,quiet){
  const T=n?[n]:real().filter(x=>x.type!='template').slice(0,8);if(!T.length)return show('Synthèse','Le coffre est vide.');
  busy=true;hud('analyse');render('**1/2** Recherche sur Wikipédia et le web…',true);
  try{const parts=[];
-  for(const x of T){const q=await plan(x),R=(await Promise.allSettled([WK(q),WK(q,'en'),HN(q),OA(q)])).map(r=>r.value).filter(Boolean);
+  for(const x of T){const q=await plan(x),R=(await ALL(q)).map(r=>r.value).filter(Boolean);
    R.slice(0,3).forEach(w=>dAdd(x,{t:cut(w.x.split(/(?<=[.!?])\s/)[0],240),u:w.u,s:w.s,k:w.k,q,d:Date.now()}));if(R[0])flow(x,Math.random()*CORT|0,cut(R[0].x,140),R[0].k);parts.push({x,R})}
   render('**2/2** Ollama analyse…',true);
   const ctx=parts.map(p=>'NOTE « '+p.x.title+' » : '+plain(p.x.body).slice(0,800)+'\nWEB :\n'+(p.R.slice(0,3).map(w=>'- ('+w.k+') '+w.s+' : '+w.x.slice(0,450)).join('\n')||'- rien trouvé')).join('\n\n'),
@@ -1876,7 +1882,80 @@ async function synth(n,quiet){
  finally{busy=false;ctl=null}}
 $('#aiBtn').insertAdjacentHTML('afterend','<button type="button" id="synBtn" style="margin:8px 0 0 8px">Synthèse du coffre</button>');$('#synBtn').onclick=()=>synth(null);
 document.addEventListener('click',e=>{if(e.target.id==='bSyn'){const n=byKey[location.hash.slice(1).toLowerCase()];if(n)synth(n)}});
-window.SYN_AI={ask:askAI,test,synth};
+/* ===== V10 : sources du web, logos, bloc-notes, import de fichiers ===== */
+const dec=s=>{const t=document.createElement('textarea');t.innerHTML=s||'';return t.value};
+const STOP=new Set('dans pour avec cette sont plus comme mais tout elle leur faire ainsi entre apres avant that this with from have been were which their about'.split(' '));
+const kw=t=>[...new Set(nz(t).split(/[^a-z0-9]+/).filter(w=>w.length>3&&!STOP.has(w)))];
+const topK=n=>{const c={};nz(plain(n.body)).split(/[^a-z0-9]+/).forEach(w=>{if(w.length>4&&!STOP.has(w))c[w]=(c[w]||0)+1});return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0])};
+const CR=async q=>{const j=await J('https://api.crossref.org/works?rows=3&select=title,DOI,issued,container-title,is-referenced-by-count&query='+encodeURIComponent(q)),w=(j.message.items||[]).find(x=>x.title&&x.title[0]);
+ return w?{s:w.title[0],x:'Article « '+w.title[0]+' »'+((w['container-title']||[])[0]?', '+w['container-title'][0]:'')+' ('+(((w.issued||{})['date-parts']||[[]])[0][0]||'?')+', cité '+(w['is-referenced-by-count']||0)+' fois).',u:'https://doi.org/'+w.DOI,k:'Crossref'}:null};
+const EP=async q=>{const j=await J('https://www.ebi.ac.uk/europepmc/webservices/rest/search?format=json&pageSize=3&resultType=lite&query='+encodeURIComponent(q)),w=((j.resultList||{}).result||[]).find(x=>x.title);
+ return w?{s:dec(w.title),x:'Étude « '+dec(w.title)+' » ('+(w.journalTitle||'revue')+', '+w.pubYear+', citée '+(w.citedByCount||0)+' fois).',u:'https://europepmc.org/article/'+w.source+'/'+w.id,k:'Europe PMC'}:null};
+const SE=async q=>{const j=await J('https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=votes&pagesize=3&site=stackoverflow&q='+encodeURIComponent(q)),w=(j.items||[]).find(x=>x.title&&x.score>2);
+ return w?{s:dec(w.title),x:'Question « '+dec(w.title)+' » ('+w.score+' votes, '+w.answer_count+' réponses).',u:w.link,k:'Stack Overflow'}:null};
+const GH=async q=>{const j=await J('https://api.github.com/search/repositories?sort=stars&per_page=3&q='+encodeURIComponent(q)),w=(j.items||[]).find(x=>x.description);
+ return w?{s:w.full_name,x:w.full_name+' : '+w.description+' ('+w.stargazers_count+' étoiles).',u:w.html_url,k:'GitHub'}:null};
+const OL=async q=>{const j=await J('https://openlibrary.org/search.json?limit=3&fields=key,title,author_name,first_publish_year&q='+encodeURIComponent(q)),w=(j.docs||[])[0];
+ return w?{s:w.title,x:'Livre « '+w.title+' »'+((w.author_name||[])[0]?' de '+w.author_name[0]:'')+(w.first_publish_year?' ('+w.first_publish_year+')':'')+'.',u:'https://openlibrary.org'+w.key,k:'Open Library'}:null};
+const IAr=async q=>{const j=await J('https://archive.org/advancedsearch.php?output=json&rows=3&sort[]=downloads+desc&fl[]=identifier&fl[]=title&fl[]=description&q='+encodeURIComponent(q)),w=((j.response||{}).docs||[]).find(x=>x.title);
+ return w?{s:w.title,x:w.title+(w.description?' : '+cut(String([].concat(w.description)[0]).replace(/<[^>]+>/g,' '),300):''),u:'https://archive.org/details/'+w.identifier,k:'Internet Archive'}:null};
+const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch{return 'web'}};
+const SX=async q=>{const u=(store.get('sx')||'').trim().replace(/\/+$/,'');if(!/^https?:\/\//.test(u))return null;const j=await J(u+'/search?format=json&language=fr&q='+encodeURIComponent(q),9000),r=(j.results||[]).find(x=>x.title&&x.url&&x.content);
+ return r?{s:r.title,x:r.content,u:r.url,k:'Web · '+hostOf(r.url)}:null};
+const PG=async n=>{if(!store.get('pg'))return[];const seen=new Set(dd(n).map(d=>d.u)),u=((n.body||'').match(/https?:\/\/[^\s)\]>"']+/g)||[]).find(x=>!seen.has(x));if(!u)return[];
+ try{const r=await fetch('https://r.jina.ai/'+u,{signal:AbortSignal.timeout(12000)});if(!r.ok)return[];let t=await r.text();const ti=(t.match(/^Title:\s*(.+)$/m)||[])[1]||hostOf(u),i=t.indexOf('Markdown Content:');if(i>=0)t=t.slice(i+17);
+  t=t.replace(/!?\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/\s+/g,' ').trim();return t.length<60?[]:[{s:ti,x:cut(t,600),u,k:'Web · '+hostOf(u)}]}catch{return[]}};
+const SRC=[{n:'Wikipédia FR',d:'wikipedia.org',m:'W',f:(q,ms)=>WK(q,'fr',ms)},{n:'Wikipédia EN',d:'wikipedia.org',m:'W',f:(q,ms)=>WK(q,'en',ms)},{n:'Hacker News',d:'news.ycombinator.com',m:'Y',f:HN},{n:'OpenAlex',d:'openalex.org',m:'OA',f:OA},
+ {n:'Crossref',d:'crossref.org',m:'CR',f:CR},{n:'Europe PMC',d:'europepmc.org',m:'PM',f:EP},{n:'Stack Overflow',d:'stackoverflow.com',m:'SO',f:SE},{n:'GitHub',d:'github.com',m:'GH',f:GH},{n:'Open Library',d:'openlibrary.org',m:'OL',f:OL},{n:'Internet Archive',d:'archive.org',m:'IA',f:IAr}];
+const DOM={},MG={};SRC.forEach(s=>{DOM[s.n]=s.d;MG[s.n]=s.m});
+const MO=k=>esc(MG[k]||(k||'web').replace(/^Web · /,'').slice(0,1).toUpperCase());
+const LG=(k,u)=>{const h=(k||'').startsWith('Web · ')?k.slice(6):DOM[k]||(u?hostOf(u):'');return h?'<img alt="" loading="lazy" referrerpolicy="no-referrer" src="https://www.google.com/s2/favicons?domain='+encodeURIComponent(h)+'&sz=64" onerror="this.remove()">':''};
+function rk(q,n,L){const w=kw(q+(n?' '+n.title+' '+n.tags.join(' '):'')),c={};
+ return L.map(r=>{const t=nz(r.s+' '+r.x),o=w.filter(k=>t.includes(k)).length;let s=o/Math.max(1,w.length);if(n){s-=.12*dd(n).filter(d=>d.k===r.k).length;if(nz(r.s).includes(nz(n.title)))s+=.4}c[r.k]=(c[r.k]||0)+1;s-=.05*(c[r.k]-1);return{r,s,o}}).filter(x=>x.o>0||!w.length).sort((a,b)=>b.s-a.s).map(x=>x.r)}
+const SOFF=()=>store.get('srcOff')||[],ALL=(q,ms=7000)=>Promise.allSettled([...SRC.filter(s=>!SOFF().includes(s.n)).map(s=>s.f(q,ms)),SX(q)]).then(R=>rk(q,null,R.map(r=>r.value).filter(Boolean)).map(value=>({value})));
+/* réglages : sources, pages liées, SearXNG */
+$('#expN').parentNode.insertAdjacentHTML('afterend','<div id="srcCfg"><label>Sources du web</label><div class="srcs">'+SRC.map(s=>'<label class="srcc"><input type="checkbox" data-s="'+esc(s.n)+'"><i class="lg" data-m="'+s.m+'">'+LG(s.n)+'</i>'+esc(s.n)+'</label>').join('')+'</div><label class="srcc"><input type="checkbox" id="pgOn"> Lire les liens présents dans mes notes (via r.jina.ai)</label><input id="sxUrl" placeholder="Recherche web générale : instance SearXNG (https://…)" aria-label="SearXNG"><p class="hint">Les recherches partent de ton navigateur vers ces sites. Les logos viennent du service de favicons de Google.</p></div>');
+const srcFill=()=>{const o=SOFF();document.querySelectorAll('#srcCfg [data-s]').forEach(i=>i.checked=!o.includes(i.dataset.s));$('#pgOn').checked=!!store.get('pg');$('#sxUrl').value=store.get('sx')||''};
+$('#srcCfg').addEventListener('change',()=>{store.set('srcOff',[...document.querySelectorAll('#srcCfg [data-s]')].filter(i=>!i.checked).map(i=>i.dataset.s));store.set('pg',+$('#pgOn').checked);store.set('sx',$('#sxUrl').value.trim())});
+$('#bcfg').addEventListener('click',srcFill);
+/* ---- Bloc-notes + import de fichiers (PDF, Word, PowerPoint, Excel, ODT, texte…) ---- */
+document.body.insertAdjacentHTML('beforeend','<dialog id="dpad"><form method="dialog"><strong>Bloc-notes</strong><div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 8px"><select id="padSel" style="flex:1;min-width:140px;background:#000;color:inherit;border:1px solid var(--ln);padding:6px"></select><button type="button" id="padNew">Nouveau</button><button type="button" id="padFile">Importer des fichiers</button><input type="file" id="padIn" multiple hidden accept=".pdf,.docx,.pptx,.xlsx,.odt,.txt,.md,.csv,.json,.html,.htm,.rtf"></div><textarea id="padTx" rows="14" placeholder="Écris ici. La première ligne devient le titre. Glisse aussi des fichiers (PDF, Word, PowerPoint, Excel…)."></textarea><p class="hint" id="padSt">Enregistrement automatique dans ce navigateur.</p><menu><button type="button" id="padEn">Enregistrer et enrichir</button><button type="button" id="padCl">Fermer</button></menu></form></dialog>');
+$('#bnew').insertAdjacentHTML('afterend','<button type="button" id="bpad">Bloc-notes</button>');
+let pid=null,ptm=0;const LOC=()=>store.get('loc')||[],iso=()=>new Date().toISOString().slice(0,10),pst=m=>{$('#padSt').textContent=m;say(m)};
+const pList=()=>{const s=$('#padSel');s.innerHTML='<option value="">Nouvelle note</option>'+LOC().map(n=>'<option value="'+esc(n.id)+'">'+esc(n.title)+'</option>').join('');s.value=pid||''};
+const pLoad=id=>{pid=id||null;const n=LOC().find(x=>x.id==id);$('#padTx').value=n?n.title+'\n'+n.body:'';pList()};
+const pSave=()=>{const v=$('#padTx').value,i=v.indexOf('\n'),title=(i<0?v:v.slice(0,i)).replace(/^#+\s*/,'').trim(),body=i<0?'':v.slice(i+1).trim();if(!title)return null;
+ const L=LOC();let n=L.find(x=>x.id==pid);if(!n){n={id:slug(title)||'note-'+Date.now(),dir:'00_Inbox',type:'note',status:'inbox',date:iso(),tags:[]};const j=L.findIndex(x=>x.id==n.id);if(j>=0)L.splice(j,1);L.push(n);pid=n.id}
+ n.title=title;n.body=body;try{store.set('loc',L);$('#padSt').textContent='Enregistré à '+new Date().toLocaleTimeString('fr-FR')}catch{$('#padSt').textContent='Espace plein : supprime des notes.'}return n.id};
+$('#bpad').onclick=()=>{pLoad(pid);$('#dpad').showModal();$('#padTx').focus()};
+$('#padSel').onchange=e=>{pSave();pLoad(e.target.value)};$('#padNew').onclick=()=>{pSave();pLoad(null);$('#padTx').focus()};
+$('#padTx').oninput=()=>{clearTimeout(ptm);ptm=setTimeout(pSave,500)};
+$('#padCl').onclick=()=>{clearTimeout(ptm);pSave();$('#dpad').close();load()};
+$('#padEn').onclick=()=>{clearTimeout(ptm);const id=pSave();$('#dpad').close();load();if(!id)return;setTimeout(()=>{const n=byKey[id];if(!n)return;location.hash=id;for(let k=0;k<3;k++)setTimeout(()=>explore(n,Math.random()*CORT|0),k*900)},500)};
+$('#padFile').onclick=()=>$('#padIn').click();$('#padIn').onchange=e=>{imp([...e.target.files]);e.target.value=''};
+addEventListener('dragover',e=>{if([...(e.dataTransfer||{types:[]}).types].includes('Files'))e.preventDefault()});
+addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length){e.preventDefault();imp([...e.dataTransfer.files])}});
+const lib=u=>new Promise((ok,ko)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>ko(new Error('bibliothèque indisponible (connexion ?)'));document.head.append(s)});
+const ZJ='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',PJ='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const unx=s=>s.replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
+const zipx=async f=>{if(!window.JSZip)await lib(ZJ);return JSZip.loadAsync(await f.arrayBuffer())};
+async function extract(f){const e=(f.name.split('.').pop()||'').toLowerCase();
+ if(e=='pdf'){if(!window.pdfjsLib){await lib(PJ);pdfjsLib.GlobalWorkerOptions.workerSrc=PJ.replace('pdf.min','pdf.worker.min')}const d=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;let t='';
+  for(let p=1;p<=Math.min(d.numPages,80);p++)t+=(await(await d.getPage(p)).getTextContent()).items.map(i=>i.str+(i.hasEOL?'\n':' ')).join('')+'\n\n';return t}
+ if(e=='docx'){const z=await zipx(f);return unx((await z.file('word/document.xml').async('string')).replace(/<\/w:p>/g,'\n').replace(/<w:tab\/>/g,'\t'))}
+ if(e=='pptx'){const z=await zipx(f),L=Object.keys(z.files).filter(n=>/^ppt\/slides\/slide\d+\.xml$/.test(n)).sort((a,b)=>+a.match(/\d+/)[0]-+b.match(/\d+/)[0]);let t='';for(const n of L)t+=unx((await z.file(n).async('string')).replace(/<\/a:p>/g,'\n'))+'\n';return t}
+ if(e=='xlsx'){const s=(await zipx(f)).file('xl/sharedStrings.xml');return s?unx((await s.async('string')).replace(/<\/si>/g,'\n')):''}
+ if(e=='odt'){const z=await zipx(f);return unx((await z.file('content.xml').async('string')).replace(/<\/text:(p|h)>/g,'\n'))}
+ if(e=='doc')throw new Error('ancien format .doc : enregistre-le en .docx');
+ const t=await f.text();if(e=='rtf')return t.replace(/\\par[d]?/g,'\n').replace(/\\'([0-9a-f]{2})/gi,(m,h)=>String.fromCharCode(parseInt(h,16))).replace(/\\[a-z]+-?\d* ?/gi,'').replace(/[{}]/g,'');
+ return e=='html'||e=='htm'?unx(t.replace(/<(script|style)[\s\S]*?<\/\1>/gi,'').replace(/<\/(p|div|h\d|li|tr)>/gi,'\n')):t}
+async function imp(files){const ids=[];for(const f of files){try{pst('Lecture de '+f.name+'…');const t=(await extract(f)).replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();if(t.length<20)throw new Error('aucun texte trouvé (PDF scanné ?)');
+  const title=f.name.replace(/\.[^.]+$/,''),id=slug(title)||'fichier-'+Date.now(),L=LOC().filter(n=>n.id!=id);L.push({id,dir:'00_Inbox',title,type:'note',status:'inbox',date:iso(),tags:['fichier',(f.name.split('.').pop()||'').toLowerCase()],body:'Fichier importé : **'+f.name+'**\n\n'+t.slice(0,30000)});store.set('loc',L);ids.push(id)}
+  catch(e){pst('Import impossible ('+f.name+') : '+e.message)}}
+ if(ids.length){load();pid=ids[ids.length-1];if($('#dpad').open)pLoad(pid);pst(ids.length+' fichier'+(ids.length>1?'s':'')+' ajouté'+(ids.length>1?'s':'')+' aux notes : enrichissement en cours…');
+  ids.forEach((id,k)=>setTimeout(()=>{const n=byKey[id];if(n)for(let j=0;j<2;j++)setTimeout(()=>explore(n,Math.random()*CORT|0),j*900)},1200+k*1500))}}
+
+window.SYN_AI={ask:askAI,test,synth,imp};
 })();
 </script>
 </body>
