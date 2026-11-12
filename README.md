@@ -72,3 +72,9 @@ L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'auto
 - **Logos** : chaque bulle qui voyage sur la fibre, le Flux du cerveau et la liste « Découvertes du web » affichent le logo du site d'origine (Wikipédia, Hacker News, GitHub…, ou le site exact d'un résultat web).
 - **Bloc-notes** (bouton dans le menu +) : la première ligne est le titre, enregistrement automatique, « Enregistrer et enrichir » lance 3 cellules explorateurs. Les notes sont les mêmes que partout ailleurs dans Synapse.
 - **Fichiers** : bouton « Importer des fichiers » ou glisser-déposer n'importe où sur la page. PDF (avec texte), Word `.docx`, PowerPoint `.pptx`, Excel `.xlsx`, OpenDocument `.odt`, `.txt`, `.md`, `.csv`, `.json`, `.html`, `.rtf`. Le texte devient une note (30 000 caractères maximum) puis est enrichi. Les PDF scannés (images) et les anciens `.doc` ne sont pas lus.
+
+## V11 : mémoire par compte, retours, recherche par le sens
+
+- **Mémoire par compte** : Synapse retient, pour chaque compte séparément, tes centres d'intérêt (notes ouvertes, questions posées, 👍/👎) et tes sources préférées. Elle sert à classer les découvertes, à éviter ce que tu rejettes et à orienter les réponses d'Ollama. Réglages → « Mémoire du compte » : voir ce qui est retenu, couper, effacer.
+- **👍 / 👎 / → note** sur chaque découverte : 👍 renforce la source et les sujets, 👎 supprime la découverte et ne la reproposera plus, « → note » en fait une vraie note liée à l'originale.
+- **Recherche par le sens** : `ollama pull nomic-embed-text`. Les notes sont indexées en arrière-plan (vecteurs gardés dans le compte). La barre de recherche ajoute une section « PAR LE SENS », chaque note affiche des « Notes proches », et le chatbot utilise ces notes comme contexte.

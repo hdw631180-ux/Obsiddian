@@ -401,6 +401,7 @@ html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 .srcs{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}.srcc{display:flex!important;align-items:center;gap:6px;margin:4px 0!important;font-size:13px;text-transform:none!important;letter-spacing:0!important}.srcc input{width:auto!important}
 #padTx{font:15px/1.6 ui-monospace,Consolas,monospace;min-height:46vh;resize:vertical}#dpad{width:min(720px,94vw)}
 .ix{display:grid;place-items:center;padding:5px;border-radius:50%;max-width:none;width:auto}.ix i.lg{width:26px;height:26px}.fi em{text-align:left}
+.dact{display:inline-flex;gap:4px;margin-left:6px;vertical-align:middle}.dact button{padding:1px 7px;font-size:12px;border-radius:6px;opacity:.8}li.liked{border-left:2px solid #3ddc84;padding-left:8px}
 </style>
 </head>
 <body>
@@ -1786,9 +1787,9 @@ const pick=q=>{const w=nz(q).split(/[^a-z0-9]+/).filter(k=>k.length>2);if(!w.len
 const render=(txt,run)=>{const a=$('#ans');a.hidden=false;a.classList.toggle('busy',run);a.innerHTML=md(txt||'…');
  if(run){const b=document.createElement('button');b.type='button';b.className='ax';b.textContent='Arrêter';b.onclick=()=>ctl&&ctl.abort();a.prepend(b)}a.scrollTop=a.scrollHeight};
 /* ---- Question à l'IA : réponse affichée au fil de l'eau ---- */
-async function askAI(q){if(busy)return;const a=A();busy=true;$('#qp').hidden=true;hud('réfléchit');
+async function askAI(q){if(busy)return;memQ(q);const a=A();busy=true;$('#qp').hidden=true;hud('réfléchit');
  const webs=(await ALL(q,3500)).map(r=>r.value).filter(Boolean).slice(0,3),web=webs[0]||null;
- const src=a.ctx?pick(q):[],sys='Tu es Synapse, le cerveau du coffre de notes de l’utilisateur : des cellules explorent le web pour l’enrichir. Réponds en français, de façon courte et précise. '+'Notes du coffre : '+real().slice(0,40).map(n=>n.title).join(', ')+'.\n\n'+(webs.length?'Sources web récentes :\n'+webs.map(w=>'- ('+w.k+') '+w.s+' : '+w.x.slice(0,500)).join('\n')+'\n\n':'')+(src.length?'Appuie-toi sur les notes ci-dessous ; si la réponse n’y est pas, dis-le.\n\n'+src.map(n=>'### '+n.title+'\n'+plain(n.body).slice(0,600)+dd(n).map(d=>'\n- (web) '+d.t).join('')).join('\n\n'):''),
+ const src=a.ctx?await pickS(q):[],sys='Tu es Synapse, le cerveau du coffre de notes de l’utilisateur : des cellules explorent le web pour l’enrichir. Réponds en français, de façon courte et précise. '+prof()+'Notes du coffre : '+real().slice(0,40).map(n=>n.title).join(', ')+'.\n\n'+(webs.length?'Sources web récentes :\n'+webs.map(w=>'- ('+w.k+') '+w.s+' : '+w.x.slice(0,500)).join('\n')+'\n\n':'')+(src.length?'Appuie-toi sur les notes ci-dessous ; si la réponse n’y est pas, dis-le.\n\n'+src.map(n=>'### '+n.title+'\n'+plain(n.body).slice(0,600)+dd(n).map(d=>'\n- (web) '+d.t).join('')).join('\n\n'):''),
   msgs=[{role:'system',content:sys},...hist.slice(-6),{role:'user',content:q}];
  let out='',brain=null;try{brain=[...Array(CORT).keys()];srch={ci:brain};scanP.geometry.setFromPoints(SAMP)}catch{}
  ctl=new AbortController();render('',true);
@@ -1848,7 +1849,7 @@ function flow(n,i,txt,k){if(!ready||!P[n.id]||!cellP[i])return;const t=U.uT.valu
 async function plan(n){const f=n.title+(n.tags[0]&&Math.random()<.4?' '+n.tags[0]:'')+(Math.random()<.5?' '+(topK(n)[Math.random()*3|0]||''):'');if(!A().on)return f;
  try{const g=await gen('Note « '+n.title+' » : '+plain(n.body).slice(0,260)+'\n\nDéjà trouvé : '+dd(n).map(d=>d.s).join(' ; ')+'\n\nDonne UNE requête de recherche (2 à 5 mots, sans guillemets) pour découvrir une information nouvelle liée à cette note. Réponds uniquement par la requête.',24),q=g.split('\n')[0].replace(/["«»]/g,'').trim();return q.length>2&&q.length<60?q:f}catch{return f}}
 async function explore(n,i){act++;hud('explore ×'+act);
- try{fire(i,U.uT.value,.5);const q=await plan(n),R=(await ALL(q)).map(r=>r.value).filter(Boolean),seen=new Set(dd(n).map(d=>d.u)),L=[...R,...(await PG(n))].filter(r=>!seen.has(r.u));if(!L.length)return;
+ try{fire(i,U.uT.value,.5);const q=await plan(n),R=(await ALL(q)).map(r=>r.value).filter(Boolean),seen=new Set([...dd(n).map(d=>d.u),...(store.get('dis')||[])]),L=[...R,...(await PG(n))].filter(r=>!seen.has(r.u));if(!L.length)return;
   const w=rk(q,n,L)[0]||L[0];let txt=cut(w.x.split(/(?<=[.!?])\s/).slice(0,2).join(' '),240);
   if(A().on){try{const g=await gen('Note « '+n.title+' » : '+plain(n.body).slice(0,300)+'\n\nSource ('+w.k+') : '+w.x.slice(0,700)+'\n\nÉcris en français UN fait nouveau et utile (30 mots maximum) tiré de la source, qui enrichit la note. Réponds uniquement par la phrase.');if(g&&g.length>15)txt=cut(g,260)}catch{}}
   if(dAdd(n,{t:txt,u:w.u,s:w.s,k:w.k,q,d:Date.now()}))flow(n,i,txt,w.k)}
@@ -1912,7 +1913,7 @@ const DOM={},MG={};SRC.forEach(s=>{DOM[s.n]=s.d;MG[s.n]=s.m});
 const MO=k=>esc(MG[k]||(k||'web').replace(/^Web · /,'').slice(0,1).toUpperCase());
 const LG=(k,u)=>{const h=(k||'').startsWith('Web · ')?k.slice(6):DOM[k]||(u?hostOf(u):'');return h?'<img alt="" loading="lazy" referrerpolicy="no-referrer" src="https://www.google.com/s2/favicons?domain='+encodeURIComponent(h)+'&sz=64" onerror="this.remove()">':''};
 function rk(q,n,L){const w=kw(q+(n?' '+n.title+' '+n.tags.join(' '):'')),c={};
- return L.map(r=>{const t=nz(r.s+' '+r.x),o=w.filter(k=>t.includes(k)).length;let s=o/Math.max(1,w.length);if(n){s-=.12*dd(n).filter(d=>d.k===r.k).length;if(nz(r.s).includes(nz(n.title)))s+=.4}c[r.k]=(c[r.k]||0)+1;s-=.05*(c[r.k]-1);return{r,s,o}}).filter(x=>x.o>0||!w.length).sort((a,b)=>b.s-a.s).map(x=>x.r)}
+ return L.map(r=>{const t=nz(r.s+' '+r.x),o=w.filter(k=>t.includes(k)).length;let s=o/Math.max(1,w.length);if(n){s-=.12*dd(n).filter(d=>d.k===r.k).length;if(nz(r.s).includes(nz(n.title)))s+=.4}c[r.k]=(c[r.k]||0)+1;s-=.05*(c[r.k]-1);s+=mb(r);return{r,s,o}}).filter(x=>x.o>0||!w.length).sort((a,b)=>b.s-a.s).map(x=>x.r)}
 const SOFF=()=>store.get('srcOff')||[],ALL=(q,ms=7000)=>Promise.allSettled([...SRC.filter(s=>!SOFF().includes(s.n)).map(s=>s.f(q,ms)),SX(q)]).then(R=>rk(q,null,R.map(r=>r.value).filter(Boolean)).map(value=>({value})));
 /* réglages : sources, pages liées, SearXNG */
 $('#expN').parentNode.insertAdjacentHTML('afterend','<div id="srcCfg"><label>Sources du web</label><div class="srcs">'+SRC.map(s=>'<label class="srcc"><input type="checkbox" data-s="'+esc(s.n)+'"><i class="lg" data-m="'+s.m+'">'+LG(s.n)+'</i>'+esc(s.n)+'</label>').join('')+'</div><label class="srcc"><input type="checkbox" id="pgOn"> Lire les liens présents dans mes notes (via r.jina.ai)</label><input id="sxUrl" placeholder="Recherche web générale : instance SearXNG (https://…)" aria-label="SearXNG"><p class="hint">Les recherches partent de ton navigateur vers ces sites. Les logos viennent du service de favicons de Google.</p></div>');
@@ -1956,7 +1957,47 @@ async function imp(files){const ids=[];for(const f of files){try{pst('Lecture de
  if(ids.length){load();pid=ids[ids.length-1];if($('#dpad').open)pLoad(pid);pst(ids.length+' fichier'+(ids.length>1?'s':'')+' ajouté'+(ids.length>1?'s':'')+' aux notes : enrichissement en cours…');
   ids.forEach((id,k)=>setTimeout(()=>{const n=byKey[id];if(n)for(let j=0;j<2;j++)setTimeout(()=>explore(n,Math.random()*CORT|0),j*900)},1200+k*1500))}}
 
-window.SYN_AI={ask:askAI,test,synth,imp};
+/* ===== V11 : mémoire par compte, 👍/👎, découverte → note, recherche par le sens ===== */
+let semErr='';
+const MM=()=>{const m=store.get('mem')||{};m.src=m.src||{};m.kw=m.kw||{};m.open=m.open||{};m.q=m.q||[];m.n=m.n||0;return m},mOn=()=>store.get('memOn')!==0;
+const mSave=m=>{m.kw=Object.fromEntries(Object.entries(m.kw).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,150));store.set('mem',m)};
+const cl5=x=>Math.max(-5,Math.min(5,x));
+function fb(d,v){if(!mOn())return;const m=MM();m.src[d.k]=Math.max(-8,Math.min(8,(m.src[d.k]||0)+v));kw(d.s+' '+d.t).slice(0,8).forEach(w=>m.kw[w]=cl5((m.kw[w]||0)+v*.5));m.n++;mSave(m)}
+const memQ=q=>{if(!mOn())return;const m=MM();m.q=[...m.q,q].slice(-30);kw(q).forEach(w=>m.kw[w]=cl5((m.kw[w]||0)+.4));mSave(m)};
+addEventListener('hashchange',()=>{if(!mOn())return;const n=byKey[location.hash.slice(1).toLowerCase()];if(!n)return;const m=MM();m.open[n.id]=(m.open[n.id]||0)+1;topK(n).slice(0,3).forEach(w=>m.kw[w]=cl5((m.kw[w]||0)+.15));mSave(m)});
+const mb=r=>{if(!mOn())return 0;const m=MM();let s=(m.src[r.k]||0)*.05;kw(r.s+' '+r.x).forEach(w=>{s+=(m.kw[w]||0)*.02});return Math.max(-.3,Math.min(.3,s))};
+const prof=()=>{if(!mOn())return'';const m=MM(),k=Object.entries(m.kw).filter(x=>x[1]>.8).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]),s=Object.entries(m.src).filter(x=>x[1]>1).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+ return k.length||s.length?'Profil de l’utilisateur (appris de ses actions) : intérêts : '+(k.join(', ')||'?')+(s.length?' ; sources appréciées : '+s.join(', '):'')+'. ':''};
+/* découverte → note, pouces */
+function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'decouverte-'+Date.now(),L=LOC().filter(x=>x.id!=id);L.push({id,dir:'00_Inbox',title,type:'note',status:'inbox',date:iso(),tags:['découverte'],body:d.t+'\n\nSource ('+d.k+') : '+d.u+'\n\nVoir aussi [['+n.title+']]'});store.set('loc',L);d.l=1;fb(d,2);load();say('Note créée : '+title);setTimeout(()=>{location.hash=id},400)}
+document.addEventListener('click',e=>{const b=e.target.closest('.dact button');if(!b)return;const w=b.parentNode,n=byKey[(w.dataset.n||'').toLowerCase()],u=w.dataset.u,a=b.dataset.a;if(!n)return;const m=dAll();let l=m[n.id]||[];const d=l.find(x=>x.u===u);if(!d)return;
+ if(a=='up'){d.l=d.l?0:1;fb(d,d.l?1:-1)}else if(a=='dn'){fb(d,-1);l=l.filter(x=>x.u!==u);const x=store.get('dis')||[];x.push(u);store.set('dis',x.slice(-300))}else if(a=='mk')mkNote(n,d);
+ m[n.id]=l;store.set('disc',m);if(a!='mk')open(n.id)});
+/* recherche par le sens : embeddings Ollama, vecteurs gardés dans le compte */
+const EM=()=>store.get('emModel')||'nomic-embed-text',EMB=()=>store.get('emb')||{},hsh=n=>n.title.length+':'+n.body.length+':'+n.body.slice(0,40),cos=(a,b)=>{let s=0;for(let i=0;i<a.length;i++)s+=a[i]*b[i];return s/16129};
+async function embed(T){const r=await fetch(base()+'/api/embed',{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(60000),body:JSON.stringify({model:EM(),input:T})});if(!r.ok)throw new Error(r.status==404?'modèle absent : ollama pull '+EM():'erreur '+r.status);return(await r.json()).embeddings.map(v=>{const z=Math.hypot(...v)||1;return v.map(x=>Math.round(x/z*127))})}
+let eb=false;async function embAll(){if(eb||!A().on||up===false||store.get('semOn')===0)return;eb=true;try{const E=EMB(),T=real().filter(n=>!E[n.id]||E[n.id].h!==hsh(n)).slice(0,8);if(!T.length)return;const V=await embed(T.map(n=>(n.title+'\n'+plain(n.body)).slice(0,1500)));T.forEach((n,i)=>E[n.id]={h:hsh(n),v:V[i]});store.set('emb',E);semErr=''}catch(e){semErr=e.message}finally{eb=false}}
+setInterval(embAll,15000);setTimeout(embAll,4000);
+const top=(L,min,gap,k)=>{const b=L.reduce((m,x)=>Math.max(m,x.s),0);return L.filter(x=>x.s>=Math.max(min,b-gap)).sort((a,c)=>c.s-a.s).slice(0,k).map(x=>x.n)};
+async function semS(q,k=5){const E=EMB();if(!Object.keys(E).length)return[];const[v]=await embed([q]);return top(real().filter(n=>E[n.id]).map(n=>({n,s:cos(v,E[n.id].v)})),.4,.12,k)}
+const near=n=>{const E=EMB(),a=E[n.id];return a?top(real().filter(x=>x.id!==n.id&&E[x.id]).map(x=>({n:x,s:cos(a.v,E[x.id].v)})),.5,.15,4):[]};
+async function pickS(q){const a=pick(q);try{if(store.get('semOn')!==0&&up!==false)for(const n of await semS(q,3))if(!a.includes(n))a.push(n)}catch{}return a.slice(0,5)}
+const ds=window.doSearch;let st2=0;
+window.doSearch=q=>{ds(q);clearTimeout(st2);if(!q||q.trim().length<3||store.get('semOn')===0||up===false||!Object.keys(EMB()).length)return;
+ st2=setTimeout(async()=>{try{const r=await semS(q.trim(),5),box=$('#sres');if(!r.length||$('#s').value.trim()!==q.trim())return;const ex=new Set([...box.querySelectorAll('[data-id]')].map(b=>b.dataset.id)),add=r.filter(n=>!ex.has(n.id));if(!add.length)return;
+  box.insertAdjacentHTML('beforeend','<button type="button" disabled style="opacity:.6;font-size:11px;letter-spacing:.14em">PAR LE SENS</button>'+add.map(n=>'<button type="button" data-id="'+esc(n.id)+'"><span>'+esc(n.title)+'</span><span class="meta">'+esc(n.dir||'')+'</span></button>').join(''));box.classList.add('on');
+  box.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{location.hash=b.dataset.id;box.classList.remove('on')})}catch{}},450)};
+window.discHTML=n=>{const l=dd(n);let h=l.length?'<h2>Découvertes du web</h2><ul>'+l.slice().reverse().map(d=>'<li class="'+(d.l?'liked':'')+'"><span class="tg"><i class="lg" data-m="'+MO(d.k)+'">'+LG(d.k,d.u)+'</i>'+esc(d.k||'web')+'</span> '+esc(d.t)+' <a class="wl" href="'+esc(d.u)+'" target="_blank" rel="noopener">'+esc(d.s)+'</a> <span class="dact" data-n="'+esc(n.id)+'" data-u="'+esc(d.u)+'"><button type="button" data-a="up" aria-label="Utile">👍</button><button type="button" data-a="dn" aria-label="Pas utile">👎</button><button type="button" data-a="mk">→ note</button></span></li>').join('')+'</ul>':'';
+ const nb=near(n);if(nb.length)h+='<h2>Notes proches (par le sens)</h2><ul>'+nb.map(x=>'<li><a class="wl" href="#'+esc(x.id)+'">'+esc(x.title)+'</a></li>').join('')+'</ul>';return h};
+/* réglages : mémoire du compte + recherche par le sens */
+$('#srcCfg').insertAdjacentHTML('afterend','<div id="memCfg"><label>Mémoire du compte</label><label class="srcc"><input type="checkbox" id="memOn"> Apprendre de mes actions (notes ouvertes, questions, 👍 / 👎)</label><p class="hint" id="memSum"></p><button type="button" id="memClr">Effacer la mémoire de ce compte</button><label class="srcc" style="margin-top:14px!important"><input type="checkbox" id="semOn"> Recherche par le sens (embeddings Ollama)</label><input id="emModel" placeholder="nomic-embed-text" aria-label="Modèle d’embeddings"><p class="hint" id="semSt"></p><p class="hint">Installe le modèle : <code>ollama pull nomic-embed-text</code>. La mémoire reste dans ce navigateur, séparée pour chaque compte.</p></div>');
+const memFill=()=>{$('#memOn').checked=mOn();$('#semOn').checked=store.get('semOn')!==0;$('#emModel').value=EM();const m=MM(),E=Object.entries,k=E(m.kw).filter(x=>x[1]>.5).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]),bad=E(m.kw).filter(x=>x[1]<-.5).sort((a,b)=>a[1]-b[1]).slice(0,5).map(x=>x[0]),s=E(m.src).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]),o=E(m.open).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>(byKey[x[0].toLowerCase()]||{title:x[0]}).title);
+ $('#memSum').textContent='Intérêts : '+(k.join(', ')||'rien encore')+' · Sources appréciées : '+(s.join(', ')||'—')+' · À éviter : '+(bad.join(', ')||'—')+' · Les plus ouvertes : '+(o.join(', ')||'—')+' · '+m.q.length+' questions, '+m.n+' réactions';$('#semSt').textContent=Object.keys(EMB()).length+' / '+real().length+' notes indexées'+(semErr?' · '+semErr:'')};
+$('#bcfg').addEventListener('click',memFill);
+$('#memCfg').addEventListener('change',e=>{if(e.target.id=='memOn')store.set('memOn',+e.target.checked);if(e.target.id=='semOn')store.set('semOn',+e.target.checked);if(e.target.id=='emModel'){store.set('emModel',e.target.value.trim()||'nomic-embed-text');store.set('emb',{})}});
+$('#memClr').onclick=()=>{if(confirm('Effacer ce que Synapse a appris de ce compte ?')){store.set('mem',{});store.set('dis',[]);memFill()}};
+
+window.SYN_AI={ask:askAI,test,synth,imp,semS};
 })();
 </script>
 </body>
