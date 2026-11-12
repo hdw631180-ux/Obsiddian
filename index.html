@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Synapse V4</title>
+<title>Synapse V5</title>
 <meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
@@ -351,6 +351,7 @@ body.flat-mode #minimap{opacity:.4}
     <div id="sideTabs">
       <button type="button" class="on" data-tab="vue">Vue</button>
       <button type="button" data-tab="filtres">Filtres</button>
+      <button type="button" data-tab="raviver">Raviver</button>
       <button type="button" data-tab="outils">Outils</button>
     </div>
     <div id="sideBody">
@@ -378,18 +379,38 @@ body.flat-mode #minimap{opacity:.4}
         <label class="tr" style="margin-top:8px"><input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label>
         <h3>Zones du cerveau</h3>
         <div id="loblegend">
-          <span><i style="background:#5eb8ff"></i>Frontal</span>
-          <span><i style="background:#a78bfa"></i>Parietal</span>
-          <span><i style="background:#f472b6"></i>Temporal</span>
-          <span><i style="background:#fbbf24"></i>Occipital</span>
-          <span><i style="background:#94a3b8"></i>Tronc / cervelet</span>
+          <span><i style="background:#4A90D9"></i>Frontal</span>
+          <span><i style="background:#7B6CF0"></i>Parietal</span>
+          <span><i style="background:#C45B8C"></i>Temporal</span>
+          <span><i style="background:#D4A017"></i>Occipital</span>
+          <span><i style="background:#6B7C8A"></i>Tronc / cervelet</span>
+          <span><i style="background:#2EC4B6"></i>Donnees / capsules</span>
         </div>
-        <div class="side-foot">V4 · interface etendue · modes · filtres · outils</div>
+        <div class="side-foot">V5 · 100 capsules · fibres par zone</div>
       </section>
       <section id="tab-filtres">
         <h3>Filtrer le graphe</h3>
         <div id="filters"></div>
         <div class="side-foot">Clique un dossier ou un tag pour isoler une partie du cerveau</div>
+      </section>
+      <section id="tab-raviver">
+        <h3>Nourrir le reseau</h3>
+        <p class="hint" style="margin:0 0 10px">Les capsules s'alimentent avec les notes, tags et taches du coffre. Plus le coffre est riche, plus le reseau s'allume.</p>
+        <div class="side-acts">
+          <button type="button" id="brPulse">Pulse reseau</button>
+          <button type="button" id="brFeed">Nourrir depuis les notes</button>
+          <button type="button" id="brTasks">Activer via taches</button>
+          <button type="button" id="brTags">Activer via tags</button>
+          <button type="button" id="brCalm">Calmer le reseau</button>
+        </div>
+        <h3>Charge</h3>
+        <div id="ravCharge" style="font:12px var(--mo);color:var(--mu);margin-top:6px">charge 0%</div>
+        <div style="margin-top:8px;height:6px;border:1px solid var(--ln);background:rgba(255,255,255,.04)">
+          <div id="ravBar" style="height:100%;width:0%;background:linear-gradient(90deg,#2EC4B6,#4A90D9);transition:width .4s ease"></div>
+        </div>
+        <h3>Capsules actives</h3>
+        <div id="ravActive" style="font:12px var(--mo);color:var(--mu)">0 / 100</div>
+        <div class="side-foot">Chaque capsule est reliee au cortex par une fibre coloree</div>
       </section>
       <section id="tab-outils">
         <h3>Actions</h3>
@@ -411,7 +432,7 @@ body.flat-mode #minimap{opacity:.4}
 <div id="hud-top"><span>SYS <b id="hudClock">--:--:--</b></span><span>NODE <b id="hudUser">offline</b></span><span>VIEW <b id="hudView">3D / FULL</b></span><span>FPS <b id="hudFps">--</b></span></div>
 <header id="top">
 <div>
-  <div class="brand">Synapse <span class="ver">V4</span></div>
+  <div class="brand">Synapse <span class="ver">V5</span></div>
   <div id="stats"></div>
   <div id="statsPanel"></div>
 </div>
@@ -439,7 +460,7 @@ body.flat-mode #minimap{opacity:.4}
 <div id="minimap" aria-hidden="true"><canvas id="mm"></canvas></div>
 <div id="minibrains" aria-hidden="true"></div>
 <div id="statusline">pret · clique + pour le panneau · / pour chercher · n nouvelle note</div>
-<div id="hud-bot"><span>LAYER <b id="hudLayer">cortex</b></span><span>FOCUS <b id="hudFocus">none</b></span><span>OPACITY <b id="hudOp">100%</b></span><span>BUILD <b>V4</b></span></div>
+<div id="hud-bot"><span>LAYER <b id="hudLayer">cortex</b></span><span>FOCUS <b id="hudFocus">none</b></span><span>OPACITY <b id="hudOp">100%</b></span><span>BUILD <b>V5</b></span></div>
 <div id="dropzone">Dépose des fichiers .md pour les importer</div>
 <div id="kbhelp"><div class="box">
   <strong>Raccourcis clavier</strong>
@@ -746,8 +767,9 @@ function enterApp(user){
   viewMode=store.get('viewMode')||'full';
   document.querySelectorAll('#viewModes button').forEach(b=>b.classList.toggle('on',b.dataset.mode===viewMode));
   flatMode=!!store.get('flat');
-  const b2=$('#b2d');if(b2){b2.classList.toggle('on',flatMode);document.body.classList.toggle('flat-mode',flatMode);if(miniG)miniG.visible=flatMode}
+  const b2=$('#b2d');if(b2){b2.classList.toggle('on',flatMode);document.body.classList.toggle('flat-mode',flatMode);if(miniG)miniG.visible=true}
   applyTR&&applyTR();
+  setTimeout(()=>{try{feedCapsules('notes')}catch(e){}},600);
   cells=store.get('cells');
   if(!Array.isArray(cells))cells=[
    {sign:'H',name:'Accueil',kind:'note',val:'accueil'},
@@ -873,7 +895,7 @@ float vis=max(step(.999,gr),1.-smoothstep(gr-.07,gr+.0001,aT));
 float tip=(1.-smoothstep(0.,.1,gr-aT))*step(aT,gr)*(1.-step(.999,gr));
 float st=step(2.,aF.z),h=aF.z-2.*st;
 float fl=pow(.5+.5*sin(6.2831*(aT*2.-uT*aF.w)),8.);
-vA=uFade*dp*vis*(1.-smoothstep(0.,2.,uT-aF.y))*(mix(.11,.4,st)+fl*(.35+.3*st)+tip*1.1+.5*wv(position.z));
+vA=uFade*dp*vis*(1.-smoothstep(0.,2.,uT-aF.y))*(mix(.16,.48,st)+fl*(.4+.28*st)+tip*1.15+.45*wv(position.z));
 vC=mix(vec3(1.),hue(h),clamp(.3+fl+tip,0.,1.));gl_Position=projectionMatrix*mv;}`;
 /* ondes électriques : une tête et trois points de traîne, courbe de Bézier sur le GPU */
 const VW=`attribute vec3 aC;attribute vec3 aE;attribute vec3 aW;attribute vec3 aCol;varying float vA;varying vec3 vC;${UNI}
@@ -896,7 +918,7 @@ const LM=[],lineMat=o=>{const m=new THREE.LineBasicMaterial({color:0xffffff,tran
 const attr=(g,n,a,s=1)=>g.setAttribute(n,new THREE.Float32BufferAttribute(a,s));
 const lp=(a,b,t)=>a.clone().lerp(b,t),bz=(a,c,b,t)=>lp(lp(a,c,t),lp(c,b,t),t);
 const cord=t=>V(0,-.3-1.6*t,-.2-.28*t+.06*Math.sin(t*5));
-const SEG=10,NP=480,NMAX=1200,CORT=140,WN=600,RN=100;
+const SEG=14,NP=520,NMAX=1400,CORT=160,WN=700,RN=120;
 const RGB=h=>h>1?[1,.3,.65]:h<0?[1,1,1]:h<.34?[.35,.85,1]:h<.67?[.66,.55,1]:[1,.72,.32];
 const pk=()=>{const r=Math.random();return r<.55?.1:r<.8?.5:.9};
 
@@ -961,11 +983,11 @@ function fire(i,t,h){cellE[i]=1;const rgb=RGB(h);cellC.setXYZ(i,rgb[0],rgb[1],rg
   const cg=new THREE.BufferGeometry().setFromPoints(cellP);attr(cg,'aS',cellP.map(()=>18+Math.random()*14));
   /* couleurs par lobe selon la position */
   const lobeRGB=p=>{
-    if(p.y<-.25)return [.58,.65,.72]; /* tronc / cervelet */
-    if(p.z>.35)return [.37,.72,1];    /* frontal */
-    if(p.z<-.3)return [.98,.75,.14];  /* occipital */
-    if(Math.abs(p.x)>.42&&p.y<.25)return [.96,.45,.71]; /* temporal */
-    return [.66,.55,.98];             /* parietal */
+    if(p.y<-.25)return [0.42,0.49,0.54];
+    if(p.z>.35)return [0.29,0.56,0.85];
+    if(p.z<-.3)return [0.83,0.63,0.09];
+    if(Math.abs(p.x)>.42&&p.y<.25)return [0.77,0.36,0.55];
+    return [0.48,0.42,0.94];
   };
   cellA=new THREE.Float32BufferAttribute(cellP.map(()=>.55),1);
   const baseCols=cellP.flatMap(p=>{const c=lobeRGB(p);return[c[0],c[1],c[2]]});
@@ -1078,49 +1100,97 @@ const cube=new THREE.Group(),cubeS={x:-99,y:-99,r:0,h:0,over:false};
  fm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.05,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
  ob.material.color.set(0xff2020);ib.material.color.set(0xff7a45);fm.color.set(0xff1010);ob.add(new THREE.Mesh(bx,fm));cube.add(ob,ib);cube.userData={ob,ib};brain.add(cube)}
 
-/* ===== Mini-cerveaux satellites (roles) ===== */
-const ROLES=[
-  {name:'Memoire',role:'Garde les notes',col:[.45,.8,1]},
-  {name:'Liens',role:'Relie les idees',col:[.7,.55,1]},
-  {name:'Taches',role:'Suit le travail',col:[1,.75,.35]},
-  {name:'Inbox',role:'Capture rapide',col:[1,.45,.55]},
-  {name:'Projets',role:'Mene les plans',col:[.4,.9,.7]},
-  {name:'Analyse',role:'Lit la donnee',col:[.55,.9,.95]},
-  {name:'Journal',role:'Trace le temps',col:[.95,.6,.85]},
-  {name:'Focus',role:'Isole le signal',col:[1,1,1]}
-];
-const miniG=new THREE.Group();brain.add(miniG);miniG.visible=false;
-const miniFeed=[];
-const mbHTML=[];
-{const host=$('#minibrains');
-  ROLES.forEach((r,i)=>{
-    const a=(i/ROLES.length)*Math.PI*2-Math.PI/2,rad=2.35+((i%2)*.22);
-    const pos=V(Math.cos(a)*rad,.08+Math.sin(i*1.7)*.12,Math.sin(a)*rad*.92);
-    const pts=[...Array(48)].map(()=>{const u=rv();return pos.clone().add(shell(u,.16+.04*Math.random()).sub(shell(V(0,0,0),.01)).multiplyScalar(.22));});
-    /* petit nuage local */
-    const local=[];for(let k=0;k<36;k++){const u=rv();local.push(pos.clone().add(V(u.x*AX[0],u.y*AX[1],u.z*AX[2]).multiplyScalar(.14+.05*Math.random())));}
-    const g=new THREE.BufferGeometry().setFromPoints(local);
-    attr(g,'aS',local.map(()=>2.2+Math.random()*2));attr(g,'aA',local.map(()=>.45+Math.random()*.35));
-    const mat=pm.clone();mat.uniforms=U; /* share fade */
-    const ptsObj=new THREE.Points(g,cm.clone());
-    /* color the points */
-    const cols=[];local.forEach(()=>cols.push(r.col[0],r.col[1],r.col[2]));
-    g.setAttribute('aCol',new THREE.Float32BufferAttribute(cols,3));
-    g.setAttribute('aA',new THREE.Float32BufferAttribute(local.map(()=>.65),1));
-    g.setAttribute('aS',new THREE.Float32BufferAttribute(local.map(()=>10+Math.random()*8),1));
-    ptsObj.material=cm;
-    miniG.add(ptsObj);
-    /* fibre d'alimentation depuis le centre */
-    const feed=[];const steps=8;for(let s=0;s<=steps;s++){const t=s/steps;feed.push(V(0,0,0).lerp(pos,t).add(V(0,Math.sin(t*Math.PI)*.15,0)));}
-    const fg=new THREE.BufferGeometry().setFromPoints(feed);
-    const fln=new THREE.Line(fg,lineMat(.22));
-    miniG.add(fln);
-    miniFeed.push({pos,obj:ptsObj,line:fln,phase:Math.random()*Math.PI*2,role:r});
-    const el=document.createElement('div');el.className='mb';el.innerHTML=`<div class="ring2"><div class="pulse"></div></div><div class="nm">${r.name}</div><div class="role">${r.role}</div>`;
-    el.style.opacity='0';host.appendChild(el);mbHTML.push(el);
-  });
+/* ===== 100 capsules alimentees par le coffre ===== */
+const ZONE_COL={
+  frontal:[0.29,0.56,0.85],
+  parietal:[0.48,0.42,0.94],
+  temporal:[0.77,0.36,0.55],
+  occipital:[0.83,0.63,0.09],
+  stem:[0.42,0.49,0.54],
+  data:[0.18,0.77,0.71]
+};
+const CAP_ROLES=['Memoire','Liens','Taches','Inbox','Projets','Analyse','Journal','Focus','Tags','Sync','Graphe','Capture','Index','Revue','Archive','Signal','Contexte','Priorite','Habitude','Idee'];
+const miniG=new THREE.Group();brain.add(miniG);miniG.visible=true;
+const miniFeed=[],mbHTML=[];
+let netCharge=0,capEnergy=new Float32Array(100);
+{
+  const host=$('#minibrains');if(host)host.innerHTML='';
+  const capPos=[],capCol=[],capS=[],capA=[],feedPos=[],feedCol=[];
+  for(let i=0;i<100;i++){
+    const zone=i<20?'frontal':i<40?'parietal':i<60?'temporal':i<80?'occipital':i<90?'stem':'data';
+    const col=ZONE_COL[zone];
+    const layer=(i%5),ring=Math.floor(i/5);
+    const a=(ring/20)*Math.PI*2+(layer*.11),rad=1.55+layer*.38+(Math.random()*.08);
+    const pos=V(Math.cos(a)*rad,(zone==='stem'?-.35:.05)+Math.sin(i*.7)*.18+(layer-2)*.04,Math.sin(a)*rad*.9);
+    for(let k=0;k<7;k++){
+      const u=rv();
+      capPos.push(pos.x+u.x*.06,pos.y+u.y*.05,pos.z+u.z*.06);
+      capCol.push(col[0],col[1],col[2]);
+      capS.push(7+Math.random()*6);capA.push(.55);
+    }
+    const mid=pos.clone().multiplyScalar(.45).add(V(0,.12+Math.random()*.08,0));
+    for(let s=0;s<6;s++){
+      const t0=s/6,t1=(s+1)/6;
+      const p0=V(0,0,0).lerp(mid,Math.min(1,t0*2)).lerp(pos,Math.max(0,t0*2-1));
+      const p1=V(0,0,0).lerp(mid,Math.min(1,t1*2)).lerp(pos,Math.max(0,t1*2-1));
+      feedPos.push(p0.x,p0.y,p0.z,p1.x,p1.y,p1.z);
+      feedCol.push(col[0],col[1],col[2],col[0],col[1],col[2]);
+    }
+    miniFeed.push({pos,zone,role:CAP_ROLES[i%CAP_ROLES.length],phase:Math.random()*6.28,i});
+    if(i%12===0){
+      const el=document.createElement('div');el.className='mb';
+      el.innerHTML=`<div class="ring2"><div class="pulse"></div></div><div class="nm">${CAP_ROLES[i%CAP_ROLES.length]}</div><div class="role">${zone}</div>`;
+      el.style.opacity='0';if(host)host.appendChild(el);mbHTML.push({el,idx:i});
+    }
+  }
+  const cg=new THREE.BufferGeometry();
+  cg.setAttribute('position',new THREE.Float32BufferAttribute(capPos,3));
+  cg.setAttribute('aCol',new THREE.Float32BufferAttribute(capCol,3));
+  cg.setAttribute('aS',new THREE.Float32BufferAttribute(capS,1));
+  cg.setAttribute('aA',new THREE.Float32BufferAttribute(capA,1));
+  const capPts=new THREE.Points(cg,cm);capPts.frustumCulled=false;miniG.add(capPts);
+  const fg=new THREE.BufferGeometry();
+  fg.setAttribute('position',new THREE.Float32BufferAttribute(feedPos,3));
+  fg.setAttribute('color',new THREE.Float32BufferAttribute(feedCol,3));
+  const feedMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.35,depthWrite:false,blending:THREE.AdditiveBlending});
+  const feedLines=new THREE.LineSegments(fg,feedMat);feedLines.frustumCulled=false;miniG.add(feedLines);
+  miniG.userData={capPts,feedLines,feedMat,capA:cg.attributes.aA};
+}
+function setNetCharge(v){
+  netCharge=Math.max(0,Math.min(1,v));
+  const bar=$('#ravBar'),lab=$('#ravCharge'),act=$('#ravActive');
+  if(bar)bar.style.width=(netCharge*100).toFixed(0)+'%';
+  if(lab)lab.textContent='charge '+(netCharge*100).toFixed(0)+'%';
+  let on=0;for(let i=0;i<100;i++)if(capEnergy[i]>.15)on++;
+  if(act)act.textContent=on+' / 100';
+  if(miniG.userData.feedMat)miniG.userData.feedMat.opacity=.18+netCharge*.45;
+}
+function feedCapsules(kind){
+  const tags=N.flatMap(n=>n.tags||[]);
+  const todo=typeof tasks==='function'?tasks(false).length:0;
+  for(let i=0;i<100;i++){
+    const m=miniFeed[i];
+    let e=capEnergy[i]*0.7;
+    if(kind==='pulse')e+=.35+Math.random()*.4;
+    else if(kind==='notes')e+=Math.min(.9,N.length/40)*.5+(Math.random()*.25);
+    else if(kind==='tasks')e+=(todo?Math.min(1,todo/12):.1)*.6+(m.role==='Taches'?.35:0);
+    else if(kind==='tags')e+=(tags.length?Math.min(1,tags.length/30):.1)*.55+(m.zone==='data'?.2:0);
+    else if(kind==='calm')e*=.15;
+    capEnergy[i]=Math.min(1,e);
+  }
+  const avg=capEnergy.reduce((a,b)=>a+b,0)/100;
+  setNetCharge(kind==='calm'?avg*.3:Math.max(netCharge,avg));
+  if(kind!=='calm'&&typeof fire==='function'){
+    for(let k=0;k<8;k++)fire(Math.random()*CORT|0,clock.elapsedTime,pk());
+  }
+  const aA=miniG.userData.capA;if(aA){
+    for(let i=0;i<100;i++)for(let k=0;k<7;k++)aA.array[i*7+k]=.25+capEnergy[i]*.75;
+    aA.needsUpdate=true;
+  }
+  updateHUD&&updateHUD();
 }
 let flatMode=false,flatT=0;
+
 
 function cubeFrame(t,dt){const{ob,ib}=cube.userData,W=innerWidth,H=innerHeight;
   ob.rotation.set(t*.22,t*.32,t*.12);ib.rotation.set(-t*.28,-t*.4,-t*.16);cube.position.y=Math.sin(t*.7)*.012;
@@ -1183,11 +1253,17 @@ $('#bghost').onclick=()=>{
   if(currentUser&&!ghostOn)store.set('tr',TR);
   applyTR();
 };
+
+$('#brPulse')&&($('#brPulse').onclick=()=>feedCapsules('pulse'));
+$('#brFeed')&&($('#brFeed').onclick=()=>feedCapsules('notes'));
+$('#brTasks')&&($('#brTasks').onclick=()=>feedCapsules('tasks'));
+$('#brTags')&&($('#brTags').onclick=()=>feedCapsules('tags'));
+$('#brCalm')&&($('#brCalm').onclick=()=>feedCapsules('calm'));
 $('#b2d').onclick=()=>{
   flatMode=!flatMode;
   $('#b2d').classList.toggle('on',flatMode);
   document.body.classList.toggle('flat-mode',flatMode);
-  miniG.visible=flatMode;
+  miniG.visible=true;
   if(flatMode){zfT=Math.max(zfT,1.35);tgt=null}
   if(currentUser)store.set('flat',flatMode);
 };
@@ -1260,15 +1336,24 @@ function frame(){
   /* labels mini-cerveaux */
   if(flatT>.05){
     const W=innerWidth,H=innerHeight;
-    miniFeed.forEach((m,i)=>{
-      m.obj.rotation.y=t*.3+m.phase;m.obj.scale.setScalar(1+.06*Math.sin(t*2+m.phase));
+    mbHTML.forEach(item=>{
+      const m=miniFeed[item.idx];if(!m)return;
       v3.copy(m.pos).applyMatrix4(brain.matrixWorld).project(cam);
-      const el=mbHTML[i];if(!el)return;
-      const x=(v3.x+1)/2*W,y=(1-v3.y)/2*H,vis=v3.z<1&&flatT;
-      el.style.opacity=vis?String(Math.min(1,flatT*1.4)):0;
+      const el=item.el;
+      const x=(v3.x+1)/2*W,y=(1-v3.y)/2*H,vis=v3.z<1;
+      const op=vis?(flatMode?Math.min(1,.55+flatT*.5):.35+capEnergy[m.i]*.5):0;
+      el.style.opacity=String(op);
       if(vis)el.style.transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;
     });
-  }else if(mbHTML[0]&&mbHTML[0].style.opacity!=='0'){mbHTML.forEach(el=>el.style.opacity='0')}
+    if(miniG.userData.capA){
+      const aA=miniG.userData.capA;
+      for(let i=0;i<100;i++){
+        const pulse=.25+capEnergy[i]*.75*(.85+.15*Math.sin(t*2+miniFeed[i].phase));
+        for(let k=0;k<7;k++)aA.array[i*7+k]=pulse;
+      }
+      aA.needsUpdate=true;
+    }
+  }else if(mbHTML[0]){mbHTML.forEach(item=>item.el.style.opacity=String(.2+capEnergy[item.idx]*.4))}
   if(!nodes){comp?comp.render(dt):R.render(scene,cam);return}
   const W=innerWidth,H=innerHeight,aS=nodes.geometry.attributes.aS,aA=nodes.geometry.attributes.aA;
   const doLabels=!(frameN&1)&&lb.length;
