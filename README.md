@@ -27,3 +27,10 @@ Ouvre simplement `index.html` dans un navigateur moderne (WebGL requis), ou dép
 
 - Les comptes et les données restent dans le navigateur de chaque visiteur (localStorage).
 - Aucune clé API, aucune donnée n’est envoyée vers un serveur.
+
+## V7 — WebGPU + Labo
+
+- **WebGPU** (calcul + rendu des particules sur le GPU, jusqu'à 400 000 particules) ; repli automatique sur le rendu WebGL si le navigateur ne le supporte pas.
+- Onglet **Labo** dans le menu `+` : 30 réglages, 12 palettes, 8 préréglages, 18 actions.
+- **Ctrl+K** : palette de commandes. Raccourcis : `g` GPU, `c` capture PNG, `p` palette, `b` explosion, `f` plein écran, `x` CRT, `[` `]` particules…
+- Série de questions « Fun & GPU » dans le chatbot, feux de départ F1, grain de film, halo du curseur, moniteur de performance, Konami code.

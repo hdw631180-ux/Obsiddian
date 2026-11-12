@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Synapse V6</title>
+<title>Synapse V7</title>
 <meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
@@ -305,6 +305,39 @@ body.flat-mode #minimap{opacity:.4}
   #stats{grid-template-columns:1fr}
   #hud-top{font-size:9px;padding-left:50px}
 }
+/* ===== V7 : WebGPU + Labo ===== */
+#gpu{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen}
+body.light #gpu{filter:invert(1) hue-rotate(180deg);mix-blend-mode:multiply}
+.ring{translate:var(--px,0) var(--py,0)}
+#fx-grain{position:fixed;inset:-50%;pointer-events:none;opacity:.07;z-index:3;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:gr7 .9s steps(6) infinite}
+@keyframes gr7{20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-1%)}80%{transform:translate(3%,3%)}}
+#fx-scan{position:fixed;inset:0;pointer-events:none;z-index:3;display:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px)}
+#fx-cur{position:fixed;left:0;top:0;width:280px;height:280px;margin:-140px 0 0 -140px;pointer-events:none;border-radius:50%;background:radial-gradient(circle,var(--ac,#7b6cf0) 0,transparent 65%);opacity:.13;mix-blend-mode:screen;z-index:3;will-change:transform}
+.rp{position:fixed;width:12px;height:12px;margin:-6px;border:1px solid var(--ac,#fff);border-radius:50%;pointer-events:none;animation:rp7 .8s ease-out forwards;z-index:9}
+@keyframes rp7{to{transform:scale(14);opacity:0}}
+#toast7{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:9}
+.t7{background:rgba(0,0,0,.85);border:1px solid var(--ac,#fff);padding:6px 14px;font:12px var(--mo);letter-spacing:.04em;animation:t7 2.2s ease forwards}
+body.light .t7{background:rgba(244,241,234,.95);color:#1a1a1a}
+@keyframes t7{0%{opacity:0;transform:translateY(8px)}10%,85%{opacity:1;transform:none}100%{opacity:0}}
+#v7box{position:fixed;left:14px;bottom:46px;font:11px/1.5 var(--mo);color:var(--mu);pointer-events:none;z-index:3}
+#v7box canvas{display:block;border:1px solid var(--ln);margin-bottom:4px}
+#cmdk{position:fixed;left:50%;top:14vh;transform:translateX(-50%);width:min(560px,92vw);background:rgba(0,0,0,.94);border:1px solid var(--ac,#fff);z-index:12;padding:12px;backdrop-filter:blur(10px)}
+body.light #cmdk{background:rgba(244,241,234,.97)}
+#cmdk[hidden]{display:none}
+#cmdk div{max-height:46vh;overflow:auto;margin-top:8px}
+#cmdk button{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--ln);padding:8px 6px}
+#cmdk button.on{background:rgba(255,255,255,.1);border-left:2px solid var(--ac,#fff)}
+#tab-labo .lr{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:7px 0;font-size:13px;color:var(--mu)}
+#tab-labo .lr input[type=range]{width:50%;border:0;padding:0;accent-color:var(--ac,#fff)}
+#tab-labo .lr input[type=checkbox]{width:auto;accent-color:var(--ac,#fff)}
+#tab-labo .pal i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+#tab-labo .wrap7{display:flex;flex-wrap:wrap;gap:6px}
+#lights7{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:8;pointer-events:none;text-align:center}
+#lights7 div{display:flex;gap:14px}
+#lights7 i{width:26px;height:26px;border-radius:50%;background:#2a0505;border:1px solid #500}
+#lights7 i.on{background:#ff1e1e;box-shadow:0 0 22px #f00}
+#lights7 b{display:block;margin-top:18px;font:500 13px var(--mo);letter-spacing:.3em;color:#fff}
+:focus-visible{outline-color:var(--ac,#fff)}
 </style>
 </head>
 <body>
@@ -338,6 +371,7 @@ body.flat-mode #minimap{opacity:.4}
   </div>
 </div>
 <canvas id="cv" aria-label="Graphe 3D du coffre, en forme de cerveau"></canvas>
+<canvas id="gpu" aria-hidden="true"></canvas>
 <div class="ring r1"></div><div class="ring r2"></div>
 <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
 <div class="vg"></div><div id="labels"></div>
@@ -435,7 +469,7 @@ body.flat-mode #minimap{opacity:.4}
 <div id="hud-top"><span>SYS <b id="hudClock">--:--:--</b></span><span>NODE <b id="hudUser">offline</b></span><span>VIEW <b id="hudView">3D / FULL</b></span><span>FPS <b id="hudFps">--</b></span></div>
 <header id="top">
 <div>
-  <div class="brand">Synapse <span class="ver">V6</span></div>
+  <div class="brand">Synapse <span class="ver">V7</span></div>
   <div id="stats"></div>
   <div id="statsPanel"></div>
 </div>
@@ -463,7 +497,7 @@ body.flat-mode #minimap{opacity:.4}
 <div id="minimap" aria-hidden="true"><canvas id="mm"></canvas></div>
 <div id="minibrains" aria-hidden="true"></div>
 <div id="statusline">pret · clique + pour le panneau · / pour chercher · n nouvelle note</div>
-<div id="hud-bot"><span>LAYER <b id="hudLayer">cortex</b></span><span>FOCUS <b id="hudFocus">none</b></span><span>OPACITY <b id="hudOp">100%</b></span><span>BUILD <b>V6</b></span></div>
+<div id="hud-bot"><span>LAYER <b id="hudLayer">cortex</b></span><span>FOCUS <b id="hudFocus">none</b></span><span>OPACITY <b id="hudOp">100%</b></span><span>BUILD <b>V7</b></span></div>
 <div id="dropzone">Dépose des fichiers .md pour les importer</div>
 <div id="kbhelp"><div class="box">
   <strong>Raccourcis clavier</strong>
@@ -1374,7 +1408,7 @@ function frame(){
   S+=((3.2+1.3*Math.cbrt(N.length))-S)*Math.min(1,dt*1.8);
   flatT+=((flatMode?1:0)-flatT)*Math.min(1,dt*3.2);
   if(tgt!=null){let d=tgt-rot.y;rot.y+=Math.atan2(Math.sin(d),Math.cos(d))*k;rot.x+=((flatMode?.55:.15)-rot.x)*k}
-  else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*(flatMode?.015:.025);if(flatMode)rot.x+=(.55-rot.x)*k}iv.x*=Math.exp(-dt*3.2);iv.y*=Math.exp(-dt*3.2)}
+  else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*(flatMode?.015:.025)*(window.__rs??1);if(flatMode)rot.x+=(.55-rot.x)*k}iv.x*=Math.exp(-dt*3.2);iv.y*=Math.exp(-dt*3.2)}
   brain.rotation.set(rot.x,rot.y,0);
   const sy=1-flatT*.62;brain.scale.set(S*(1+flatT*.08),S*sy,S*(1+flatT*.12));
   brain.position.x+=((isOpen&&innerWidth>900?-S*.3:0)-brain.position.x)*k;
@@ -1805,6 +1839,173 @@ rebuild=function(){_oldRebuild();updateStatsPanel();drawFilters();drawMinimap()}
   }
   clearSession();
   showAuth();
+})();
+</script>
+<script>
+/* ===== SYNAPSE V7 : couche WebGPU (calcul + rendu) et Labo ===== */
+(()=>{
+const LS='synapse_lab',nzz=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const OPT=[ /* clé, libellé, type (t=interrupteur, r=curseur), min, max, pas, défaut, groupe */
+['gpu','Particules WebGPU','t',0,1,1,1,'GPU'],['count','Particules (milliers)','r',20,400,10,160,'GPU'],['size','Taille des particules','r',.3,3,.05,1,'GPU'],['bright','Luminosité','r',.2,3,.05,1,'GPU'],
+['flow','Turbulence du flux','r',0,3,.05,1,'GPU'],['swirl','Tourbillon','r',-1.5,1.5,.05,.5,'GPU'],['shell','Rayon de la coque','r',.7,1.6,.02,1.05,'GPU'],['ptrF','Force du curseur','r',0,3,.05,1,'GPU'],
+['bloom','Bloom','r',0,1.5,.05,.45,'Rendu'],['fov','Champ de vision','r',25,90,1,50,'Rendu'],['rs','Vitesse de rotation','r',0,4,.1,1,'Rendu'],['grain','Grain de film','t',0,1,1,1,'Rendu'],
+['gr','Intensité du grain','r',0,.2,.01,.07,'Rendu'],['vig','Vignette','r',0,1,.05,1,'Rendu'],['scan','Lignes CRT','t',0,1,1,0,'Rendu'],
+['glow','Halo du curseur','t',0,1,1,1,'Ambiance'],['parallax','Parallaxe des anneaux','t',0,1,1,1,'Ambiance'],['ripple','Ondes au clic','t',0,1,1,1,'Ambiance'],['rings','Anneaux orbitaux','t',0,1,1,1,'Ambiance'],
+['corners','Coins de cadre','t',0,1,1,1,'Ambiance'],['dust','Poussière lointaine','t',0,1,1,1,'Ambiance'],['sound','Sons discrets','t',0,1,1,0,'Ambiance'],['lights','Feux de départ F1 au lancement','t',0,1,1,1,'Ambiance'],
+['hudt','HUD haut','t',0,1,1,1,'Interface'],['hudr','HUD droite','t',0,1,1,1,'Interface'],['hudb','HUD bas','t',0,1,1,1,'Interface'],['mini','Minimap','t',0,1,1,1,'Interface'],
+['labels','Étiquettes des notes','t',0,1,1,1,'Interface'],['fpsg','Moniteur de performance','t',0,1,1,0,'Interface'],['ui','Échelle de l’interface','r',.8,1.3,.05,1,'Interface']];
+const PAL=[['Aurore',['#4a90d9','#7b6cf0','#c45b8c','#2ec4b6'],'#7b6cf0'],['Néon',['#00f5ff','#ff00e5','#7cff00','#ffee00'],'#00f5ff'],['Lave',['#ff3b1d','#ff9a1f','#ffd23f','#ff5d8f'],'#ff6a2b'],
+['Glace',['#9be7ff','#d6f3ff','#7aa8ff','#ffffff'],'#9be7ff'],['Matrix',['#00ff6a','#00c853','#b9ffcf','#0aff9d'],'#00ff6a'],['Sakura',['#ffb7d5','#ff8fb8','#ffe0ec','#c8a2ff'],'#ff8fb8'],
+['Or',['#ffd36b','#ffb200','#fff1c2','#ff8a00'],'#ffc533'],['Océan',['#0077ff','#00c2ff','#00ffd0','#5a6bff'],'#00a6ff'],['Cyber',['#f3ff00','#ff0055','#00e5ff','#8a00ff'],'#f3ff00'],
+['Forêt',['#3ddc84','#a3e635','#14b8a6','#d9f99d'],'#3ddc84'],['F1',['#ff1e1e','#ffffff','#ff6a00','#c0c0c0'],'#ff1e1e'],['Mono',['#ffffff','#cfcfcf','#9a9a9a','#ffffff'],'#ffffff']];
+const PRE=[['Cinéma',{count:240,bloom:.8,grain:1,gr:.09,vig:1,swirl:.7}],['Performance',{count:50,grain:0,glow:0,bloom:.25,scan:0}],['Zen',{count:120,flow:.4,swirl:.2,rs:.4,hudt:0,hudr:0,hudb:0}],
+['Tempête',{count:300,flow:2.4,swirl:1.2,bright:1.4}],['Minimal',{gpu:0,grain:0,glow:0,rings:0,corners:0,hudt:0,hudr:0,hudb:0,mini:0}],['Télémétrie',{hudt:1,hudr:1,hudb:1,fpsg:1,mini:1,scan:1}],
+['Hypnose',{swirl:1.5,flow:.8,size:1.6,rs:2}],['Par défaut',null]];
+const DEF=Object.fromEntries(OPT.map(o=>[o[0],o[6]]));DEF.pal=0;
+let S={...DEF};try{S={...DEF,...JSON.parse(localStorage.getItem(LS)||'{}')}}catch{}
+const $=s=>document.querySelector(s),GX={ok:0,boost:0,n:0,ad:1,be:'WebGL'},t0=performance.now();
+const toast=m=>{const d=document.createElement('div');d.className='t7';d.textContent=m;$('#toast7').append(d);setTimeout(()=>d.remove(),2200)};
+let ac;const blip=(f=440,d=.07)=>{if(!S.sound)return;try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain(),n=ac.currentTime;o.frequency.value=f;g.gain.setValueAtTime(.03,n);g.gain.exponentialRampToValueAtTime(1e-4,n+d);o.connect(g).connect(ac.destination);o.start();o.stop(n+d)}catch{}};
+/* ---- DOM ajouté ---- */
+document.body.insertAdjacentHTML('beforeend','<div id="fx-grain"></div><div id="fx-scan"></div><div id="fx-cur"></div><div id="toast7"></div><div id="v7box"><canvas width="160" height="36"></canvas><div id="v7t"></div></div><div id="cmdk" hidden><input placeholder="Commande… (Entrée pour lancer, Échap pour fermer)"><div></div></div>');
+const hg=$('#hud-top');if(hg)hg.insertAdjacentHTML('beforeend','<span>GPU <b id="hudGpu">…</b></span>');
+const q=(s,on)=>{const e=$(s);if(e)e.style.display=on?'':'none'};
+function apply(){
+ const r=document.documentElement.style;r.setProperty('--ac',PAL[S.pal][2]);window.__rs=S.rs;
+ q('#fx-grain',S.grain);$('#fx-grain').style.opacity=S.gr;q('#fx-scan',S.scan);q('#fx-cur',S.glow);q('.r1',S.rings);q('.r2',S.rings);
+ document.querySelectorAll('.c').forEach(e=>e.style.display=S.corners?'':'none');q('.vg',S.vig>0);$('.vg').style.opacity=S.vig;
+ q('#hud-top',S.hudt);q('#hud-right',S.hudr);q('#hud-bot',S.hudb);q('#minimap',S.mini);q('#labels',S.labels);q('#v7box',S.fpsg);
+ document.querySelectorAll('#top,#bot,#hud-top,#hud-bot,#hud-right').forEach(e=>e.style.zoom=S.ui);
+ try{dust.visible=!!S.dust;cam.fov=S.fov;cam.updateProjectionMatrix();if(comp&&comp.passes[1])comp.passes[1].strength=S.bloom}catch{}
+ q('#gpu',S.gpu&&GX.ok);const hb=$('#hudGpu');if(hb)hb.textContent=GX.ok&&S.gpu?'WebGPU':GX.be;
+ try{localStorage.setItem(LS,JSON.stringify(S))}catch{} sync()}
+const tog=k=>{S[k]=S[k]?0:1;apply();toast((OPT.find(o=>o[0]==k)||[])[1]+' : '+(S[k]?'on':'off'))},
+ pal=i=>{S.pal=(i+PAL.length)%PAL.length;apply();toast('Palette : '+PAL[S.pal][0])},
+ pre=p=>{S=p[1]?{...S,...p[1]}:{...DEF,pal:S.pal};apply();toast('Préréglage : '+p[0])},
+ step=(k,d)=>{const o=OPT.find(o=>o[0]==k);S[k]=Math.max(o[3],Math.min(o[4],+(S[k]+d*o[5]*5).toFixed(3)));apply()},
+ click=s=>()=>{const e=$(s);e&&e.click()},
+ burst=()=>{GX.boost=1;try{for(let k=0;k<40;k++)fire(Math.random()*CORT|0,clock.elapsedTime,pk())}catch{}blip(660,.2);toast('Explosion neuronale')};
+let cap=0;const rgb=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255,1];
+function lights(){const o=document.createElement('div');o.id='lights7';o.innerHTML='<div>'+'<i></i>'.repeat(5)+'</div><b></b>';document.body.append(o);const L=[...o.querySelectorAll('i')];
+ L.forEach((e,i)=>setTimeout(()=>{e.classList.add('on');blip(300+i*60,.12)},400+i*450));
+ setTimeout(()=>{L.forEach(e=>e.classList.remove('on'));o.querySelector('b').textContent='LIGHTS OUT — AND AWAY WE GO';blip(880,.25)},3550);setTimeout(()=>o.remove(),5200)}
+const ACT=[['Action : capture PNG',()=>{cap=1}],['Action : plein écran',()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()],['Action : explosion neuronale',burst],
+['Action : pulse du réseau',click('#brPulse')],['Action : calmer le réseau',click('#brCalm')],['Action : thème clair / sombre',click('#themeBtn')],['Action : recadrer la vue',click('#brec')],
+['Action : palette suivante',()=>pal(S.pal+1)],['Action : palette aléatoire',()=>pal(Math.random()*PAL.length|0)],['Action : réglages aléatoires',()=>{OPT.filter(o=>o[2]=='r'&&o[7]=='GPU').forEach(o=>S[o[0]]=+(o[3]+Math.random()*(o[4]-o[3])).toFixed(2));pal(Math.random()*PAL.length|0)}],
+['Action : basculer 2D / 3D',click('#b2d')],['Action : note au hasard',()=>{const R=real();if(R.length)location.hash=R[Math.random()*R.length|0].id}],['Action : ouvrir les questions',()=>openQ()],['Action : nouvelle note',click('#bnew')],
+['Action : réinitialiser le Labo',()=>{S={...DEF};apply();toast('Labo réinitialisé')}],['Action : pause / reprise de la rotation',()=>{S.rs=S.rs?0:1;apply();toast(S.rs?'Rotation reprise':'Rotation en pause')}],
+['Action : vue suivante',()=>{const b=[...document.querySelectorAll('#viewModes button')],i=b.findIndex(x=>x.classList.contains('on'));b[(i+1)%b.length].click()}],['Action : départ F1',lights]];
+const KEYS=[['g','GPU',()=>tog('gpu')],['c','capture',()=>{cap=1}],['f','plein écran',ACT[1][1]],['t','thème',ACT[5][1]],['m','minimap',()=>tog('mini')],['h','HUD',()=>{const v=S.hudt?0:1;S.hudt=S.hudr=S.hudb=v;apply()}],
+[' ','pause rotation',ACT[15][1]],['r','recadrer',ACT[6][1]],['b','explosion',burst],['p','palette',()=>pal(S.pal+1)],['o','aléatoire',ACT[9][1]],['l','étiquettes',()=>tog('labels')],['v','vue suivante',ACT[16][1]],
+['x','CRT',()=>tog('scan')],['[','− particules',()=>step('count',-1)],[']','+ particules',()=>step('count',1)]];
+/* ---- Panneau Labo (nouvel onglet du menu +) ---- */
+const FXN=17,TOTAL=OPT.length+PAL.length+PRE.length+ACT.length+KEYS.length+13+FXN;
+function labo(){const sec=document.createElement('section');sec.id='tab-labo';let h='<p class="hint" id="gpuinfo" style="margin:0 0 6px"></p>';
+ ['GPU','Rendu','Ambiance','Interface'].forEach(g=>{h+='<h3>'+(g=='GPU'?'Particules WebGPU':g)+'</h3>'+OPT.filter(o=>o[7]==g).map(o=>'<label class="lr"><span>'+o[1]+'</span><input data-k="'+o[0]+'" type="'+(o[2]=='t'?'checkbox':'range')+'"'+(o[2]=='r'?' min="'+o[3]+'" max="'+o[4]+'" step="'+o[5]+'"':'')+'></label>').join('')});
+ h+='<h3>Palettes</h3><div class="wrap7 pal">'+PAL.map((p,i)=>'<button type="button" class="fchip" data-pal="'+i+'"><i style="background:'+p[2]+'"></i>'+p[0]+'</button>').join('')+'</div>';
+ h+='<h3>Préréglages</h3><div class="wrap7">'+PRE.map((p,i)=>'<button type="button" class="fchip" data-pre="'+i+'">'+p[0]+'</button>').join('')+'</div>';
+ h+='<h3>Actions</h3><div class="side-acts">'+ACT.map((a,i)=>'<button type="button" data-act="'+i+'">'+a[0].replace('Action : ','')+'</button>').join('')+'</div>';
+ h+='<div class="side-foot">V7 · '+TOTAL+' fonctions ajoutées · Ctrl+K : palette de commandes</div>';sec.innerHTML=h;$('#sideBody').append(sec);
+ $('#sideTabs').insertAdjacentHTML('beforeend','<button type="button" data-tab="labo">Labo</button>');
+ sec.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;S[k]=e.target.type=='checkbox'?+e.target.checked:+e.target.value;apply()});
+ sec.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;d.pal!=null?pal(+d.pal):d.pre!=null?pre(PRE[+d.pre]):d.act!=null&&ACT[+d.act][1]()})}
+function sync(){const s=$('#tab-labo');if(!s)return;s.querySelectorAll('[data-k]').forEach(i=>{const v=S[i.dataset.k];i.type=='checkbox'?i.checked=!!v:i.value=v});
+ s.querySelectorAll('[data-pal]').forEach(b=>b.classList.toggle('on',+b.dataset.pal==S.pal));const gi=$('#gpuinfo');if(gi)gi.textContent=GX.ok?'WebGPU actif · calcul des particules sur le GPU':'WebGPU indisponible : rendu WebGL classique'}
+/* ---- Palette de commandes (Ctrl+K) ---- */
+const CM=()=>[...OPT.flatMap(o=>o[2]=='t'?[{n:'Basculer : '+o[1],f:()=>tog(o[0])}]:[{n:'Augmenter : '+o[1],f:()=>step(o[0],1)},{n:'Diminuer : '+o[1],f:()=>step(o[0],-1)}]),...PAL.map((p,i)=>({n:'Palette : '+p[0],f:()=>pal(i)})),...PRE.map(p=>({n:'Préréglage : '+p[0],f:()=>pre(p)})),...ACT.map(a=>({n:a[0],f:a[1]}))];
+let ci=0,cl=[];const ck=$('#cmdk'),cin=ck.querySelector('input'),cls=ck.querySelector('div');
+function cdraw(){cls.innerHTML='';cl.slice(0,40).forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.textContent=c.n;b.className=i==ci?'on':'';b.onclick=()=>{ck.hidden=true;c.f()};cls.append(b)})}
+const cfilter=()=>{const w=nzz(cin.value).split(/\s+/).filter(Boolean);cl=CM().filter(c=>w.every(k=>nzz(c.n).includes(k)));ci=0;cdraw()};
+cin.oninput=cfilter;cin.onkeydown=e=>{if(e.key=='ArrowDown'){ci=Math.min(cl.length-1,ci+1);cdraw()}else if(e.key=='ArrowUp'){ci=Math.max(0,ci-1);cdraw()}else if(e.key=='Enter'&&cl[ci]){ck.hidden=true;cl[ci].f()}else if(e.key=='Escape')ck.hidden=true;e.stopPropagation()};
+const opK=()=>{ck.hidden=false;cin.value='';cfilter();cin.focus()};
+/* ---- Clavier + Konami + souris ---- */
+const KO=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];let ko=0;
+addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()=='k'){e.preventDefault();return opK()}
+ const tg=(e.target.tagName||'').toLowerCase();if(tg=='input'||tg=='textarea'||tg=='select'||e.metaKey||e.ctrlKey||e.altKey)return;
+ ko=e.key==KO[ko]?ko+1:(e.key==KO[0]?1:0);if(ko==KO.length){ko=0;burst();pal(Math.random()*PAL.length|0);S.count=Math.min(400,S.count+80);apply();toast('Mode légende activé');return}
+ const k=KEYS.find(x=>x[0]==e.key);if(k&&!(e.key==' '&&tg=='button')){e.preventDefault();k[2]()}});
+let px=0,py=0;addEventListener('pointermove',e=>{px=e.clientX/innerWidth-.5;py=e.clientY/innerHeight-.5;if(S.parallax){const r=document.documentElement.style;r.setProperty('--px',(px*26).toFixed(1)+'px');r.setProperty('--py',(py*18).toFixed(1)+'px')}});
+addEventListener('pointerdown',e=>{if(!S.ripple||e.target.closest('button,input,dialog,#side,#pn'))return;const d=document.createElement('div');d.className='rp';d.style.left=e.clientX+'px';d.style.top=e.clientY+'px';document.body.append(d);setTimeout(()=>d.remove(),800)});
+addEventListener('hashchange',()=>blip(520+Math.random()*300));
+/* ---- Chatbot : série « Fun & GPU » (13 questions) ---- */
+const MX=['Une note reliée vaut mieux que dix notes isolées.','Mesure d’abord, optimise ensuite.','Le meilleur réglage est celui que tu as testé deux fois.','Un graphe vivant vaut mieux qu’un classeur rangé.','La vitesse vient de la régularité.','Ce qui n’est pas relié finit oublié.','Écris court, relie large.','Un bon tour se prépare dans les virages lents.'],
+ CH=['Relie deux notes orphelines.','Ajoute un tag à trois notes sans tag.','Complète une note créée par le cerveau.','Écris une note de dix lignes sur un sujet du moment.','Coche trois tâches de ta liste.','Fusionne deux notes trop proches.','Renomme une note au titre vague.','Ouvre une note que tu n’as pas lue depuis longtemps.'];
+const day=Math.floor(Date.now()/864e5),qs=[
+{q:'Note du jour',a:()=>{const R=real();return R.length?`Ta note du jour : ${lk(R[day%R.length])}.\n\n${plain(R[day%R.length].body).slice(0,220)}…`:'Le coffre est vide.'}},
+{q:'Lance un dé',a:()=>'Résultat : **'+(1+Math.random()*6|0)+'**.'},{q:'Pile ou face',a:()=>Math.random()<.5?'**Pile**.':'**Face**.'},
+{q:'Combien de mots au total ?',a:()=>{const w=real().reduce((t,n)=>t+nw(n),0);return `**${w}** mots, soit environ **${Math.max(1,Math.round(w/220))} min** de lecture.`}},
+{q:'Quelle est la note la plus ancienne ?',a:()=>ls([...real()].filter(n=>n.date).sort((a,b)=>a.date.localeCompare(b.date)),n=>`${lk(n)} : ${n.date}`,3)},
+{q:'Quelle est la densité du graphe ?',a:()=>{const n=N.length;return n>1?`Densité : **${(2*E.length/(n*(n-1))*100).toFixed(2)} %** (${pl(E.length,'lien')} pour ${pl(n,'note')}).`:'Pas assez de notes.'}},
+{q:'Quel est le tag roi ?',a:()=>{const t=tally(N.flatMap(n=>n.tags),x=>x)[0];return t?`Tag roi : **${t[0]}** (${pl(t[1],'note')}).`:'Aucun tag.'}},
+{q:'Dossier le plus fourni',a:()=>{const t=tally(N,dirOf)[0];return t?`**${t[0]}** : ${pl(t[1],'note')}.`:'Coffre vide.'}},
+{q:'Mots les plus fréquents',a:()=>{const f={};real().forEach(n=>(nzz(n.body).match(/[a-z]{5,}/g)||[]).forEach(w=>f[w]=(f[w]||0)+1));return ls(Object.entries(f).sort((a,b)=>b[1]-a[1]),x=>`${x[0]} : ${x[1]}`,10)}},
+{q:'Défi du jour',a:()=>'**Défi** : '+CH[day%CH.length]},{q:'Maxime du jour',a:()=>'« '+MX[day%MX.length]+' »'},
+{q:'Statistiques GPU',a:()=>`Rendu : **${GX.ok&&S.gpu?'WebGPU':GX.be}**.\n\nParticules : **${GX.n}**. Facteur de qualité adaptative : **${GX.ad.toFixed(2)}**. Images/s : **${($('#hudFps')||{}).textContent}**.`},
+{q:'Temps de session',a:()=>`Session ouverte depuis **${Math.round((performance.now()-t0)/6e4)} min**.`}];
+BASE_SERIES.push({sg:'F',name:'Fun & GPU',qs});rebuildSeries();
+/* ---- WebGPU : calcul des particules + rendu additif instancié ---- */
+const WGSL=`struct P{pos:vec3f,life:f32,vel:vec3f,seed:f32};
+struct U{mvp:mat4x4f,a:vec4f,b:vec4f,c:vec4f,d:vec4f,col:array<vec4f,4>};
+@group(0)@binding(0) var<storage,read_write> ps:array<P>;
+@group(0)@binding(1) var<uniform> u:U;
+fn h(x:f32)->f32{return fract(sin(x*127.1+311.7)*43758.5453);}
+fn fl(p:vec3f,t:f32)->vec3f{let q=p*2.4+vec3f(t*.17,-t*.11,t*.13);return vec3f(sin(q.y*1.7+q.z)+cos(q.z*2.1-q.y),sin(q.z*1.3+q.x)+cos(q.x*1.9+q.z),sin(q.x*1.5+q.y)+cos(q.y*2.3-q.x));}
+fn sh(s:f32,k:f32)->vec3f{let a=h(s)*6.2832;let z=h(s+7.3)*2.-1.;let r=sqrt(1.-z*z);return vec3f(r*cos(a)*.82,z*.6,r*sin(a))*k*(.9+.2*h(s+3.1));}
+@compute @workgroup_size(128)
+fn cs(@builtin(global_invocation_id) g:vec3u){
+ let i=g.x;if(i>=u32(u.a.z)){return;}
+ var p=ps[i];let dt=u.a.y;let t=u.a.x;
+ if(p.life<=0.){p.pos=sh(f32(i)*.713+t,u.c.y);p.vel=vec3f(0.);p.life=3.+h(f32(i)+t)*5.;p.seed=h(f32(i)*1.37);}
+ var f=fl(p.pos,t)*.35*u.c.x;
+ f+=vec3f(p.pos.z,0.,-p.pos.x)*u.c.z;
+ let e=vec3f(p.pos.x/.82,p.pos.y/.6,p.pos.z);let r=length(e);
+ f+=-normalize(e+vec3f(.0001))*(r-u.c.y)*1.4;
+ p.vel=p.vel*pow(.35,dt)+f*dt*2.2;p.pos+=p.vel*dt;p.life-=dt;ps[i]=p;}
+struct VI{@builtin(vertex_index) vi:u32,@location(0) pos:vec3f,@location(1) life:f32,@location(2) vel:vec3f,@location(3) seed:f32};
+struct VO{@builtin(position) pos:vec4f,@location(0) uv:vec2f,@location(1) c:vec4f};
+@vertex fn vs(v:VI)->VO{
+ var qd=array<vec2f,6>(vec2f(-1.,-1.),vec2f(1.,-1.),vec2f(-1.,1.),vec2f(-1.,1.),vec2f(1.,-1.),vec2f(1.,1.));
+ let k=qd[v.vi];var cp=u.mvp*vec4f(v.pos,1.);let nd=cp.xy/cp.w;
+ let d=(nd-u.b.xy)*vec2f(u.c.w,1.);let w=exp(-dot(d,d)*14.)*u.b.z;let sp=length(v.vel);
+ let fade=smoothstep(0.,1.2,v.life)*clamp(.2+sp*2.5,0.,1.);let dz=clamp(u.d.x/cp.w,.4,2.5);
+ let s=u.a.w*.004*(.6+.8*fract(v.seed*13.7))*(1.+w*2.5)*dz;
+ cp.z=(cp.z+cp.w)*.5;var o:VO;o.pos=vec4f(cp.xy+k*vec2f(s/u.c.w,s)*cp.w,cp.z,cp.w);o.uv=k;
+ let ci=u32(v.seed*4.)%4u;let col=mix(u.col[ci].rgb,vec3f(1.),clamp(sp*.6+w*.6,0.,.75));
+ o.c=vec4f(col,fade*u.b.w*(.18+w*.6)*clamp(dz,.5,1.6));return o;}
+@fragment fn fs(i:VO)->@location(0) vec4f{let r=dot(i.uv,i.uv);if(r>1.){discard;}let g=exp(-r*5.)+.5*exp(-r*28.);return vec4f(i.c.rgb*g*i.c.a,g*i.c.a);}`;
+async function initGPU(){
+ if(!navigator.gpu){GX.be='WebGL (WebGPU absent)';return}
+ try{const ad=await navigator.gpu.requestAdapter({powerPreference:'high-performance'});if(!ad)throw 0;const dev=await ad.requestDevice();dev.lost.then(()=>{GX.ok=0;apply()});
+  const cvs=$('#gpu'),ctx=cvs.getContext('webgpu'),fmt=navigator.gpu.getPreferredCanvasFormat();ctx.configure({device:dev,format:fmt,alphaMode:'premultiplied'});
+  dev.pushErrorScope('validation');
+  const pb=dev.createBuffer({size:400000*32,usage:GPUBufferUsage.STORAGE|GPUBufferUsage.VERTEX}),ub=dev.createBuffer({size:192,usage:GPUBufferUsage.UNIFORM|GPUBufferUsage.COPY_DST}),mod=dev.createShaderModule({code:WGSL}),
+  cp=dev.createComputePipeline({layout:'auto',compute:{module:mod,entryPoint:'cs'}}),
+  rp=dev.createRenderPipeline({layout:'auto',vertex:{module:mod,entryPoint:'vs',buffers:[{arrayStride:32,stepMode:'instance',attributes:[{shaderLocation:0,offset:0,format:'float32x3'},{shaderLocation:1,offset:12,format:'float32'},{shaderLocation:2,offset:16,format:'float32x3'},{shaderLocation:3,offset:28,format:'float32'}]}]},
+   fragment:{module:mod,entryPoint:'fs',targets:[{format:fmt,blend:{color:{srcFactor:'one',dstFactor:'one'},alpha:{srcFactor:'one',dstFactor:'one'}}}]},primitive:{topology:'triangle-list'}}),
+  cbg=dev.createBindGroup({layout:cp.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:pb}},{binding:1,resource:{buffer:ub}}]}),rbg=dev.createBindGroup({layout:rp.getBindGroupLayout(0),entries:[{binding:1,resource:{buffer:ub}}]});
+  const er=await dev.popErrorScope();if(er)throw er;
+  const mv=new THREE.Matrix4(),ua=new Float32Array(48);let last=performance.now(),ema=.016;
+  GX.frame=()=>{const now=performance.now(),dt=Math.min(.05,(now-last)/1e3);last=now;ema+=(dt-ema)*.05;if(!S.gpu)return;
+   const dpr=Math.min(devicePixelRatio||1,1.5),w=innerWidth*dpr|0,h=innerHeight*dpr|0;if(cvs.width!=w||cvs.height!=h){cvs.width=w;cvs.height=h}
+   if(ema>.024&&GX.ad>.25)GX.ad*=.995;const n=Math.max(8000,S.count*1000*GX.ad)|0;GX.n=n;GX.boost*=Math.exp(-dt*1.5);
+   mv.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse).multiply(brain.matrixWorld);ua.set(mv.elements,0);
+   ua.set([now/1e3,dt,n,S.size*(1+GX.boost)],16);ua.set([ptr.x/innerWidth*2-1,1-ptr.y/innerHeight*2,S.ptrF,S.bright*(1+GX.boost*.6)],20);
+   ua.set([S.flow*(1+GX.boost*3),S.shell,S.swirl,innerWidth/innerHeight],24);ua.set([D,0,0,0],28);PAL[S.pal][1].forEach((c,i)=>ua.set(rgb(c),32+i*4));dev.queue.writeBuffer(ub,0,ua);
+   const e=dev.createCommandEncoder(),c=e.beginComputePass();c.setPipeline(cp);c.setBindGroup(0,cbg);c.dispatchWorkgroups(Math.ceil(n/128));c.end();
+   const r=e.beginRenderPass({colorAttachments:[{view:ctx.getCurrentTexture().createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:'clear',storeOp:'store'}]});r.setPipeline(rp);r.setBindGroup(0,rbg);r.setVertexBuffer(0,pb);r.draw(6,n);r.end();dev.queue.submit([e.finish()])};
+  GX.ok=1;GX.be='WebGPU';toast('WebGPU actif')}catch(err){GX.ok=0;GX.be='WebGL (WebGPU en échec)';console.warn('WebGPU :',err)}
+ apply()}
+/* ---- Boucle unique : scène WebGL, puis GPU, puis effets ---- */
+const gc=$('#v7box canvas').getContext('2d'),H=[];let st=0;
+R.setAnimationLoop(()=>{const a=performance.now();frame();if(GX.ok&&GX.frame)GX.frame();
+ if(S.glow){const f=$('#fx-cur');f.style.transform='translate('+ptr.x+'px,'+ptr.y+'px)'}
+ if(cap){cap=0;const c=document.createElement('canvas');c.width=cv.width;c.height=cv.height;const x=c.getContext('2d');x.drawImage(cv,0,0);if(GX.ok&&S.gpu){x.globalCompositeOperation='lighter';x.drawImage($('#gpu'),0,0,c.width,c.height)}
+  c.toBlob(b=>{const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='synapse-'+Date.now()+'.png';l.click();toast('Capture enregistrée')})}
+ if(S.fpsg){H.push(performance.now()-a);if(H.length>160)H.shift();if(a>st){st=a+400;const w=gc.canvas.width,h=gc.canvas.height;gc.clearRect(0,0,w,h);gc.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--ac')||'#fff';gc.beginPath();H.forEach((v,i)=>{const y=h-Math.min(h,v*3);i?gc.lineTo(i,y):gc.moveTo(i,y)});gc.stroke();
+  $('#v7t').textContent=(GX.ok&&S.gpu?'WebGPU · '+(GX.n/1000|0)+'k particules':GX.be)+' · cpu '+(H[H.length-1]||0).toFixed(1)+' ms'}}});
+labo();apply();initGPU();
+if(S.lights&&!sessionStorage.getItem('syn_lights')){sessionStorage.setItem('syn_lights','1');setTimeout(lights,300)}
+window.SYN7={S,GX,PAL,PRE,ACT,KEYS,total:TOTAL};
 })();
 </script>
 </body>
