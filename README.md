@@ -26,7 +26,7 @@ Ouvre simplement `index.html` dans un navigateur moderne (WebGL requis), ou dép
 ## Notes
 
 - Les comptes et les données restent dans le navigateur de chaque visiteur (localStorage).
-- Aucune clé API, aucune donnée n’est envoyée vers un serveur.
+- Aucune clé API. Rien n’est envoyé vers un serveur, sauf vers ton Ollama local si tu actives l’IA (voir plus bas).
 
 ## V7 — WebGPU + Labo
 
@@ -34,3 +34,17 @@ Ouvre simplement `index.html` dans un navigateur moderne (WebGL requis), ou dép
 - Onglet **Labo** dans le menu `+` : 30 réglages, 12 palettes, 8 préréglages, 18 actions.
 - **Ctrl+K** : palette de commandes. Raccourcis : `g` GPU, `c` capture PNG, `p` palette, `b` explosion, `f` plein écran, `x` CRT, `[` `]` particules…
 - Série de questions « Fun & GPU » dans le chatbot, feux de départ F1, grain de film, halo du curseur, moniteur de performance, Konami code.
+
+## IA locale (Ollama + qwen2.5:0.5b)
+
+Dans le chatbot (clic sur le cube, ou touche `i`), tape une question libre puis Entrée : l'IA répond au fil de l'eau, avec les notes les plus proches de ta question comme contexte. Une question qui correspond à une question prédéfinie reste traitée par le chatbot classique.
+
+1. Installe [Ollama](https://ollama.com) puis télécharge le modèle : `ollama pull qwen2.5:0.5b`
+2. Autorise ton site avant de lancer Ollama (sinon le navigateur bloque la requête) :
+   - Windows (PowerShell) : `$env:OLLAMA_ORIGINS="https://TON_PSEUDO.github.io"; ollama serve`
+   - macOS : `launchctl setenv OLLAMA_ORIGINS "https://TON_PSEUDO.github.io"` puis relance l'application Ollama
+   - Linux (systemd) : `sudo systemctl edit ollama` puis `Environment="OLLAMA_ORIGINS=https://TON_PSEUDO.github.io"`
+   - Test en local depuis `index.html` ouvert sans serveur : `OLLAMA_ORIGINS=*`
+3. Dans **Réglages**, vérifie l'adresse (`http://localhost:11434`) et le modèle, puis clique sur **Tester la connexion**.
+
+L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'autorisation d'accéder au réseau local : accepte.

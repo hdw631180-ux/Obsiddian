@@ -514,7 +514,7 @@ body.light #cmdk{background:rgba(244,241,234,.97)}
 <aside id="pn" aria-label="Note"><button id="x" type="button">Fermer</button><div id="nt"></div></aside>
 <dialog id="dc"><form id="fc" method="dialog">
 <strong>Réglages</strong>
-<p class="hint">Le chatbot répond à des questions prédéfinies, calculées sur tes notes dans ce navigateur : aucune IA, aucune clé, rien n’est envoyé.</p>
+<p class="hint">Le chatbot répond à des questions prédéfinies, calculées sur tes notes dans ce navigateur. Option : une IA locale via Ollama (ci-dessous), qui ne parle qu’à l’adresse que tu indiques.</p>
 <label for="rp">Dépôt GitHub du coffre (public)</label><input id="rp" placeholder="pseudo/mon-coffre">
 <label for="dr">Dossier à lire (facultatif)</label><input id="dr" placeholder="vide : tout le dépôt">
 <div id="custQ">
@@ -2006,6 +2006,65 @@ R.setAnimationLoop(()=>{const a=performance.now();frame();if(GX.ok&&GX.frame)GX.
 labo();apply();initGPU();
 if(S.lights&&!sessionStorage.getItem('syn_lights')){sessionStorage.setItem('syn_lights','1');setTimeout(lights,300)}
 window.SYN7={S,GX,PAL,PRE,ACT,KEYS,total:TOTAL};
+})();
+</script>
+<script>
+/* ===== SYNAPSE : IA locale (Ollama) ===== */
+(()=>{
+const $=s=>document.querySelector(s),DEF={on:1,url:'http://localhost:11434',model:'qwen2.5:0.5b',ctx:1};
+const A=()=>({...DEF,...(store.get('ai')||{})}),save=o=>store.set('ai',{...A(),...o});
+const base=()=>A().url.trim().replace(/\/+$/,'');
+const origin=()=>location.origin==='null'?'*':location.origin;
+const help=()=>`Ollama est injoignable. Vérifie que **Ollama** tourne (\`ollama serve\`), que le modèle est installé (\`ollama pull ${A().model}\`) et que ce site est autorisé : définis la variable \`OLLAMA_ORIGINS\` à \`${origin()}\` puis redémarre Ollama.`;
+const gx=()=>(window.SYN7||{}).GX;
+let busy=false,ctl=null,hist=[];
+const hud=t=>{const e=$('#hudAI');if(e)e.textContent=t};
+const hh=$('#hud-top');if(hh)hh.insertAdjacentHTML('beforeend','<span>IA <b id="hudAI">…</b></span>');
+/* ---- Réglages (dans la fenêtre existante) ---- */
+$('#dc').querySelector('#custQ').insertAdjacentHTML('beforebegin',`<div id="aiCfg"><label>IA locale (Ollama)</label>
+<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="aiOn" style="width:auto"> Activer l’IA dans le chatbot</label>
+<input id="aiUrl" placeholder="http://localhost:11434" aria-label="Adresse d’Ollama"><input id="aiModel" placeholder="qwen2.5:0.5b" aria-label="Modèle">
+<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="aiCtx" style="width:auto"> Envoyer les notes pertinentes comme contexte</label>
+<div style="display:flex;gap:8px;align-items:center;margin-top:10px"><button type="button" id="aiTest">Tester la connexion</button><span class="hint" id="aiSt" style="margin:0"></span></div>
+<p class="hint">Les questions et les notes de contexte ne sont envoyées qu’à l’adresse indiquée ci-dessus.</p></div>`);
+const fill=()=>{const a=A();$('#aiOn').checked=!!a.on;$('#aiUrl').value=a.url;$('#aiModel').value=a.model;$('#aiCtx').checked=!!a.ctx;$('#aiSt').textContent=''};
+$('#aiCfg').addEventListener('change',()=>save({on:+$('#aiOn').checked,url:$('#aiUrl').value.trim()||DEF.url,model:$('#aiModel').value.trim()||DEF.model,ctx:+$('#aiCtx').checked}));
+const oc=$('#bcfg').onclick;$('#bcfg').onclick=()=>{fill();oc()};
+async function test(){const st=$('#aiSt'),m=A().model;st.textContent='test…';
+ try{const r=await fetch(base()+'/api/tags',{signal:AbortSignal.timeout(4000)});if(!r.ok)throw 0;const j=await r.json(),ok=(j.models||[]).some(x=>x.name==m||x.name.startsWith(m+':')||x.name.split(':')[0]==m);
+  st.textContent=ok?'connecté · modèle prêt':'connecté, mais modèle absent : ollama pull '+m;hud(ok?'prêt':'modèle ?');return ok}
+ catch{st.textContent='injoignable (Ollama lancé ? OLLAMA_ORIGINS ?)';hud('hors ligne');return false}}
+$('#aiTest').onclick=test;
+/* ---- Contexte : les notes qui ressemblent à la question ---- */
+const pick=q=>{const w=nz(q).split(/[^a-z0-9]+/).filter(k=>k.length>2);if(!w.length)return[];
+ return real().map(n=>{const h=nz(n.title+' '+n.tags.join(' ')),b=nz(n.body);let s=0;w.forEach(k=>{if(h.includes(k))s+=3;if(b.includes(k))s+=1});return{n,s}}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,4).map(x=>x.n)};
+const render=(txt,run)=>{const a=$('#ans');a.hidden=false;a.classList.toggle('busy',run);a.innerHTML=md(txt||'…');
+ if(run){const b=document.createElement('button');b.type='button';b.className='ax';b.textContent='Arrêter';b.onclick=()=>ctl&&ctl.abort();a.prepend(b)}a.scrollTop=a.scrollHeight};
+/* ---- Question à l'IA : réponse affichée au fil de l'eau ---- */
+async function askAI(q){if(busy)return;const a=A();busy=true;$('#qp').hidden=true;hud('réfléchit');
+ const src=a.ctx?pick(q):[],sys='Tu es Synapse, l’assistant du coffre de notes de l’utilisateur. Réponds en français, de façon courte et précise. '+(src.length?'Appuie-toi sur les notes ci-dessous ; si la réponse n’y est pas, dis-le.\n\n'+src.map(n=>'### '+n.title+'\n'+plain(n.body).slice(0,600)).join('\n\n'):''),
+  msgs=[{role:'system',content:sys},...hist.slice(-6),{role:'user',content:q}];
+ let out='',brain=null;try{brain=[...Array(CORT).keys()];srch={ci:brain};scanP.geometry.setFromPoints(SAMP)}catch{}
+ ctl=new AbortController();render('',true);
+ try{const r=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:.4,num_ctx:4096}})});
+  if(!r.ok)throw new Error(r.status==404?'modèle introuvable : ollama pull '+a.model:'erreur '+r.status);
+  const rd=r.body.getReader(),dc=new TextDecoder();let buf='',last=0;
+  for(;;){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});const ls2=buf.split('\n');buf=ls2.pop();
+   for(const l of ls2){if(!l.trim())continue;const j=JSON.parse(l);if(j.error)throw new Error(j.error);if(j.message)out+=j.message.content;const g=gx();if(g)g.boost=Math.max(g.boost,.35)}
+   const n=performance.now();if(n-last>60){last=n;render(out,true)}}
+  hist.push({role:'user',content:q},{role:'assistant',content:out});hud('prêt');
+  show('IA · '+q,(out.trim()||'Réponse vide.')+(src.length?'\n\n**Notes utilisées**\n'+ls(src,lk):''))}
+ catch(e){if(e.name==='AbortError'){hud('prêt');show('IA · '+q,(out||'')+'\n\n*(interrompu)*')}else{hud('hors ligne');render(e instanceof TypeError||/Failed|fetch/i.test(e.message)?help():'**Erreur IA :** '+e.message+'\n\n'+help(),false)}}
+ finally{srch=null;busy=false;ctl=null}}
+/* ---- Intégration au chatbot : Entrée sans question correspondante => l'IA répond ---- */
+const old=$('#ask').onsubmit;
+$('#ask').onsubmit=e=>{const t=$('#q').value.trim();if(t&&A().on&&!strict(t).length){e.preventDefault();$('#q').value='';return askAI(t)}return old(e)};
+$('#q').placeholder='Filtre les questions, ou pose ta question à l’IA (Entrée)';
+const f=$('#ask');f.insertAdjacentHTML('beforeend','<button type="button" id="aiBtn" style="margin-top:8px">Demander à l’IA</button>');
+$('#aiBtn').onclick=()=>{const t=$('#q').value.trim();if(!t)return $('#q').focus();$('#q').value='';askAI(t)};
+const S7=window.SYN7;if(S7){S7.ACT.push(['Action : poser une question à l’IA',()=>{openQ();$('#q').focus()}]);S7.KEYS.push(['i','IA',()=>{openQ();setTimeout(()=>$('#q').focus(),0)}])}
+hud(A().on?'…':'off');if(A().on)setTimeout(test,1500);
+window.SYN_AI={ask:askAI,test};
 })();
 </script>
 </body>
