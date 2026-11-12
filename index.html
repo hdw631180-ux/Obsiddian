@@ -204,17 +204,19 @@ body.light #userbar,body.light #stats{color:rgba(0,0,0,.55)}
 #kbhelp .box{width:min(420px,92vw);border:1px solid var(--ln);padding:24px;background:#000}
 #kbhelp kbd{border:1px solid var(--ln);padding:1px 6px;font:12px var(--mo);margin-right:8px}
 #kbhelp .row{display:flex;align-items:center;margin:8px 0;font-size:14px}
-/* ===== Onglet gauche ===== */
-#side{position:fixed;left:0;top:0;bottom:0;z-index:8;display:flex;pointer-events:none}
-#sideTab{pointer-events:auto;width:36px;background:rgba(0,0,0,.75);border-right:1px solid var(--ln);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;backdrop-filter:blur(8px)}
-#sideTab button{width:28px;height:28px;padding:0;font-size:12px;letter-spacing:0;border-color:transparent;display:flex;align-items:center;justify-content:center}
-#sideTab button:hover,#sideTab button.on{border-color:#fff;background:rgba(255,255,255,.08)}
-#sidePanel{pointer-events:auto;width:200px;background:rgba(0,0,0,.9);border-right:1px solid var(--ln);padding:16px 14px;overflow:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.2,.7,.2,1);backdrop-filter:blur(10px)}
+/* ===== Bouton + et panneau gauche ===== */
+#side{position:fixed;left:0;top:0;bottom:0;z-index:8;display:flex;align-items:stretch;pointer-events:none}
+#sidePlus{pointer-events:auto;position:fixed;left:12px;top:50%;transform:translateY(-50%);z-index:9;width:36px;height:36px;padding:0;font-size:22px;line-height:1;border:1px solid var(--ln);background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:border-color .2s,background .2s,transform .25s;cursor:pointer}
+#sidePlus:hover{border-color:#fff;background:rgba(255,255,255,.08)}
+#sidePlus.on{transform:translateY(-50%) rotate(45deg);border-color:#fff}
+#sidePanel{pointer-events:auto;width:220px;max-height:100%;background:rgba(0,0,0,.92);border-right:1px solid var(--ln);padding:20px 16px 24px;overflow:auto;transform:translateX(-105%);transition:transform .32s cubic-bezier(.2,.7,.2,1);backdrop-filter:blur(12px)}
 #sidePanel.on{transform:none}
-#sidePanel h3{font:500 12px var(--ui);letter-spacing:.08em;color:var(--mu);margin:16px 0 8px;text-transform:uppercase}
-#sidePanel h3:first-child{margin-top:0}
+#sidePanel h3{font:500 11px var(--ui);letter-spacing:.1em;color:var(--mu);margin:18px 0 8px;text-transform:uppercase}
+#sidePanel h3:first-child{margin-top:4px}
 #sidePanel .side-acts{display:flex;flex-direction:column;gap:6px}
-#sidePanel .side-acts button,#sidePanel .side-acts label{width:100%;text-align:left;font-size:13px;padding:8px 10px}
+#sidePanel .side-acts button{width:100%;text-align:left;font-size:13px;padding:8px 10px}
+#sidePanel .side-row{display:flex;gap:6px}
+#sidePanel .side-row button{flex:1;padding:8px 6px;font-size:12px}
 #sidePanel .tr{display:flex;align-items:center;gap:8px;color:var(--mu);border:1px solid var(--ln);padding:8px 10px}
 #sidePanel .tr input{width:100%;flex:1}
 #filters{position:relative;left:auto;top:auto;transform:none;max-height:none;margin-top:4px}
@@ -222,9 +224,9 @@ body.light #userbar,body.light #stats{color:rgba(0,0,0,.55)}
 #loblegend{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mu);margin-top:6px}
 #loblegend span{display:flex;align-items:center;gap:8px}
 #loblegend i{width:10px;height:10px;border-radius:2px;flex:none}
-body.light #sideTab,body.light #sidePanel{background:rgba(244,241,234,.92);border-color:rgba(0,0,0,.2)}
-#top{padding-left:48px}
-@media(max-width:700px){#sidePanel{width:170px}#top{padding-left:42px}}
+body.light #sidePlus,body.light #sidePanel{background:rgba(244,241,234,.94);border-color:rgba(0,0,0,.2);color:#1a1a1a}
+#top{padding-left:56px}
+@media(max-width:700px){#sidePanel{width:190px}#top{padding-left:50px}}
 </style>
 </head>
 <body>
@@ -261,14 +263,15 @@ body.light #sideTab,body.light #sidePanel{background:rgba(244,241,234,.92);borde
 <div class="ring r1"></div><div class="ring r2"></div>
 <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
 <div class="vg"></div><div id="labels"></div>
+<button type="button" id="sidePlus" title="Menu">+</button>
 <div id="side">
-  <div id="sideTab">
-    <button type="button" id="sideToggle" title="Menu">III</button>
-    <button type="button" id="hback" title="Precedent">←</button>
-    <button type="button" id="hfwd" title="Suivant">→</button>
-    <button type="button" id="brec" title="Recadrer">[+]</button>
-  </div>
   <div id="sidePanel">
+    <h3>Navigation</h3>
+    <div class="side-row">
+      <button type="button" id="hback" title="Precedent">←</button>
+      <button type="button" id="hfwd" title="Suivant">→</button>
+      <button type="button" id="brec" title="Recadrer">Recadrer</button>
+    </div>
     <h3>Actions</h3>
     <div class="side-acts">
       <button type="button" id="bnew">Nouvelle note</button>
@@ -1048,13 +1051,23 @@ function drawFilters(){
     drawFilters();
   });
 }
-/* ---------- Onglet gauche + recadrage ---------- */
-$('#sideToggle').onclick=()=>{
-  const p=$('#sidePanel');
-  p.classList.toggle('on');
-  $('#sideToggle').classList.toggle('on',p.classList.contains('on'));
-  if(p.classList.contains('on'))drawFilters();
-};
+/* ---------- Bouton + / panneau gauche + recadrage ---------- */
+function toggleSide(force){
+  const p=$('#sidePanel'), btn=$('#sidePlus');
+  const open=force===true?true:force===false?false:!p.classList.contains('on');
+  p.classList.toggle('on',open);
+  btn.classList.toggle('on',open);
+  btn.textContent=open?'+':'+';
+  if(open)drawFilters();
+}
+$('#sidePlus').onclick=()=>toggleSide();
+/* fermer en cliquant hors panneau */
+document.addEventListener('pointerdown',e=>{
+  const p=$('#sidePanel'), btn=$('#sidePlus');
+  if(!p.classList.contains('on'))return;
+  if(p.contains(e.target)||btn.contains(e.target))return;
+  toggleSide(false);
+});
 $('#brec').onclick=()=>{
   zf=1;rot={x:.35,y:-.6};tgt=null;focus=null;activeFilter=null;
   drawFilters();
@@ -1069,7 +1082,7 @@ $('#themeBtn').onclick=()=>{lightMode=!lightMode;applyTheme()};
 addEventListener('keydown',e=>{
   const tag=(e.target.tagName||'').toLowerCase();
   const typing=tag==='input'||tag==='textarea'||e.target.isContentEditable;
-  if(e.key==='Escape'){close();$('#ans').hidden=true;$('#qp').hidden=true;$('#sres').classList.remove('on');$('#kbhelp').classList.remove('on');$('#filters').hidden=true;if(typing)e.target.blur();return}
+  if(e.key==='Escape'){close();$('#ans').hidden=true;$('#qp').hidden=true;$('#sres').classList.remove('on');$('#kbhelp').classList.remove('on');toggleSide(false);if(typing)e.target.blur();return}
   if(typing)return;
   if(e.key==='/' ){e.preventDefault();$('#s').focus();$('#s').select()}
   else if(e.key==='n'||e.key==='N'){e.preventDefault();$('#dn').showModal();$('#nti').focus()}
