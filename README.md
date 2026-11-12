@@ -78,3 +78,10 @@ L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'auto
 - **Mémoire par compte** : Synapse retient, pour chaque compte séparément, tes centres d'intérêt (notes ouvertes, questions posées, 👍/👎) et tes sources préférées. Elle sert à classer les découvertes, à éviter ce que tu rejettes et à orienter les réponses d'Ollama. Réglages → « Mémoire du compte » : voir ce qui est retenu, couper, effacer.
 - **👍 / 👎 / → note** sur chaque découverte : 👍 renforce la source et les sujets, 👎 supprime la découverte et ne la reproposera plus, « → note » en fait une vraie note liée à l'originale.
 - **Recherche par le sens** : `ollama pull nomic-embed-text`. Les notes sont indexées en arrière-plan (vecteurs gardés dans le compte). La barre de recherche ajoute une section « PAR LE SENS », chaque note affiche des « Notes proches », et le chatbot utilise ces notes comme contexte.
+
+## V12 : vue 2D façon graphe Obsidian
+
+- Le bouton **2D** affiche un vrai graphe à plat : nœuds gris, hubs plus gros, fibres fines, regroupement automatique par liens (simulation de forces).
+- **Rouge** = note enrichie par le cerveau. Anneau blanc = note ouverte. Anneau cyan = résultat de recherche.
+- Survol : la note et ses voisines restent allumées, le reste s'éteint. Clic : ouvre la note. Glisser un nœud le déplace, le fond déplace la vue, molette ou pincement pour zoomer, double-clic ou « recadrer » pour tout recentrer.
+- Les bulles de logos des sources rejoignent la note enrichie directement dans le graphe 2D. La scène 3D, cachée dans ce mode, est ralentie pour économiser la batterie.
