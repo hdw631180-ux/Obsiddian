@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Synapse V5</title>
+<title>Synapse V6</title>
 <meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
@@ -386,7 +386,7 @@ body.flat-mode #minimap{opacity:.4}
           <span><i style="background:#6B7C8A"></i>Tronc / cervelet</span>
           <span><i style="background:#2EC4B6"></i>Donnees / capsules</span>
         </div>
-        <div class="side-foot">V5 · 100 capsules · fibres par zone</div>
+        <div class="side-foot">V6 · 100 taches · capsules 3D</div>
       </section>
       <section id="tab-filtres">
         <h3>Filtrer le graphe</h3>
@@ -410,7 +410,10 @@ body.flat-mode #minimap{opacity:.4}
         </div>
         <h3>Capsules actives</h3>
         <div id="ravActive" style="font:12px var(--mo);color:var(--mu)">0 / 100</div>
-        <div class="side-foot">Chaque capsule est reliee au cortex par une fibre coloree</div>
+        <h3>Taches speciales</h3>
+        <div id="ravTasks" style="font:11px/1.45 var(--mo);color:var(--mu);max-height:160px;overflow:auto;border:1px solid var(--ln);padding:8px;margin-top:6px"></div>
+        <button type="button" id="brTaskRun" style="width:100%;margin-top:8px">Executer tache active</button>
+        <div class="side-foot">Chaque capsule = 1 tache unique · fibres colorees par zone</div>
       </section>
       <section id="tab-outils">
         <h3>Actions</h3>
@@ -432,7 +435,7 @@ body.flat-mode #minimap{opacity:.4}
 <div id="hud-top"><span>SYS <b id="hudClock">--:--:--</b></span><span>NODE <b id="hudUser">offline</b></span><span>VIEW <b id="hudView">3D / FULL</b></span><span>FPS <b id="hudFps">--</b></span></div>
 <header id="top">
 <div>
-  <div class="brand">Synapse <span class="ver">V5</span></div>
+  <div class="brand">Synapse <span class="ver">V6</span></div>
   <div id="stats"></div>
   <div id="statsPanel"></div>
 </div>
@@ -460,7 +463,7 @@ body.flat-mode #minimap{opacity:.4}
 <div id="minimap" aria-hidden="true"><canvas id="mm"></canvas></div>
 <div id="minibrains" aria-hidden="true"></div>
 <div id="statusline">pret · clique + pour le panneau · / pour chercher · n nouvelle note</div>
-<div id="hud-bot"><span>LAYER <b id="hudLayer">cortex</b></span><span>FOCUS <b id="hudFocus">none</b></span><span>OPACITY <b id="hudOp">100%</b></span><span>BUILD <b>V5</b></span></div>
+<div id="hud-bot"><span>LAYER <b id="hudLayer">cortex</b></span><span>FOCUS <b id="hudFocus">none</b></span><span>OPACITY <b id="hudOp">100%</b></span><span>BUILD <b>V6</b></span></div>
 <div id="dropzone">Dépose des fichiers .md pour les importer</div>
 <div id="kbhelp"><div class="box">
   <strong>Raccourcis clavier</strong>
@@ -1109,7 +1112,29 @@ const ZONE_COL={
   stem:[0.42,0.49,0.54],
   data:[0.18,0.77,0.71]
 };
-const CAP_ROLES=['Memoire','Liens','Taches','Inbox','Projets','Analyse','Journal','Focus','Tags','Sync','Graphe','Capture','Index','Revue','Archive','Signal','Contexte','Priorite','Habitude','Idee'];
+const CAP_TASKS=[
+  // 100 taches speciales uniques
+  'Indexer les notes','Relier les orphelines','Scanner Inbox','Suivre les taches ouvertes','Mesurer densite des tags',
+  'Detecter notes courtes','Surveiller projets actifs','Chronometrer dailies','Cartographier backlinks','Valider frontmatter',
+  'Prioriser captures','Consolider doublons','Marquer permanentes','Ouvrir fenetre recente','Isoler zone aero',
+  'Isoler strategie','Isoler telemetrie','Isoler setup','Isoler freinage','Isoler suspension',
+  'Propager onde frontale','Propager onde parietale','Propager onde temporale','Propager onde occipitale','Stabiliser tronc',
+  'Alimenter memoire court terme','Alimenter memoire long terme','Compresser contexte','Extraire decisions','Lister risques',
+  'Compter liens faibles','Renforcer hubs','Eteindre bruit','Activer focus mode','Synchroniser horloge',
+  'Lire charge GPU','Lisser fibres','Recalibrer opacite','Animer pulse local','Animer pulse global',
+  'Associer tag aero','Associer tag strategie','Associer tag donnees','Associer tag methode','Associer tag course',
+  'Suivre porpoising','Suivre effet de sol','Suivre degradation pneus','Suivre arrets stands','Suivre radio course',
+  'Preparer rapport plancher','Comparer CFD soufflerie','Valider corrélation piste','Planifier deploiement ERS','Optimiser garde au sol',
+  'Creer stub manquant','Fusionner tags proches','Nettoyer Inbox semaine','Archiver templates','Promouvoir zettel',
+  'Calculer sante coffre','Detecter notes sans date','Detecter sans statut','Suggérer liens tags','Suggérer parcours lecture',
+  'Ouvrir note hasard','Resumer dossier Areas','Resumer Projects','Resumer Resources','Resumer Daily',
+  'Charger modele local','Preparer prompt libre','Filtrer questions cube','Memoriser serie active','Exporter snapshot',
+  'Importer markdown','Sauvegarder JSON','Restaurer session','Verrouiller rotation','Recadrer scene',
+  'Activer mode 2D','Activer mode zones','Activer mode notes','Activer mode minimal','Basculer theme',
+  'Mettre a jour HUD','Mesurer FPS','Afficher charge reseau','Compter capsules actives','Colorer fibre zone',
+  'Relier cube cortex','Relier cube memoire','Relier cube taches','Relier cube tags','Relier cube journal',
+  'Surveiller staff access','Journaliser sync GitHub','Valider repo public','Limiter rate fetch','Purger cache local'
+];
 const miniG=new THREE.Group();brain.add(miniG);miniG.visible=true;
 const miniFeed=[],mbHTML=[];
 let netCharge=0,capEnergy=new Float32Array(100);
@@ -1117,29 +1142,46 @@ let netCharge=0,capEnergy=new Float32Array(100);
   const host=$('#minibrains');if(host)host.innerHTML='';
   const capPos=[],capCol=[],capS=[],capA=[],feedPos=[],feedCol=[];
   for(let i=0;i<100;i++){
-    const zone=i<20?'frontal':i<40?'parietal':i<60?'temporal':i<80?'occipital':i<90?'stem':'data';
+    const zone=i<18?'frontal':i<36?'parietal':i<54?'temporal':i<72?'occipital':i<85?'stem':'data';
     const col=ZONE_COL[zone];
-    const layer=(i%5),ring=Math.floor(i/5);
-    const a=(ring/20)*Math.PI*2+(layer*.11),rad=1.55+layer*.38+(Math.random()*.08);
-    const pos=V(Math.cos(a)*rad,(zone==='stem'?-.35:.05)+Math.sin(i*.7)*.18+(layer-2)*.04,Math.sin(a)*rad*.9);
+    /* distribution spatiale large : haut, bas, cotes, profondeur */
+    const band=Math.floor(i/20); // 0..4
+    const j=i%20;
+    const a=(j/20)*Math.PI*2 + band*0.37 + i*0.03;
+    const rad=1.35 + band*0.28 + (i%3)*0.12 + Math.random()*0.1;
+    let y;
+    if(zone==='stem') y=-0.55 - Math.random()*0.45;
+    else if(band===0) y=0.55 + Math.random()*0.55; // haut
+    else if(band===1) y=0.15 + Math.random()*0.35;
+    else if(band===2) y=-0.05 + (Math.random()-0.5)*0.25;
+    else if(band===3) y=-0.35 - Math.random()*0.35; // bas
+    else y=(Math.random()-0.5)*1.1; // disperse
+    const pos=V(Math.cos(a)*rad, y, Math.sin(a)*rad*(0.82+Math.random()*0.2));
     for(let k=0;k<7;k++){
       const u=rv();
-      capPos.push(pos.x+u.x*.06,pos.y+u.y*.05,pos.z+u.z*.06);
+      capPos.push(pos.x+u.x*.055,pos.y+u.y*.05,pos.z+u.z*.055);
       capCol.push(col[0],col[1],col[2]);
-      capS.push(7+Math.random()*6);capA.push(.55);
+      capS.push(6.5+Math.random()*7);capA.push(.5);
     }
-    const mid=pos.clone().multiplyScalar(.45).add(V(0,.12+Math.random()*.08,0));
-    for(let s=0;s<6;s++){
-      const t0=s/6,t1=(s+1)/6;
-      const p0=V(0,0,0).lerp(mid,Math.min(1,t0*2)).lerp(pos,Math.max(0,t0*2-1));
-      const p1=V(0,0,0).lerp(mid,Math.min(1,t1*2)).lerp(pos,Math.max(0,t1*2-1));
+    /* fibre vers une ancre corticale selon la zone (pas seulement le centre) */
+    const anchor=zone==='frontal'?V(0,.15,.55):zone==='occipital'?V(0,.1,-.55):zone==='temporal'?V((i%2?1:-1)*.55,.0,.1):zone==='stem'?V(0,-.35,-.15):zone==='data'?V(0,0,0):V(0,.35,0);
+    const mid=anchor.clone().lerp(pos,.45).add(V((Math.random()-.5)*.12,.08+Math.random()*.1,(Math.random()-.5)*.12));
+    for(let s=0;s<7;s++){
+      const t0=s/7,t1=(s+1)/7;
+      const bez=(tt)=>{const u=1-tt;return V(
+        u*u*anchor.x+2*u*tt*mid.x+tt*tt*pos.x,
+        u*u*anchor.y+2*u*tt*mid.y+tt*tt*pos.y,
+        u*u*anchor.z+2*u*tt*mid.z+tt*tt*pos.z
+      );};
+      const p0=bez(t0),p1=bez(t1);
       feedPos.push(p0.x,p0.y,p0.z,p1.x,p1.y,p1.z);
       feedCol.push(col[0],col[1],col[2],col[0],col[1],col[2]);
     }
-    miniFeed.push({pos,zone,role:CAP_ROLES[i%CAP_ROLES.length],phase:Math.random()*6.28,i});
-    if(i%12===0){
+    const task=CAP_TASKS[i];
+    miniFeed.push({pos,zone,role:task,task,phase:Math.random()*6.28,i,anchor});
+    if(i%10===0){
       const el=document.createElement('div');el.className='mb';
-      el.innerHTML=`<div class="ring2"><div class="pulse"></div></div><div class="nm">${CAP_ROLES[i%CAP_ROLES.length]}</div><div class="role">${zone}</div>`;
+      el.innerHTML=`<div class="ring2"><div class="pulse"></div></div><div class="nm">${task.split(' ').slice(0,2).join(' ')}</div><div class="role">${zone}</div>`;
       el.style.opacity='0';if(host)host.appendChild(el);mbHTML.push({el,idx:i});
     }
   }
@@ -1152,10 +1194,11 @@ let netCharge=0,capEnergy=new Float32Array(100);
   const fg=new THREE.BufferGeometry();
   fg.setAttribute('position',new THREE.Float32BufferAttribute(feedPos,3));
   fg.setAttribute('color',new THREE.Float32BufferAttribute(feedCol,3));
-  const feedMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.35,depthWrite:false,blending:THREE.AdditiveBlending});
+  const feedMat=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.38,depthWrite:false,blending:THREE.AdditiveBlending});
   const feedLines=new THREE.LineSegments(fg,feedMat);feedLines.frustumCulled=false;miniG.add(feedLines);
   miniG.userData={capPts,feedLines,feedMat,capA:cg.attributes.aA};
 }
+
 function setNetCharge(v){
   netCharge=Math.max(0,Math.min(1,v));
   const bar=$('#ravBar'),lab=$('#ravCharge'),act=$('#ravActive');
@@ -1186,6 +1229,11 @@ function feedCapsules(kind){
   const aA=miniG.userData.capA;if(aA){
     for(let i=0;i<100;i++)for(let k=0;k<7;k++)aA.array[i*7+k]=.25+capEnergy[i]*.75;
     aA.needsUpdate=true;
+  }
+  const rt=$('#ravTasks');
+  if(rt){
+    const ranked=[...miniFeed].map((m,i)=>({m,e:capEnergy[i]})).sort((a,b)=>b.e-a.e).slice(0,12);
+    rt.innerHTML=ranked.map(x=>`<div style="margin:0 0 6px;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:4px"><b style="color:#fff">${x.m.task}</b><br><span>${x.m.zone} · charge ${(x.e*100)|0}%</span></div>`).join('');
   }
   updateHUD&&updateHUD();
 }
@@ -1259,6 +1307,7 @@ $('#brFeed')&&($('#brFeed').onclick=()=>feedCapsules('notes'));
 $('#brTasks')&&($('#brTasks').onclick=()=>feedCapsules('tasks'));
 $('#brTags')&&($('#brTags').onclick=()=>feedCapsules('tags'));
 $('#brCalm')&&($('#brCalm').onclick=()=>feedCapsules('calm'));
+$('#brTaskRun')&&($('#brTaskRun').onclick=()=>{const ranked=[...miniFeed].map((m,i)=>({m,e:capEnergy[i]})).sort((a,b)=>b.e-a.e)[0];if(!ranked)return;const sl=$('#statusline');if(sl)sl.textContent='tache : '+ranked.m.task+' · zone '+ranked.m.zone;feedCapsules('pulse');for(let k=0;k<10;k++)fire(Math.random()*CORT|0,clock.elapsedTime,pk());});
 $('#b2d').onclick=()=>{
   flatMode=!flatMode;
   $('#b2d').classList.toggle('on',flatMode);
