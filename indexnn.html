@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Synapse</title>
+<meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--ln:rgba(255,255,255,.2);--mu:rgba(255,255,255,.58);--ui:'Jost',system-ui,sans-serif;--se:'Newsreader',Georgia,serif;--mo:ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:#fff;font:15px/1.5 var(--ui);overflow:hidden}
+a{color:inherit}
+button,input,textarea{font:inherit;color:#fff}
+button{background:none;border:1px solid var(--ln);padding:7px 14px;cursor:pointer;letter-spacing:.06em}
+button:hover,button:focus-visible{border-color:#fff}
+button:disabled{opacity:.5}
+:focus-visible{outline:1px solid #fff;outline-offset:3px}
+input,textarea{background:none;border:0;border-bottom:1px solid var(--ln);padding:8px 2px;width:100%;border-radius:0}
+input:focus,textarea:focus{outline:0;border-color:#fff}
+input::placeholder,textarea::placeholder{color:var(--mu)}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.ring{position:fixed;left:50%;top:48%;border-radius:50%;border:1px dashed rgba(255,255,255,.14);transform:translate(-50%,-50%);pointer-events:none;animation:spin 140s linear infinite}
+.r1{width:min(84vmin,820px);height:min(84vmin,820px)}
+.r2{width:min(102vmin,990px);height:min(102vmin,990px);border-style:dotted;animation-direction:reverse}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.c{position:fixed;width:22px;height:22px;border:0 solid rgba(255,255,255,.55);pointer-events:none}
+.tl{top:12px;left:12px;border-width:1px 0 0 1px}.tr{top:12px;right:12px;border-width:1px 1px 0 0}
+.bl{bottom:12px;left:12px;border-width:0 0 1px 1px}.br{bottom:12px;right:12px;border-width:0 1px 1px 0}
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.vg{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 46%,transparent 40%,rgba(0,0,0,.75) 100%)}
+.lb{position:absolute;left:0;top:0;font-size:12px;letter-spacing:.05em;white-space:nowrap;text-shadow:0 0 6px #000;will-change:transform,opacity}
+#top{position:fixed;inset:0 0 auto 0;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-start;justify-content:space-between;padding:max(26px,env(safe-area-inset-top)) 32px 0;pointer-events:none}
+#top>*{pointer-events:auto}
+.brand{font-weight:300;font-size:26px;letter-spacing:.4em}
+#stats{font:12px/1.6 var(--mo);color:var(--mu);margin-top:6px}
+#s{width:260px;margin-top:4px}
+#acts{display:flex;gap:8px;flex-wrap:wrap}
+#bot{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(700px,100%);padding:0 24px max(26px,env(safe-area-inset-bottom))}
+#ans{max-height:38vh;overflow:auto;margin-bottom:14px;padding:14px 18px;background:rgba(0,0,0,.85);border:1px solid var(--ln);font:17px/1.6 var(--se)}
+#ans[hidden]{display:none}
+#ans p{margin:0 0 .7em}#ans p:last-child{margin:0}
+#q{font-size:16px}
+#pn{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:rgba(0,0,0,.9);backdrop-filter:blur(8px);border-left:1px solid var(--ln);overflow:auto;padding:max(26px,env(safe-area-inset-top)) 30px 70px;transform:translateX(102%);transition:transform .35s cubic-bezier(.2,.7,.2,1);z-index:5;font:18px/1.7 var(--se)}
+#pn.on{transform:none}
+#x{position:sticky;top:0;float:right}
+#nt h1{font:400 34px/1.15 var(--se);margin:0 0 18px;letter-spacing:-.01em;clear:both}
+#nt h2,#ans h2{font:600 22px/1.3 var(--se);margin:1.8em 0 .5em}
+#nt h3{font:600 19px/1.3 var(--se);margin:1.5em 0 .4em}
+#nt p{margin:0 0 1em}
+.wl{border-bottom:1px solid rgba(255,255,255,.6);text-decoration:none}.wl:hover{border-color:#fff}
+.dead{color:var(--mu);text-decoration:underline dotted}
+code{font:14px var(--mo);background:rgba(255,255,255,.1);padding:2px 6px}
+pre{border:1px solid var(--ln);padding:14px 16px;overflow:auto;margin:0 0 1em}pre code{background:none;padding:0;font-size:13.5px;line-height:1.6}
+ul,ol{padding-left:1.3em;margin:0 0 1em}
+li.task{list-style:none;margin-left:-1.3em;display:flex;gap:10px;align-items:baseline}
+li.task i{width:14px;height:14px;border:1px solid #fff;flex:none;position:relative;top:2px}
+li.task i.on{background:#fff}
+li.task i.on::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(45deg)}
+blockquote{margin:0 0 1em;padding-left:16px;border-left:1px solid var(--mu);color:var(--mu)}
+.co{border-left:2px solid #fff;background:rgba(255,255,255,.06);padding:10px 16px;margin:0 0 1.2em;font:16px/1.6 var(--ui)}
+.co p{margin:4px 0 0}.co.tip{border-color:var(--mu)}.co.warning{border-left-width:6px}
+.props{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin:0 0 26px;padding:12px 16px;border:1px solid var(--ln);font:14px var(--ui)}
+.props dt{color:var(--mu)}.props dd{margin:0;display:flex;gap:6px;flex-wrap:wrap}
+.tg{border:1px solid var(--mu);padding:0 10px;font-size:13px;border-radius:99px}
+dialog{background:#000;color:#fff;border:1px solid #fff;padding:26px;width:min(480px,92vw);border-radius:0}
+dialog::backdrop{background:rgba(0,0,0,.75)}
+dialog label{display:block;margin:16px 0 0;color:var(--mu);font-size:13px}
+.hint{color:var(--mu);font-size:13px;margin:8px 0 0}
+dialog menu{display:flex;gap:8px;justify-content:flex-end;padding:0;margin:22px 0 0}
+#di{width:min(760px,94vw);max-height:88vh;overflow:auto}
+.ic{border:1px solid var(--ln);padding:14px 18px;margin:14px 0;font:16px/1.6 var(--se)}.ic h3{font:500 14px var(--ui);margin:0 0 8px;letter-spacing:.06em}.ic p{margin:0 0 .7em}
+@media(max-width:700px){.brand{font-size:20px}#top{padding:max(20px,env(safe-area-inset-top)) 20px 0}#s{order:3;flex-basis:100%;width:100%}#nt h1{font-size:28px}#pn{font-size:17px;padding:max(26px,env(safe-area-inset-top)) 20px 70px}}
+@media(prefers-reduced-motion:reduce){.ring{animation:none}#pn{transition:none}}
+
+/* ===== Fluidité, agents, cellules ===== */
+html{-webkit-tap-highlight-color:transparent;scrollbar-width:thin}
+button,input,textarea,select{transition:border-color .22s ease,background-color .22s ease,opacity .22s ease,transform .18s ease}
+button:hover{background:rgba(255,255,255,.06)}
+button:active{transform:scale(.97)}
+select{font:inherit;color:#fff;background:#000;border:0;border-bottom:1px solid var(--ln);padding:8px 2px;border-radius:0;width:100%}
+select:focus{outline:0;border-color:#fff}
+select option{background:#000;color:#fff}
+@keyframes up{from{opacity:0;transform:translateY(8px)}}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.985)}}
+@keyframes pulse{50%{opacity:.45}}
+#ans:not([hidden]){animation:up .35s cubic-bezier(.2,.7,.2,1)}
+#ans.busy{color:var(--mu);animation:up .35s cubic-bezier(.2,.7,.2,1),pulse 1.4s ease-in-out .35s infinite}
+dialog[open]{animation:pop .3s cubic-bezier(.2,.7,.2,1)}
+dialog[open]::backdrop{animation:fade .3s ease}
+.sw{animation:fade .5s ease both}
+#pn{opacity:0;visibility:hidden;transition:transform .45s cubic-bezier(.2,.7,.2,1),opacity .3s ease,visibility 0s .45s}
+#pn.on{opacity:1;visibility:visible;transition-delay:0s}
+#ask{display:flex;gap:14px;align-items:flex-end}
+#ask select{flex:none;width:128px;color:var(--mu)}
+#ask input{flex:1;min-width:0}
+#dock{display:flex;gap:8px;overflow-x:auto;margin:0 0 14px;padding:2px;justify-content:safe center;scrollbar-width:none}
+#dock::-webkit-scrollbar{display:none}
+.cell{flex:none;width:64px;height:58px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid var(--ln);background:rgba(0,0,0,.55);backdrop-filter:blur(6px);text-decoration:none;color:#fff;letter-spacing:0;cursor:pointer}
+.cell:hover,.cell:focus-visible{border-color:#fff;background:rgba(255,255,255,.07);transform:translateY(-2px)}
+.cell .sg{font:400 20px/1 var(--se)}
+.cell .nm{font-size:11px;color:var(--mu);max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell.ed{border-style:dashed}
+.cell.add .sg,.cell.tool .sg{color:var(--mu)}
+.cell.tool[aria-pressed=true]{border-color:#fff;background:#fff}
+.cell.tool[aria-pressed=true] .sg,.cell.tool[aria-pressed=true] .nm{color:#000}
+#dc{width:min(580px,94vw);max-height:90vh;overflow:auto}
+.ag{border:1px solid var(--ln);padding:12px 14px;margin:10px 0;display:grid;gap:6px;transition:opacity .2s}
+.ag.off{opacity:.45}
+.agh{display:flex;gap:10px;align-items:flex-end}
+.agh .an{flex:1;min-width:0}
+.agh select{width:auto;max-width:190px}
+.ag .hint{margin:2px 0 0}
+.ag textarea{resize:vertical}
+dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
+.chk input{width:auto}
+.addrow{display:flex;gap:10px;align-items:flex-end;margin-top:10px}
+.by{font:12px var(--ui);color:var(--mu);margin-top:8px}
+.ic h3{display:flex;justify-content:space-between;gap:10px}
+.ic h3 .by{margin:0;font-weight:300;letter-spacing:0}
+#kdel{margin-right:auto}
+#dvb{font:17px/1.6 var(--se);margin-top:14px;max-height:60vh;overflow:auto}
+@media(max-width:700px){#ask select{width:100px}.agh{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* ===== Chatbot à questions prédéfinies ===== */
+#menu{margin:0 0 12px}
+#ser,#qs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+#ser::-webkit-scrollbar{display:none}
+#ser{margin-bottom:8px}
+#qs{flex-wrap:wrap;max-height:96px;overflow-y:auto;color:var(--mu);font-size:13px}
+.chip{flex:none;padding:5px 12px;font-size:13px;letter-spacing:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}
+.chip.on{background:#fff;color:#000;border-color:#fff}
+.chip.q{color:var(--mu)}.chip.q:hover{color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.qt{font:12px var(--ui);color:var(--mu);margin-bottom:6px}
+#qp{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:72vh;overflow:auto;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);border:1px solid var(--ln);padding:18px;z-index:5}
+#qp:not([hidden]){animation:pop .3s cubic-bezier(.2,.7,.2,1)}
+#qp #qs{max-height:42vh;flex-wrap:wrap;overflow-y:auto}
+#qp #ask{margin-top:12px}
+#qx{float:right}
+.ax{float:right;padding:0 10px;margin:0 0 6px 10px}
+.tr{display:flex;align-items:center;gap:6px;color:var(--mu)}
+.tr input{width:90px;padding:0;border:0;accent-color:#fff}
+</style>
+</head>
+<body>
+<canvas id="cv" aria-label="Graphe 3D du coffre, en forme de cerveau"></canvas>
+<div class="ring r1"></div><div class="ring r2"></div>
+<span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+<div class="vg"></div><div id="labels"></div>
+<header id="top">
+<div><div class="brand">Synapse</div><div id="stats"></div></div>
+<input id="s" type="search" placeholder="Rechercher une note" aria-label="Rechercher une note">
+<div id="acts"><label class="tr" title="Transparence">◐<input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label><button id="bsync">Synchroniser</button><button id="bnew">Nouvelle note</button><button id="bcfg">Réglages</button></div>
+</header>
+<div id="bot"><div id="ans" hidden></div><div id="dock" role="toolbar" aria-label="Cellules"></div></div>
+<div id="qp" hidden><button type="button" id="qx">Fermer</button><div class="qt">Questions sur ton coffre</div><div id="ser" aria-label="Séries de questions"></div><div id="qs"></div><form id="ask"><input id="q" placeholder="Filtre les questions ou tape un mot à chercher" autocomplete="off" aria-label="Filtrer les questions"></form></div>
+<aside id="pn" aria-label="Note"><button id="x" type="button">Fermer</button><div id="nt"></div></aside>
+<dialog id="dc"><form id="fc" method="dialog">
+<strong>Réglages</strong>
+<p class="hint">Le chatbot répond à des questions prédéfinies, calculées sur tes notes dans ce navigateur : aucune IA, aucune clé, rien n’est envoyé.</p>
+<label for="rp">Dépôt GitHub du coffre (public)</label><input id="rp" placeholder="pseudo/mon-coffre">
+<label for="dr">Dossier à lire (facultatif)</label><input id="dr" placeholder="vide : tout le dépôt">
+<menu><button type="button" class="cl">Annuler</button><button>Enregistrer</button></menu>
+</form></dialog>
+<dialog id="dn"><form id="fn" method="dialog">
+<strong>Nouvelle note</strong>
+<label for="nti">Titre</label><input id="nti" required>
+<label for="ndr">Dossier</label><input id="ndr" value="00_Inbox">
+<label for="nbd">Contenu (relie avec [[titre d’une note]])</label><textarea id="nbd" rows="6"></textarea>
+<p class="hint">Enregistrée dans ce navigateur. La vraie source reste ton coffre Obsidian.</p>
+<menu><button type="button" class="cl">Annuler</button><button>Ajouter au cerveau</button></menu>
+</form></dialog>
+
+
+<dialog id="dk"><form id="fk" method="dialog">
+<strong id="dkt">Nouvelle cellule</strong>
+<label for="ksg">Signe (un symbole ou un emoji)</label><input id="ksg" maxlength="4" placeholder="✦" required>
+<label for="knm">Nom</label><input id="knm" maxlength="24" required>
+<label for="kkd">Type</label><select id="kkd"><option value="link">Lien web</option><option value="note">Note du coffre</option><option value="text">Texte libre</option><option value="prompt">Question du chatbot</option></select>
+<label for="kvl">Contenu</label><textarea id="kvl" rows="4" required></textarea>
+<p class="hint" id="kh"></p>
+<menu><button type="button" id="kdel">Supprimer</button><button type="button" class="cl">Annuler</button><button>Enregistrer</button></menu>
+</form></dialog>
+<dialog id="dv"><strong id="dvt"></strong><div id="dvb"></div><menu><button type="button" class="cl">Fermer</button></menu></dialog>
+
+<script type="text/plain" id="vault">
+=== accueil | | Accueil | dashboard | permanent | 2026-11-12 | index
+Notes de travail publiées depuis mon coffre Obsidian. Le coffre suit la méthode **PARA** et, dans les Areas, des notes atomiques à la façon Zettelkasten.
+
+> [!info] Comment naviguer
+> Ouvre un dossier à gauche, suis les liens entre notes, ou explore le graphe avec le bouton en haut à droite.
+
+## Points d’entrée
+- [[aero-base|Aérodynamique : les bases]]
+- [[strategie-arrets|Stratégie d’arrêts aux stands]]
+- [[telemetrie|Lire la télémétrie]]
+- [[projet-plancher|Projet : évolution du plancher]]
+- [[zettelkasten|La méthode Zettelkasten]]
+
+## Règles du coffre
+- Chaque note porte un frontmatter : `type`, `status`, `date`, `tags`
+- Une idée par note, reliée à au moins une autre
+- Le dossier `00_Inbox` se vide chaque semaine
+=== idee-diffuseur | 00_Inbox | Idée : diffuseur plus doux | capture | inbox | 2026-11-11 | aero,idee
+Piste à creuser : adoucir le gradient du diffuseur pour limiter le décrochage du flux à basse vitesse.
+
+- [ ] Comparer avec les données de [[effet-de-sol]]
+- [ ] En parler au prochain point avec l’équipe aéro
+
+Lié au projet [[projet-plancher]].
+=== projet-plancher | 01_Projects | Projet : évolution du plancher | projet | en-cours | 2026-11-02 | projet,aero
+## Objectif
+Gagner en appui dans les virages lents sans pénaliser la traînée en ligne droite.
+
+## Tâches
+- [x] Revue des corrélations soufflerie et CFD
+- [x] Choix des deux variantes à tester
+- [ ] Valider en piste avec [[telemetrie|la télémétrie]]
+- [ ] Rédiger le rapport de décision
+
+> [!warning] Risque
+> Un plancher plus sensible à la garde au sol peut réveiller le [[porpoising]].
+
+Voir aussi [[effet-de-sol]] et [[idee-diffuseur]].
+=== aero-base | 02_Areas | Aérodynamique : les bases | zettel | permanent | 2026-10-20 | aero,fondamentaux
+Une F1 cherche l’**appui** (déportance) tout en limitant la **traînée**. Leur rapport donne l’efficacité aérodynamique.
+
+- Appui : plaque la voiture au sol et augmente la vitesse en courbe
+- Traînée : freine la voiture et coûte de la vitesse de pointe
+
+> [!tip] À retenir
+> Le bon compromis dépend du circuit : appui maximal à Monaco, traînée minimale à Monza.
+
+Suite : [[effet-de-sol]] puis [[porpoising]].
+=== effet-de-sol | 02_Areas | Effet de sol | zettel | permanent | 2026-10-22 | aero
+Les tunnels sous le plancher accélèrent l’air. Plus l’air va vite, plus la pression baisse : la dépression plaque la voiture sur la piste.
+
+## Points de vigilance
+- Très sensible à la garde au sol et au roulis
+- Le diffuseur gère la détente du flux en sortie
+
+Prérequis : [[aero-base]]. Effet secondaire : [[porpoising]].
+=== porpoising | 02_Areas | Porpoising | zettel | permanent | 2026-10-24 | aero,dynamique
+Oscillations verticales à haute vitesse : le plancher s’approche du sol, le flux se bloque, l’appui chute, la voiture remonte, puis le flux se rétablit et le cycle recommence.
+
+## Leviers
+- Augmenter la garde au sol
+- Raidir les suspensions
+- Ajuster la géométrie du bord de plancher
+
+Cause racine : [[effet-de-sol]]. Impact sur le [[projet-plancher]].
+=== strategie-arrets | 02_Areas | Stratégie d’arrêts aux stands | zettel | permanent | 2026-10-28 | strategie
+Un arrêt coûte de l’ordre de 20 secondes selon le circuit, car il faut compter l’entrée et la sortie des stands, pas seulement l’immobilisation.
+
+Le bon moment dépend de la dégradation ([[degradation-pneus]]), du trafic et du risque de voiture de sécurité.
+
+> [!note] Undercut
+> S’arrêter avant un rival pour profiter de pneus neufs et le dépasser lors de son propre arrêt.
+
+Données d’entrée : [[telemetrie]].
+=== degradation-pneus | 02_Areas | Dégradation des pneus | zettel | permanent | 2026-10-30 | strategie,pneus
+Le grip baisse au fil des tours à cause de l’usure et de la surchauffe. On modélise la perte par tour pour estimer la fenêtre d’arrêt.
+
+- Mesurer le delta de temps au tour, carburant corrigé
+- Séparer l’effet de l’allègement de la voiture
+
+Utilisé dans [[strategie-arrets]]. Données : [[telemetrie]].
+=== telemetrie | 02_Areas | Lire la télémétrie | zettel | permanent | 2026-11-03 | donnees,analyse
+Plusieurs centaines de capteurs enregistrent vitesse, pression de freinage, températures et accélérations.
+
+## Routine d’analyse
+1. Superposer deux tours sur le même graphique
+2. Repérer où le temps se gagne ou se perd
+3. Chercher la cause : freinage, trajectoire ou motricité
+
+~~~
+delta = temps_tour_A - temps_tour_B
+~~~
+
+Alimente [[strategie-arrets]], [[degradation-pneus]] et le [[projet-plancher]].
+=== zettelkasten | 03_Resources | La méthode Zettelkasten | ressource | permanent | 2026-10-15 | methode
+Une idée par note, écrite avec tes mots, reliée à d’autres notes. Les liens comptent plus que les dossiers.
+
+- Note éclair : capture brute dans l’inbox
+- Note permanente : idée reformulée et reliée
+
+Exemple de note permanente : [[aero-base]]. Modèle : [[tpl-zettel]].
+=== daily-2026-11-12 | 05_Daily | 2026-11-12 | daily | actif | 2026-11-12 | journal
+## Journal
+- Revu la corrélation du [[projet-plancher]]
+- Capturé [[idee-diffuseur]]
+
+## À faire demain
+- [ ] Préparer le point stratégie
+=== tpl-zettel | 90_Templates | Modèle : Zettel | template | permanent | 2026-10-15 | template
+Modèle Templater pour une note atomique.
+
+~~~
+---
+type: zettel
+status: draft
+date: <% tp.date.now("YYYY-MM-DD") %>
+tags: []
+---
+~~~
+
+Règle : une idée, une note. Voir [[zettelkasten]].
+=== ers | 02_Areas | Récupération d’énergie (ERS) | zettel | permanent | 2026-11-04 | groupe-motopropulseur
+Le MGU-K récupère l’énergie au freinage puis la restitue à l’accélération. La batterie limite ce qu’on peut stocker et déployer sur un tour.
+
+- Plus on freine fort, plus la récupération est élevée
+- Le déploiement se planifie tour par tour
+
+Données associées : [[telemetrie]] et [[freinage]]. Impact course : [[strategie-arrets]].
+=== freinage | 02_Areas | Freinage et refroidissement | zettel | permanent | 2026-11-04 | freins
+Les disques en carbone fonctionnent à très haute température, jusqu’à plus de 1 000 °C. Les conduits de refroidissement coûtent de la traînée : tout est un compromis avec [[aero-base]].
+
+Voir aussi [[ers]] et [[setup]].
+=== suspension | 02_Areas | Suspension et garde au sol | zettel | permanent | 2026-11-05 | mecanique
+La suspension contrôle la hauteur de caisse, donc la qualité de l’effet de sol. Une voiture trop basse gagne en appui mais risque le [[porpoising]].
+
+Réglages liés : [[setup]]. Contexte : [[effet-de-sol]].
+=== setup | 02_Areas | Réglages de la voiture (setup) | zettel | permanent | 2026-11-05 | setup
+Le setup combine ailerons, hauteur de caisse, barres antiroulis et pressions de pneus.
+
+- Se prépare au [[simulateur]] avant la piste
+- Se valide avec la [[telemetrie]]
+
+Dépend de [[suspension]], [[aero-base]] et [[degradation-pneus]].
+=== simulateur | 02_Areas | Simulateur de pilotage | zettel | permanent | 2026-11-06 | outils
+Le simulateur permet d’essayer un setup sans rouler. Sa valeur dépend de la corrélation avec la piste.
+
+Lié à [[setup]], [[soufflerie]] et [[telemetrie]].
+=== soufflerie | 02_Areas | Soufflerie et corrélation | zettel | permanent | 2026-11-06 | aero,outils
+Une maquette à échelle réduite roule sur un tapis dans la soufflerie. La corrélation vérifie que les mesures collent avec la [[cfd]] puis avec la piste.
+
+Utilisée dans le [[projet-plancher]]. Cadre : [[reglement]].
+=== cfd | 02_Areas | CFD : simulation du flux | zettel | permanent | 2026-11-07 | aero,outils
+La CFD résout les équations du fluide sur un maillage. Un maillage plus fin donne plus de précision, mais coûte plus de calcul.
+
+Bases : [[aero-base]]. Validation : [[soufflerie]].
+=== reglement | 02_Areas | Règlement technique | zettel | permanent | 2026-11-07 | fia
+Chaque évolution doit rester conforme au règlement de la FIA. Une idée brillante hors règlement ne vaut rien.
+
+Concerne le [[projet-plancher]] et la [[soufflerie]].
+=== radio | 02_Areas | Communication radio | zettel | permanent | 2026-11-08 | course
+Les messages doivent être courts et sans ambiguïté. Un ordre clair vaut mieux qu’une longue explication.
+
+Sert [[strategie-arrets]], [[meteo]] et [[voiture-securite]].
+=== meteo | 02_Areas | Météo et température de piste | zettel | permanent | 2026-11-08 | course
+La température de piste change le grip et la [[degradation-pneus]]. La pluie bouleverse la [[strategie-arrets]].
+
+Information à relayer par [[radio]].
+=== voiture-securite | 02_Areas | Voiture de sécurité | zettel | permanent | 2026-11-09 | course
+Une neutralisation réduit le coût d’un arrêt, car le peloton roule lentement. Il faut décider vite : on rentre ou on reste en piste ?
+
+Décision liée à [[strategie-arrets]] et [[radio]].
+=== carburant | 02_Areas | Gestion du carburant | zettel | permanent | 2026-11-09 | course
+La voiture s’allège au fil des tours, ce qui améliore les chronos et masque la [[degradation-pneus]]. D’où la correction carburant dans l’analyse de la [[telemetrie]].
+=== boite | 02_Areas | Boîte de vitesses | zettel | permanent | 2026-11-10 | mecanique
+Les changements de rapport doivent être les plus rapides possible. L’étagement se choisit circuit par circuit avec le [[setup]].
+=== idee-simulation | 00_Inbox | Idée : tester le diffuseur au simulateur | capture | inbox | 2026-11-12 | idee,aero
+- [ ] Voir si le [[simulateur]] reflète l’effet du diffuseur ([[idee-diffuseur]])
+- [ ] Comparer avec la [[cfd]]
+=== daily-2026-11-11 | 05_Daily | 2026-11-11 | daily | actif | 2026-11-11 | journal
+## Journal
+- Relu [[effet-de-sol]] avant la réunion aéro
+- Noté les leviers du [[porpoising]]
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const store={get(k){try{return JSON.parse(localStorage.getItem(k))}catch{return null}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+const BR={'':1,'00_Inbox':.55,'01_Projects':1,'02_Areas':.85,'03_Resources':.7,'05_Daily':.5,'90_Templates':.35};
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const slug=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').toLowerCase();
+let cfg=store.get('cfg')||{},N=[],E=[],byKey={},hist=[],focus=null,isOpen=false;
+
+/* ---------- Données ---------- */
+const BASE=document.getElementById('vault').textContent.split(/^=== /m).slice(1).map(b=>{
+  const k=b.indexOf('\n'),[id,dir,title,type,status,date,tags]=b.slice(0,k).split('|').map(s=>s.trim());
+  return{id,dir,title,type,status,date,tags:tags?tags.split(','):[],body:b.slice(k+1).trim()}});
+function parse(path,txt){let fm={},body=txt;const m=txt.match(/^---\n([\s\S]*?)\n---\n?/);
+  if(m){body=txt.slice(m[0].length);m[1].split('\n').forEach(l=>{const k=l.match(/^(\w+):\s*(.*)$/);if(k)fm[k[1]]=k[2].replace(/^\[|\]$/g,'').trim()})}
+  const p=path.split('/'),f=p.pop().replace(/\.md$/i,'');
+  return{id:slug(path.replace(/\.md$/i,'')),dir:p[0]||'',title:f,type:fm.type||'note',status:fm.status||'',date:(fm.date||'').slice(0,10),tags:(fm.tags||'').split(',').map(s=>s.trim().replace(/^#/,'')).filter(Boolean),body:body.trim()}}
+function setNotes(){const gh=store.get('gh')||[],all=[...(gh.length?[]:BASE),...gh,...(store.get('loc')||[])],seen={};
+  N=all.filter(n=>!seen[n.id]&&(seen[n.id]=1));byKey={};
+  N.forEach(n=>[n.id,n.title].forEach(k=>byKey[k.toLowerCase()]=n));stubs();
+  N.forEach(n=>n.links=[...new Set([...n.body.matchAll(/\[\[([^\]|#]+)/g)].map(m=>(byKey[m[1].trim().toLowerCase()]||{}).id).filter(x=>x&&x!==n.id))]);
+  plastic();
+  N.forEach(n=>n.back=N.filter(m=>m.links.includes(n.id)));
+  E=N.flatMap(n=>n.links.map(l=>[n.id,l]))}
+
+/* ---------- Markdown ---------- */
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const inline=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+  .replace(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g,(m,t,l)=>{const n=byKey[t.trim().toLowerCase()];return n?`<a class="wl" href="#${n.id}">${l||esc(n.title)}</a>`:`<span class="dead">${l||t}</span>`});
+function md(src){const L=src.split('\n');let h='',i=0,m;
+  while(i<L.length){const l=L[i],f=l.slice(0,3);
+    if(f=='~~~'||f=='```'){const c=[];i++;while(i<L.length&&L[i].slice(0,3)!=f)c.push(L[i++]);i++;h+=`<pre><code>${esc(c.join('\n'))}</code></pre>`;continue}
+    if(l.startsWith('>')){const c=[];while(i<L.length&&L[i].startsWith('>'))c.push(L[i++].replace(/^>\s?/,''));const t=c[0].match(/^\[!(\w+)\]\s*(.*)/);
+      h+=t?`<div class="co ${t[1]}"><b>${inline(t[2]||t[1])}</b><p>${inline(c.slice(1).join(' '))}</p></div>`:`<blockquote>${inline(c.join(' '))}</blockquote>`;continue}
+    if(m=l.match(/^(#{1,3}) (.*)/)){h+=`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`;i++;continue}
+    const ul=/^\s*[-*] /,ol=/^\d+\. /;
+    if(ul.test(l)||ol.test(l)){const o=ol.test(l),re=o?ol:ul,it=[];
+      while(i<L.length&&re.test(L[i]))it.push(L[i++].replace(/^\s*([-*]|\d+\.) /,''));
+      h+=`<${o?'ol':'ul'}>`+it.map(x=>{const t=x.match(/^\[( |x)\] (.*)/);return t?`<li class="task"><i class="${t[1]=='x'?'on':''}"></i><span>${inline(t[2])}</span></li>`:`<li>${inline(x)}</li>`}).join('')+`</${o?'ol':'ul'}>`;continue}
+    if(l.trim()){const p=[L[i++]];while(i<L.length&&L[i].trim()&&!/^(#|>|~~~|```|\s*[-*] |\d+\. )/.test(L[i]))p.push(L[i++]);h+=`<p>${inline(p.join(' '))}</p>`;continue}
+    i++}
+  return h}
+
+/* ---------- Scène 3D (WebGL) ---------- */
+const cv=$('#cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+R.setClearColor(0x000000);R.setPixelRatio(Math.min(devicePixelRatio||1,2));
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,1,.1,100),brain=new THREE.Group(),clock=new THREE.Clock();
+scene.add(brain);
+const AX=[.82,.6,1],V=(x,y,z)=>new THREE.Vector3(x,y,z);
+const rv=()=>{let v;do v=V(Math.random()*2-1,Math.random()*2-1,Math.random()*2-1);while(v.lengthSq()>1||v.lengthSq()<.01);return v.normalize()};
+const shell=(u,k=1)=>{const g=(1+.05*Math.sin(u.x*11)*Math.sin(u.y*9+1)*Math.sin(u.z*10))*k;
+  return V((u.x*AX[0]+Math.sign(u.x)*.05)*g,(u.y<0?u.y*.7:u.y)*AX[1]*g,u.z*AX[2]*g)};
+/* ===== Shaders (tout est calculé sur le GPU) ===== */
+const U={uPx:{value:1},uFade:{value:0},uT:{value:0},uN:{value:5},uW:{value:10},uZ:{value:-5}};
+const UNI='uniform float uPx;uniform float uFade;uniform float uT;uniform float uN;uniform float uW;uniform float uZ;float wv(float z){float q=(z-uZ)*5.;return exp(-q*q);}';
+const DP='float dp=clamp(1.15-(-mv.z-uN)/uW*.9,.2,1.);';
+const HUE='vec3 hue(float h){return h<0.?vec3(1.):h<.34?vec3(.35,.85,1.):h<.67?vec3(.66,.55,1.):vec3(1.,.72,.32);}';
+const VS=`attribute float aS;attribute float aA;varying float vA;${UNI}
+void main(){vec4 mv=modelViewMatrix*vec4(position,1.);${DP}vA=aA*uFade*dp*(1.+2.2*wv(position.z));gl_PointSize=aS*uPx*(9./-mv.z);gl_Position=projectionMatrix*mv;}`;
+/* cellules : s’illuminent de la couleur de l’onde qui les touche */
+const VC=`attribute float aS;attribute float aA;attribute vec3 aCol;varying float vA;varying vec3 vC;${UNI}
+void main(){vec4 mv=modelViewMatrix*vec4(position,1.);${DP}vA=aA*uFade*dp*(1.+1.5*wv(position.z));vC=mix(vec3(1.),aCol,clamp((aA-.45)*2.,0.,1.));gl_PointSize=aS*uPx*(9./-mv.z);gl_Position=projectionMatrix*mv;}`;
+/* fibres : croissance depuis la naissance, lueur qui coule, pointe brillante, extinction */
+const VL=`attribute float aT;attribute vec4 aF;varying float vA;varying vec3 vC;${UNI}${HUE}
+void main(){vec4 mv=modelViewMatrix*vec4(position,1.);${DP}
+float gr=clamp((uT-aF.x)/2.6,0.,1.);gr=1.-pow(1.-gr,3.);
+float vis=max(step(.999,gr),1.-smoothstep(gr-.07,gr+.0001,aT));
+float tip=(1.-smoothstep(0.,.1,gr-aT))*step(aT,gr)*(1.-step(.999,gr));
+float st=step(2.,aF.z),h=aF.z-2.*st;
+float fl=pow(.5+.5*sin(6.2831*(aT*2.-uT*aF.w)),8.);
+vA=uFade*dp*vis*(1.-smoothstep(0.,2.,uT-aF.y))*(mix(.11,.4,st)+fl*(.35+.3*st)+tip*1.1+.5*wv(position.z));
+vC=mix(vec3(1.),hue(h),clamp(.3+fl+tip,0.,1.));gl_Position=projectionMatrix*mv;}`;
+/* ondes électriques : une tête et trois points de traîne, courbe de Bézier sur le GPU */
+const VW=`attribute vec3 aC;attribute vec3 aE;attribute vec3 aW;attribute vec3 aCol;varying float vA;varying vec3 vC;${UNI}
+void main(){float t=(uT-aW.x)/aW.y-aW.z*.035;float al=step(0.,t)*step(t,1.);t=clamp(t,0.,1.);
+vec3 p=mix(mix(position,aC,t),mix(aC,aE,t),t);vec4 mv=modelViewMatrix*vec4(p,1.);${DP}
+vA=uFade*dp*al*(1.-aW.z*.26)*(.8+.2*sin(uT*45.+aW.x*7.));vC=mix(aCol,vec3(1.),.45*(1.-aW.z/3.));
+gl_PointSize=(9.-aW.z*1.7)*uPx*(9./-mv.z);gl_Position=projectionMatrix*mv;}`;
+/* ondulations : anneau qui s’étend autour d’une cellule qui tire */
+const VR=`attribute float aT;attribute vec3 aCol;varying float vA;varying vec3 vC;${UNI}
+void main(){float a=uT-aT;float al=step(0.,a)*step(a,1.5);vec4 mv=modelViewMatrix*vec4(position,1.);${DP}
+vA=uFade*dp*al*pow(1.-clamp(a/1.5,0.,1.),2.)*.9;vC=aCol;gl_PointSize=(8.+a*60.)*uPx*(9./-mv.z);gl_Position=projectionMatrix*mv;}`;
+const FP=`varying float vA;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;float a=pow(1.-d,2.)*.8+(1.-smoothstep(0.,.22,d));gl_FragColor=vec4(vec3(1.),a*vA);}`;
+const FQ=`varying float vA;varying vec3 vC;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;float a=pow(1.-d,2.)*.8+(1.-smoothstep(0.,.22,d));gl_FragColor=vec4(vC,a*vA);}`;
+const FC=`varying float vA;varying vec3 vC;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;float a=(1.-smoothstep(.1,.34,d))+(1.-smoothstep(0.,.1,abs(d-.72)))*.7+(1.-d)*.1;gl_FragColor=vec4(vC,a*vA);}`;
+const FR=`varying float vA;varying vec3 vC;void main(){float d=length(gl_PointCoord-.5)*2.;if(d>1.)discard;gl_FragColor=vec4(vC,(1.-smoothstep(0.,.12,abs(d-.85)))*vA);}`;
+const FL='varying float vA;varying vec3 vC;void main(){gl_FragColor=vec4(vC,vA);}';
+const mk=(v,f)=>new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexShader:v,fragmentShader:f});
+const pm=mk(VS,FP),cm=mk(VC,FC),flm=mk(VL,FL),wm=mk(VW,FQ),rm=mk(VR,FR);
+const LM=[],lineMat=o=>{const m=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending});m.userData.b=o;LM.push(m);return m};
+const attr=(g,n,a,s=1)=>g.setAttribute(n,new THREE.Float32BufferAttribute(a,s));
+const lp=(a,b,t)=>a.clone().lerp(b,t),bz=(a,c,b,t)=>lp(lp(a,c,t),lp(c,b,t),t);
+const cord=t=>V(0,-.3-1.6*t,-.2-.28*t+.06*Math.sin(t*5));
+const SEG=16,NP=760,NMAX=2400,CORT=200,WN=1400,RN=220;
+const RGB=h=>h>1?[1,.3,.65]:h<0?[1,1,1]:h<.34?[.35,.85,1]:h<.67?[.66,.55,1]:[1,.72,.32];
+const pk=()=>{const r=Math.random();return r<.55?.1:r<.8?.5:.9};
+
+/* ===== Fibres : un seul tampon GPU, recyclé en continu ===== */
+const fgeo=n=>{const g=new THREE.BufferGeometry(),m=n*SEG*2,f=new Float32Array(m*4);
+  for(let i=0;i<m;i++)f[i*4]=f[i*4+1]=1e9;
+  g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(m*3),3));g.setAttribute('aT',new THREE.BufferAttribute(new Float32Array(m),1));g.setAttribute('aF',new THREE.BufferAttribute(f,4));return g};
+function putFiber(g,s,a,c,b,f){const pa=g.attributes.position.array,ta=g.attributes.aT.array,fa=g.attributes.aF.array;
+  for(let k=0;k<SEG;k++)for(let e=0;e<2;e++){const t=(k+e)/SEG,i=(s*SEG+k)*2+e,q=bz(a,c,b,t);pa[i*3]=q.x;pa[i*3+1]=q.y;pa[i*3+2]=q.z;ta[i]=t;fa.set(f,i*4)}}
+const lg=fgeo(NMAX),FS=[],adj=[],nb=[],cellP=[],cellE=[],ev=[],rq=[];
+let cellA,cellC,wc=0,wlo=1e9,whi=-1,rc=0,rd=false,dcur=NP,nextOp=0,nlNext=2,nfT=0,NL=[],ready=false,dust;
+const touch=s=>{if(!ready)return;['position','aT','aF'].forEach(n=>{const a=lg.attributes[n],z=a.itemSize*SEG*2;a.updateRange={offset:s*z,count:z};a.needsUpdate=true})};
+const ctrl=(a,b)=>{const m=lp(a,b,.5);return a.distanceTo(b)>.9?m.multiplyScalar(.35+Math.random()*.25).add(rv().multiplyScalar(.08)):m.multiplyScalar(.9+Math.random()*.06).add(rv().multiplyScalar(.05))};
+function setFiber(s,ca,cb,a,b,t,perm,c){c=c||ctrl(a,b);const r=Math.random();
+  FS[s]={ca,cb,a,b,c,born:t,dead:1e9,perm};putFiber(lg,s,a,c,b,[t,1e9,r<.25?-1:pk(),.15+Math.random()*.4]);
+  [ca,cb].forEach(i=>{if(i>=0){const l=adj[i]||(adj[i]=[]);l.push(s);if(l.length>40)l.shift()}});touch(s)}
+function spawnDyn(s,t){const i=Math.random()*CORT|0,j=Math.random()<.75?nb[i][Math.random()*10|0]:Math.random()*CORT|0;if(j!=i)setFiber(s,i,j,cellP[i],cellP[j],t,false)}
+
+/* ===== Ondes et ondulations (tampons en anneau) ===== */
+const mkA=(n,s)=>new THREE.BufferAttribute(new Float32Array(n*s),s);
+const WP=mkA(WN*4,3),WC=mkA(WN*4,3),WE=mkA(WN*4,3),WW=mkA(WN*4,3),WK=mkA(WN*4,3);
+for(let i=0;i<WN*4;i++)WW.setXYZ(i,1e9,1,0);
+const wg=new THREE.BufferGeometry();wg.setAttribute('position',WP);wg.setAttribute('aC',WC);wg.setAttribute('aE',WE);wg.setAttribute('aW',WW);wg.setAttribute('aCol',WK);
+const RP=mkA(RN,3),RT=new THREE.BufferAttribute(new Float32Array(RN).fill(1e9),1),RK=mkA(RN,3);
+const rg=new THREE.BufferGeometry();rg.setAttribute('position',RP);rg.setAttribute('aT',RT);rg.setAttribute('aCol',RK);
+function wave(a,c,b,t,dur,rgb){const s=wc++%WN;
+  for(let k=0;k<4;k++){const i=s*4+k;WP.setXYZ(i,a.x,a.y,a.z);WC.setXYZ(i,c.x,c.y,c.z);WE.setXYZ(i,b.x,b.y,b.z);WW.setXYZ(i,t,dur,k);WK.setXYZ(i,rgb[0],rgb[1],rgb[2])}
+  wlo=Math.min(wlo,s);whi=Math.max(whi,s)}
+function ripple(p,t,rgb){const s=rc++%RN;RP.setXYZ(s,p.x,p.y,p.z);RT.setX(s,t);RK.setXYZ(s,rgb[0],rgb[1],rgb[2]);rd=true}
+/* une cellule tire : ondulation, puis ondes sur deux fibres, qui peuvent faire tirer la cellule suivante */
+function fire(i,t,h){cellE[i]=1;const rgb=RGB(h);cellC.setXYZ(i,rgb[0],rgb[1],rgb[2]);ripple(cellP[i],t,rgb);
+  const L=(adj[i]||[]).filter(s=>{const f=FS[s];return f&&(f.ca==i||f.cb==i)&&t>f.born+2.6&&t<f.dead});
+  for(let k=0;k<2&&L.length;k++){const f=FS[L.splice(Math.random()*L.length|0,1)[0]],fw=f.ca==i,a=fw?f.a:f.b,b=fw?f.b:f.a,to=fw?f.cb:f.ca,dur=.4+a.distanceTo(b)*.9,h2=Math.random()<.2?pk():h;
+    wave(a,f.c,b,t,dur,RGB(h2));if(to>=0)ev.push([t+dur,tt=>{if(Math.random()<.5)fire(to,tt,h2)}])}}
+
+/* ===== Construction ===== */
+{ /* silhouette : cortex, cervelet et tronc cérébral partagent la même texture de maillage */
+  const meshOf=(pts,op)=>{const g=new THREE.BufferGeometry().setFromPoints(pts);attr(g,'aS',pts.map(()=>1.6+Math.random()*1.6));attr(g,'aA',pts.map(()=>.25+Math.random()*.3));
+    brain.add(new THREE.Points(g,pm));const seg=[];
+    pts.forEach((p,i)=>{let a=-1,b=-1,da=9,db=9;pts.forEach((q,j)=>{if(j==i)return;const d=p.distanceToSquared(q);if(d<da){b=a;db=da;a=j;da=d}else if(d<db){b=j;db=d}});[a,b].forEach(j=>seg.push(p,pts[j]))});
+    brain.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),lineMat(op)))};
+  meshOf([...Array(1300)].map(()=>shell(rv())),.07);
+  meshOf([...Array(520)].map(()=>{const u=rv(),f=1+.07*Math.sin(u.y*22);return V(u.x*.42*f,u.y*.2*f-.34,u.z*.28*f-.7)}),.09);
+  meshOf([...Array(460)].map(()=>{const t=Math.random()*1.15-.12,r=.045+.085*Math.exp(-Math.max(t,0)*3.5),a=Math.random()*6.283;return cord(t).add(V(Math.cos(a)*r,0,Math.sin(a)*r))}),.09);
+  /* cellules : 200 corticales, 14 relais dans la moelle, 40 ganglions au bout des nerfs */
+  for(let i=0;i<CORT;i++)cellP.push(shell(rv(),.9+Math.random()*.1));
+  for(let i=0;i<14;i++)cellP.push(cord(i/13));
+  for(let i=0;i<40;i++)cellP.push(cord(i/39).add(V((i%2?1:-1)*(.45+Math.random()*.5),-.1-Math.random()*.2,(Math.random()-.5)*.5)));
+  for(let i=0;i<CORT;i++)nb[i]=cellP.slice(0,CORT).map((q,j)=>[cellP[i].distanceToSquared(q),j]).sort((a,b)=>a[0]-b[0]).slice(1,11).map(a=>a[1]);
+  cellP.forEach(()=>cellE.push(0));
+  /* fibres initiales, qui poussent au démarrage */
+  let s=0;const T=()=>Math.random()*7,mid=(a,b)=>lp(a,b,.5);
+  for(let n=0;n<500;n++){const i=n%CORT,j=Math.random()<.7?nb[i][Math.random()*6|0]:Math.random()*CORT|0;if(j!=i)setFiber(s++,i,j,cellP[i],cellP[j],T(),true)}
+  for(let k=0;k<13;k++)for(let r=0;r<2;r++){const a=cellP[CORT+k],b=cellP[CORT+k+1];setFiber(s++,CORT+k,CORT+k+1,a,b,T(),true,mid(a,b).add(V((Math.random()-.5)*.05,0,(Math.random()-.5)*.05)))}
+  [...Array(CORT).keys()].sort((i,j)=>cellP[i].y-cellP[j].y).slice(0,6).forEach(i=>setFiber(s++,i,CORT,cellP[i],cellP[CORT],T(),true,mid(cellP[i],cellP[CORT])));
+  for(let i=0;i<40;i++){const k=CORT+Math.round(i/39*13),q=CORT+14+i;setFiber(s++,k,q,cellP[k],cellP[q],T(),true,mid(cellP[k],cellP[q]).add(V(0,-.1,0)))}
+  for(let i=0;i<90;i++){const u=rv();u.y=-Math.abs(u.y)*.9-.1;u.normalize();const a=shell(u,.97),o=V((Math.random()-.5)*.07,0,(Math.random()-.5)*.07),b=cord(.08+Math.random()*.5).add(o);
+    setFiber(s++,-1,-1,a,b,T(),true,V(b.x+(a.x-b.x)*.2,b.y+.3,a.z*.4+b.z*.6))} /* faisceaux qui convergent du cortex vers la moelle */
+  for(let i=0;i<40;i++){const o=V((Math.random()-.5)*.07,0,(Math.random()-.5)*.07);setFiber(s++,-1,-1,cord(.1).add(o),cord(1).add(o),T(),true,cord(.55).add(o))}
+  const fl=new THREE.LineSegments(lg,flm);fl.frustumCulled=false;brain.add(fl);
+  /* corps cellulaires et dendrites */
+  const cg=new THREE.BufferGeometry().setFromPoints(cellP);attr(cg,'aS',cellP.map(()=>18+Math.random()*14));
+  cellA=new THREE.Float32BufferAttribute(cellP.map(()=>.4),1);cellC=new THREE.Float32BufferAttribute(cellP.flatMap(()=>[1,1,1]),3);
+  cg.setAttribute('aA',cellA);cg.setAttribute('aCol',cellC);brain.add(new THREE.Points(cg,cm));
+  const dn=[];cellP.forEach(c=>{for(let k=0;k<5;k++){const d=rv(),q=c.clone().addScaledVector(d,.05+Math.random()*.05);dn.push(c,q);
+    for(let f=0;f<2;f++)dn.push(q,q.clone().addScaledVector(d.clone().add(rv().multiplyScalar(.7)).normalize(),.04+Math.random()*.05))}});
+  brain.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dn),lineMat(.28)));
+  const wp=new THREE.Points(wg,wm),rp=new THREE.Points(rg,rm);wp.frustumCulled=rp.frustumCulled=false;brain.add(wp,rp);
+  const dp0=[...Array(500)].map(()=>rv().multiplyScalar(14+Math.random()*30)),dg=new THREE.BufferGeometry().setFromPoints(dp0);
+  attr(dg,'aS',dp0.map(()=>2+Math.random()*3));attr(dg,'aA',dp0.map(()=>.15+Math.random()*.25));
+  dust=new THREE.Points(dg,pm);dust.frustumCulled=false;scene.add(dust); /* poussière lointaine, pour la profondeur */
+  ready=true}
+
+/* liens entre notes : arcs lumineux courbes, même shader que les fibres */
+function makeLinks(){const g=fgeo(Math.max(1,E.length)),t0=clock.elapsedTime;NL=[];
+  E.forEach(([x,y],k)=>{const a=P[x],b=P[y],c=lp(a,b,.5).multiplyScalar(.78);NL.push({a,c,b});putFiber(g,k,a,c,b,[t0+(k%14)*.12,1e9,2.1,.22])});
+  const l=new THREE.LineSegments(g,flm);l.frustumCulled=false;return l}
+
+/* ===== Image par image ===== */
+function netFrame(t,dt){U.uZ.value=(t*.4)%4-1.5;dust.rotation.y=t*.012;
+  if(Math.random()<.09)fire(Math.random()*CORT|0,t,pk());
+  for(let i=ev.length-1;i>=0;i--)if(ev[i][0]<=t){const f=ev[i][1];ev.splice(i,1);f(t)}
+  if(NL.length&&t>nlNext){nlNext=t+.35+Math.random()*.5;const l=NL[Math.random()*NL.length|0],fw=Math.random()<.5,a=fw?l.a:l.b,b=fw?l.b:l.a;
+    wave(a,l.c,b,t,1.4,[.9,.95,1]);ev.push([t+1.4,tt=>ripple(b,tt,[.9,.95,1])])}
+  if(t>nextOp){nextOp=t+.1+Math.random()*.2; /* expansion : une fibre naît, une ancienne s’éteint */
+    if(rq.length&&rq[0][0]<=t)spawnDyn(rq.shift()[1],t);
+    else{const s=dcur;dcur=dcur+1>=NMAX?NP:dcur+1;const f=FS[s];
+      if(f){f.dead=t;const fa=lg.attributes.aF.array;for(let i=0;i<SEG*2;i++)fa[(s*SEG*2+i)*4+1]=t;touch(s);rq.push([t+2.2,s])}else spawnDyn(s,t)}}
+  for(let i=0;i<cellE.length;i++){cellE[i]*=Math.pow(.06,dt);cellA.array[i]=.4+.95*cellE[i]}
+  cellA.needsUpdate=cellC.needsUpdate=true;
+  if(whi>=0){[WP,WC,WE,WW,WK].forEach(a=>{a.updateRange={offset:wlo*4*a.itemSize,count:(whi-wlo+1)*4*a.itemSize};a.needsUpdate=true});wlo=1e9;whi=-1}
+  if(rd){RP.needsUpdate=RT.needsUpdate=RK.needsUpdate=true;rd=false}
+  if(t>nfT){nfT=t+.6;const el=$('#nf');if(el)el.textContent=FS.filter(f=>f&&f.dead>1e8).length+' fibres'}}
+
+const P={},born={};let nodes,lines,lb=[];
+function relax(it){let nb=0;
+  N.forEach(n=>{if(!P[n.id]){const nbr=[...n.links,...n.back.map(b=>b.id)].map(i=>P[i]).filter(Boolean);
+    P[n.id]=shell(nbr.length?nbr[0].clone().normalize():rv(),.85).add(rv().multiplyScalar(.1));born[n.id]=clock.elapsedTime+(nb++)*.1}});
+  const idx=Object.fromEntries(N.map((n,i)=>[n.id,i]));
+  for(let s=0;s<it;s++){const F=N.map(()=>V(0,0,0));
+    for(let i=0;i<N.length;i++)for(let j=i+1;j<N.length;j++){const d=P[N[i].id].clone().sub(P[N[j].id]);d.multiplyScalar(.004/(d.lengthSq()+.02));F[i].add(d);F[j].sub(d)}
+    E.forEach(([a,b])=>{const d=P[b].clone().sub(P[a]),l=d.length()||1;d.multiplyScalar((l-.4)/l*.04);F[idx[a]].add(d);F[idx[b]].sub(d)});
+    N.forEach((n,i)=>{const p=P[n.id].add(F[i]),r=Math.hypot(p.x/AX[0],p.y/AX[1],p.z/AX[2])||1;p.multiplyScalar(Math.min(.95,Math.max(.62,r))/r)})}}
+function rebuild(){
+  relax(N.length>60?70:220);
+  if(nodes)brain.remove(nodes,lines);
+  const g=new THREE.BufferGeometry().setFromPoints(N.map(n=>P[n.id]));attr(g,'aS',N.map(()=>0));attr(g,'aA',N.map(()=>0));
+  nodes=new THREE.Points(g,pm);
+  lines=makeLinks();brain.add(nodes,lines);
+  $('#labels').innerHTML=N.length>120?'':N.map(n=>`<div class="lb">${esc(n.title)}</div>`).join('');lb=[...$('#labels').children];
+  $('#stats').innerHTML=`<div>${N.length} notes</div><div>${E.length} liens</div><div>${cellE.length} cellules</div><div id="nf"></div><div>synchro : ${store.get('sync')||'jamais'}</div>`}
+const load=()=>{setNotes();rebuild()};
+
+/* ===== Colonne vertébrale en fibres : apparaît quand on dézoome (molette) ===== */
+let TR=store.get('tr')??1;
+const spineG=new THREE.Group(),spL=new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}),
+ trP=new THREE.PointsMaterial({size:.014,color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}),
+ spP=new THREE.PointsMaterial({size:.025,color:0xffffff,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});
+{const NV=20,sc=t=>V(0,-1.95-1.55*t,-.54+.2*Math.sin(t*4.2)-.06*t),
+  fr=t=>{const c=sc(t),ey=sc(Math.min(1,t+.01)).sub(sc(Math.max(0,t-.01))).normalize(),ex=V(1,0,0),ez=V().crossVectors(ey,ex).normalize();return{c,ex,ey,ez,r:.05+.07*Math.pow(t,.8)}},
+  seg=[],pts=[],J=(p,j=.008)=>p.add(rv().multiplyScalar(j)),
+  at=(f,a,k=1,y=0)=>f.c.clone().addScaledVector(f.ex,Math.cos(a)*f.r*k).addScaledVector(f.ez,Math.sin(a)*f.r*k*.8).addScaledVector(f.ey,y),
+  L=(a,b)=>seg.push(J(a.clone()),J(b.clone()));
+ for(let i=0;i<NV;i++){const f=fr(i/(NV-1)),h=.028; /* corps de la vertèbre : 3 anneaux de fibres reliés */
+  for(const y of[h,0,-h])for(let a=0;a<18;a++)L(at(f,a/18*6.2832,1,y),at(f,(a+1)/18*6.2832,1,y));
+  for(let a=0;a<12;a++){const u=a/12*6.2832;L(at(f,u,1,h),at(f,u,1,-h))}
+  const ca=f.c.clone().addScaledVector(f.ez,-f.r*.75); /* arc neural, épine et apophyses transverses */
+  for(let a=0;a<12;a++){const u=a/12*6.2832,w=(a+1)/12*6.2832,g=x=>ca.clone().addScaledVector(f.ex,Math.cos(x)*f.r*.32).addScaledVector(f.ez,Math.sin(x)*f.r*.32);L(g(u),g(w))}
+  const b0=ca.clone().addScaledVector(f.ez,-f.r*.3),tip=f.c.clone().addScaledVector(f.ez,-f.r*(1.9+.4*i/NV)).addScaledVector(f.ey,-.06);L(b0,tip);L(b0.clone().addScaledVector(f.ey,.012),tip);
+  for(const s of[-1,1]){const e=f.c.clone().addScaledVector(f.ex,s*f.r*(2+.5*i/NV)).addScaledVector(f.ez,-f.r*.5);L(f.c.clone().addScaledVector(f.ex,s*f.r),e);L(ca,e);
+   if(i%2==0)L(e,e.clone().addScaledVector(f.ex,s*.1).addScaledVector(f.ey,-.08))}
+  }
+ for(let k=0;k<22;k++){const a=Math.random()*6.2832,ra=k<8,o=rv().multiplyScalar(.012),ph=Math.random()*6;let p=null; /* longues fibres : ligament avant (8) et moelle dans le canal (14) */
+  for(let n=0;n<=60;n++){const f=fr(n/60),q=(ra?at(f,a,1.04,0):f.c.clone().addScaledVector(f.ez,-f.r*.75).addScaledVector(f.ex,Math.cos(ph)*f.r*.12).addScaledVector(f.ez,Math.sin(ph)*f.r*.12)).add(o);if(p)seg.push(p,q);p=q}}
+ /* torse en petits points : cage thoracique, sternum, clavicules, bassin, puis contour de la peau */
+ const tj=p=>p.add(rv().multiplyScalar(.005)),Rxi=i=>.45+.4*Math.sin(Math.PI*Math.min(1,(i+1.5)/13)),skin=[];
+ for(let i=0;i<12;i++){const f=fr(i/(NV-1)),Rx=Rxi(i),Rz=Rx*.45,end=Math.PI-(i<7?.05:.5+.03*(i-7));
+  for(const s of[-1,1])for(let n=0;n<=28;n++){const ph=.12+(end-.12)*n/28;
+   pts.push(tj(f.c.clone().addScaledVector(f.ex,s*(f.r+(Rx-f.r)*Math.sin(ph))).addScaledVector(f.ez,Rz*(.9-Math.cos(ph))).addScaledVector(f.ey,-.14*n/28)))}}
+ for(let m=0;m<=40;m++){const i=m/40*7,f=fr(i/(NV-1)),Rz=Rxi(i)*.45;for(const x of[-.02,0,.02])pts.push(tj(f.c.clone().addScaledVector(f.ex,x).addScaledVector(f.ez,Rz*1.9).addScaledVector(f.ey,-.14)))}
+ const f0=fr(0),st=f0.c.clone().addScaledVector(f0.ez,Rxi(0)*.45*1.9).addScaledVector(f0.ey,.02);
+ for(const s of[-1,1]){const sh=f0.c.clone().addScaledVector(f0.ex,s*1.3).addScaledVector(f0.ez,.3).addScaledVector(f0.ey,.03);
+  for(let n=0;n<=30;n++){const u=n/30;pts.push(tj(lp(st,sh,u).addScaledVector(f0.ez,-.12*Math.sin(u*Math.PI)).addScaledVector(f0.ey,.03*Math.sin(u*Math.PI))))}
+  for(let n=0;n<40;n++)pts.push(sh.clone().add(rv().multiplyScalar(.07*Math.cbrt(Math.random()))))}
+ const fp=fr(1);
+ for(const s of[-1,1]){for(let n=0;n<=30;n++){const u=n/30,w=Math.sin(u*Math.PI*.85);
+   pts.push(tj(fp.c.clone().addScaledVector(fp.ex,s*(.15+.65*w)).addScaledVector(fp.ey,-.03-.14*Math.sin(u*Math.PI)).addScaledVector(fp.ez,.55*u)));
+   pts.push(tj(fp.c.clone().addScaledVector(fp.ex,s*(.12+.48*w)).addScaledVector(fp.ey,-.2-.1*Math.sin(u*Math.PI)).addScaledVector(fp.ez,.45*u)))}}
+ for(let n=0;n<50;n++){const u=Math.random(),x=(Math.random()*2-1)*.1*(1-u);pts.push(tj(fp.c.clone().addScaledVector(fp.ex,x).addScaledVector(fp.ey,-.03-.2*u).addScaledVector(fp.ez,-.05-.05*u)))}
+ for(let k=0;k<=30;k++){const t=k/30,f=fr(t),w=(.78-.33*Math.sin(Math.min(1,t/.6)*Math.PI/2)+(t>.6?.14*Math.pow((t-.6)/.4,1.5):0))*1.6,dz=.5*(1.9*.45*Math.max(.66,Rxi(t*19))*1.1+.28);
+  for(let a=0;a<54;a++){const th=a/54*6.2832;skin.push(tj(f.c.clone().addScaledVector(f.ex,w*Math.cos(th)).addScaledVector(f.ez,dz*(1+Math.sin(th))-.28)))}}
+ const sl=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),spL),sp2=new THREE.Points(new THREE.BufferGeometry().setFromPoints(pts),spP),sk2=new THREE.Points(new THREE.BufferGeometry().setFromPoints(skin),trP);
+ sl.frustumCulled=sp2.frustumCulled=sk2.frustumCulled=false;brain.add(spineG)}
+
+/* ===== Cube central : animé, il ouvre les questions quand on clique dessus ===== */
+const cube=new THREE.Group(),cubeS={x:-99,y:-99,r:0,h:0,over:false};
+{const cm2=o=>new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending}),bx=new THREE.BoxGeometry(.36,.36,.36),ob=new THREE.LineSegments(new THREE.EdgesGeometry(bx),cm2(.95)),ib=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.2,.2)),cm2(1)),
+ fm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+ ob.material.color.set(0xff2020);ib.material.color.set(0xff7a45);fm.color.set(0xff1010);ob.add(new THREE.Mesh(bx,fm));cube.add(ob,ib);cube.userData={ob,ib};brain.add(cube)}
+function cubeFrame(t,dt){const{ob,ib}=cube.userData,W=innerWidth,H=innerHeight;
+  ob.rotation.set(t*.55,t*.8,t*.3);ib.rotation.set(-t*.77,-t*1.12,-t*.42);cube.position.y=Math.sin(t*1.6)*.04;
+  cubeS.h+=((cubeS.over?1:0)-cubeS.h)*Math.min(1,dt*10);cube.scale.setScalar(1+.07*Math.sin(t*3)+.35*cubeS.h);
+  v3.copy(cube.position).applyMatrix4(brain.matrixWorld).project(cam);v4.set(.3,0,0).add(cube.position).applyMatrix4(brain.matrixWorld).project(cam);
+  cubeS.x=(v3.x+1)/2*W;cubeS.y=(1-v3.y)/2*H;cubeS.r=Math.hypot((v4.x-v3.x)*W/2,(v4.y-v3.y)*H/2)+14;
+  cubeS.over=!drag&&Math.hypot(ptr.x-cubeS.x,ptr.y-cubeS.y)<cubeS.r;
+  scanM.opacity+=((srch?.45+.3*Math.sin(t*10):0)-scanM.opacity)*Math.min(1,dt*8);if(srch&&Math.random()<.4)fire(srch.ci[Math.random()*srch.ci.length|0],t,2);
+  const fz=Math.max(0,Math.min(1,(zf-1.1)/.6));spL.opacity=.55*fz*TR;spP.opacity=.9*fz*TR;trP.opacity=.5*fz*TR;spineG.visible=fz>.01}
+/* ===== Recherche du chatbot : elle prend du temps et s’affiche en rose dans la zone du cerveau explorée ===== */
+const REG=[['tout le cerveau',()=>1],['lobe pariétal (haut)',c=>c.y>.2],['lobes temporaux (côtés)',c=>Math.abs(c.x)>.42&&c.y<.25],['lobe frontal (avant)',c=>c.z>.35],['lobe occipital (arrière)',c=>c.z<-.3]],
+ SAMP=[...Array(500)].map(()=>shell(rv(),.96)),
+ scanM=new THREE.PointsMaterial({size:.07,color:0xff4fa3,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}),
+ scanP=new THREE.Points(new THREE.BufferGeometry(),scanM);
+scanP.frustumCulled=false;brain.add(scanP);
+let srch=null,busyQ=false;
+function think(si,fn){if(busyQ)return;busyQ=true;$('#qp').hidden=true;
+  const[nm,pr]=REG[si]||REG[0],all=[...Array(CORT).keys()],ci=all.filter(i=>pr(cellP[i])),pts=SAMP.filter(pr);
+  scanP.geometry.setFromPoints(pts.length?pts:SAMP);srch={ci:ci.length?ci:all};
+  say('Synapse cherche… zone explorée : '+nm,1);
+  setTimeout(()=>{srch=null;busyQ=false;fn()},1500+Math.min(N.length*10,1500)+Math.random()*700)}
+const openQ=()=>{$('#qp').hidden=false;$('#ans').hidden=true;drawMenu()};
+$('#qx').onclick=()=>$('#qp').hidden=true;
+const applyTR=()=>LM.forEach(m=>m.opacity=m.userData.b*TR);
+$('#tr').value=Math.round(TR*100);applyTR();
+$('#tr').oninput=e=>{TR=e.target.value/100;store.set('tr',TR);applyTR()};
+
+/* ---------- Boucle de rendu ---------- */
+const v3=V(0,0,0),v4=V(0,0,0);
+let S=1,D=10,zf=1,rot={x:.35,y:-.6},tgt=null,drag=null,ptr={x:-99,y:-99},hov=-1,sp=[];
+const pick=(x,y)=>{let b=-1,bd=676;sp.forEach((s,i)=>{const d=(s.x-x)**2+(s.y-y)**2;if(d<bd){bd=d;b=i}});return b};
+let comp=null,pr=1,fe=.016,qt=0;const iv={x:0,y:0};let lm=0,hv=[],dmv=[],lo=[];
+/* qualité adaptative : si l’affichage ralentit, la résolution baisse par paliers (jamais l’inverse, pour éviter les va-et-vient) */
+function setPr(v){pr=v;R.setPixelRatio(v);if(comp)comp.setPixelRatio(v);size()}
+function adapt(raw,t){if(t<4||raw>.25)return;fe+=(raw-fe)*.05;qt+=raw;if(qt<2)return;qt=0;if(fe>.027&&pr>1)setPr(Math.max(1,pr-.25))}
+function initFx(){pr=R.getPixelRatio();if(!(THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.RenderPass))return;
+  pr=Math.min(devicePixelRatio||1,1.5);R.setPixelRatio(pr);comp=new THREE.EffectComposer(R);comp.addPass(new THREE.RenderPass(scene,cam));
+  comp.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.7,.55,.04))}
+function size(){R.setSize(innerWidth,innerHeight,false);if(comp)comp.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();U.uPx.value=R.getPixelRatio()}
+function frame(){
+  const raw=clock.getDelta(),dt=Math.min(raw,.05),t=clock.elapsedTime,k=1-Math.exp(-dt*3.2),k2=1-Math.exp(-dt*7),k4=1-Math.exp(-dt*14);adapt(raw,t);
+  U.uFade.value+=(TR-U.uFade.value)*Math.min(1,dt*.9);
+  S+=((3.2+1.3*Math.cbrt(N.length))-S)*Math.min(1,dt*1.4);brain.scale.setScalar(S);
+  if(tgt!=null){let d=tgt-rot.y;rot.y+=Math.atan2(Math.sin(d),Math.cos(d))*k;rot.x+=(.15-rot.x)*k}
+  else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*.08}iv.x*=Math.exp(-dt*3.5);iv.y*=Math.exp(-dt*3.5)}
+  brain.rotation.set(rot.x,rot.y,0);
+  brain.position.x+=((isOpen&&innerWidth>900?-S*.3:0)-brain.position.x)*k;
+  D+=((S*1.55*zf*Math.max(1,1.5/cam.aspect))-D)*k;U.uN.value=D-S;U.uW.value=2*S;U.uT.value=t;const cy=-Math.max(0,zf-1)*S*.7;cam.position.set(reduce?0:Math.sin(t*.15)*S*.03,cy+(reduce?0:Math.sin(t*.11)*S*.025),D);cam.lookAt(0,cy,0);
+  brain.updateMatrixWorld();cam.updateMatrixWorld();cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
+  const W=innerWidth,H=innerHeight,aS=nodes.geometry.attributes.aS,aA=nodes.geometry.attributes.aA;
+  hov=drag?-1:pick(ptr.x,ptr.y);if(hv.length!=N.length){hv=N.map(()=>0);dmv=N.map(()=>0);lo=N.map(()=>0)}
+  N.forEach((n,i)=>{
+    v3.copy(P[n.id]).applyMatrix4(brain.matrixWorld);v4.copy(v3).applyMatrix4(cam.matrixWorldInverse);const dep=-v4.z;v3.project(cam);
+    sp[i]={x:(v3.x+1)/2*W,y:(1-v3.y)/2*H};
+    const g=Math.max(0,Math.min(1,(t-born[n.id])/1.4)),e=1-Math.pow(1-g,3),dm=focus&&!focus.has(n.id);
+    hv[i]+=((hov==i?1:0)-hv[i])*k4;dmv[i]+=((dm?1:0)-dmv[i])*k2;aS.array[i]=(14+6*Math.sqrt(n.links.length+n.back.length))*e*(1+.4*hv[i]);
+    aA.array[i]=(BR[n.dir]??.7)*(1-.85*dmv[i])*(1+.6*hv[i]);
+    if(lb[i]){lb[i].style.transform=`translate(${sp[i].x+10}px,${sp[i].y-7}px)`;
+      lo[i]+=((e<.3?0:focus?(dm?.1:1):hov==i?1:Math.max(.1,Math.min(.9,1.15-(dep-(D-S))/(2*S)*1.1)))-lo[i])*k2;lb[i].style.opacity=lo[i].toFixed(3)}});
+  aS.needsUpdate=aA.needsUpdate=true;netFrame(t,dt);cubeFrame(t,dt);
+  cv.style.cursor=cubeS.over||hov>=0?'pointer':drag?'grabbing':'grab';
+  comp?comp.render(dt):R.render(scene,cam)}
+
+/* ---------- Interactions ---------- */
+cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,m:0};ptr={x:e.clientX,y:e.clientY};cv.setPointerCapture(e.pointerId);tgt=null;iv.x=iv.y=0};
+cv.onpointermove=e=>{ptr={x:e.clientX,y:e.clientY};if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);
+  rot.y+=dx*.006;rot.x=Math.max(-1,Math.min(1,rot.x+dy*.004));iv.y=dx*.006;iv.x=dy*.004;lm=performance.now();drag.x=e.clientX;drag.y=e.clientY}};
+cv.onpointerup=e=>{if(performance.now()-lm>90)iv.x=iv.y=0;if(drag&&drag.m<6){if(Math.hypot(e.clientX-cubeS.x,e.clientY-cubeS.y)<cubeS.r)openQ();else{const i=pick(e.clientX,e.clientY);if(i>=0)location.hash=N[i].id}}drag=null};
+cv.onwheel=e=>{e.preventDefault();zf=Math.max(.55,Math.min(3,zf*(1+e.deltaY*.001)))};
+
+function open(id){const n=byKey[id.toLowerCase()];if(!n)return close();learn(n);
+  $('#nt').innerHTML=`<h1>${esc(n.title)}</h1><dl class="props"><dt>Type</dt><dd>${esc(n.type)}</dd><dt>Statut</dt><dd>${esc(n.status)}</dd><dt>Date</dt><dd>${esc(n.date)}</dd><dt>Tags</dt><dd>${n.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</dd></dl>`
+    +md(n.body)+(n.back.length?`<h2>Liens entrants</h2><ul>${n.back.map(b=>`<li><a class="wl" href="#${b.id}">${esc(b.title)}</a></li>`).join('')}</ul>`:'');
+  {const nt=$('#nt');nt.classList.remove('sw');void nt.offsetWidth;nt.classList.add('sw')}$('#pn').classList.add('on');$('#pn').scrollTo(0,0);isOpen=true;
+  focus=new Set([n.id,...n.links,...n.back.map(b=>b.id)]);tgt=Math.atan2(-P[n.id].x,P[n.id].z)}
+function close(){$('#pn').classList.remove('on');isOpen=false;focus=null;tgt=null;$('#s').value='';
+  if(location.hash)history.replaceState(null,'',location.pathname+location.search)}
+const route=()=>{const h=decodeURIComponent(location.hash.slice(1));h?open(h):close()};
+addEventListener('hashchange',route);
+addEventListener('keydown',e=>{if(e.key=='Escape'){close();$('#ans').hidden=true;$('#qp').hidden=true}});
+$('#x').onclick=close;
+$('#s').oninput=e=>{const q=e.target.value.trim().toLowerCase();
+  focus=q?new Set(N.filter(n=>(n.title+' '+n.tags.join(' ')+' '+n.body).toLowerCase().includes(q)).map(n=>n.id)):null};
+$('#s').onkeydown=e=>{if(e.key=='Enter'&&focus&&focus.size)location.hash=[...focus][0]};
+
+/* ---------- Réglages, nouvelles notes, synchro ---------- */
+document.querySelectorAll('.cl').forEach(b=>b.onclick=()=>b.closest('dialog').close());
+if(cfg.agents||cfg.keys||cfg.key){cfg={repo:cfg.repo,dir:cfg.dir};store.set('cfg',cfg)} /* efface les anciennes clés API */
+try{localStorage.removeItem('ag')}catch{}
+$('#bcfg').onclick=()=>{$('#rp').value=cfg.repo||'';$('#dr').value=cfg.dir||'';$('#dc').showModal()};
+$('#fc').onsubmit=()=>{cfg={repo:$('#rp').value.trim(),dir:$('#dr').value.trim()};store.set('cfg',cfg)};
+
+/* ---------- Cellules : raccourcis que tu remplis comme tu veux ---------- */
+const KD={link:'Adresse du site, par exemple https://…',note:'Titre ou identifiant d’une note du coffre',text:'Ce que tu veux : Markdown et [[liens]] acceptés',prompt:'Mots d’une question du chatbot, par exemple « tâches à faire »'};
+let cells=store.get('cells');
+if(!Array.isArray(cells))cells=[
+ {sign:'⌂',name:'Accueil',kind:'note',val:'accueil'},
+ {sign:'Σ',name:'Résumé',kind:'prompt',val:'Résume le coffre'},
+ {sign:'✦',name:'Mémo',kind:'text',val:'Écris ici ce que tu veux : listes, liens, idées.\n\n- [ ] première tâche'},
+ {sign:'↗',name:'GitHub',kind:'link',val:'https://github.com'}];
+let editMode=false,ek=-1;
+const safeUrl=v=>{v=(v||'').trim();if(/^(https?:\/\/|mailto:)/i.test(v))return v;return /^[\w-]+(\.[\w-]+)+(\/|$|\?|#)/.test(v)?'https://'+v:''};
+const saveCells=()=>store.set('cells',cells);
+function mkCell(tag,cls,sg,nm,t){const el=document.createElement(tag),s1=document.createElement('span'),s2=document.createElement('span');
+  el.className='cell '+cls;if(tag=='button')el.type='button';el.title=t||nm;s1.className='sg';s2.className='nm';s1.textContent=sg;s2.textContent=nm;el.append(s1,s2);return el}
+function drawDock(){const d=$('#dock');d.textContent='';
+  cells.forEach((c,i)=>{const lk=c.kind=='link'&&!editMode,el=mkCell(lk?'a':'button',editMode?'ed':'',c.sign,c.name);
+    if(lk){el.href=safeUrl(c.val)||'#';el.target='_blank';el.rel='noopener noreferrer'}
+    else el.onclick=()=>editMode?editCell(i):runCell(c);d.append(el)});
+  const add=mkCell('button','add','+','Ajouter','Ajouter une cellule'),tg=mkCell('button','tool','✎','Modifier','Modifier les cellules');
+  add.onclick=()=>editCell(-1);tg.setAttribute('aria-pressed',editMode);tg.onclick=()=>{editMode=!editMode;drawDock();$('#dock .tool').focus()};d.append(add,tg)}
+function runCell(c){const v=c.val||'';
+  if(c.kind=='note'){const n=byKey[v.trim().toLowerCase()];n?location.hash=n.id:say('Note introuvable : '+v)}
+  else if(c.kind=='prompt'){const m=best(v);m?runQ(m):($('#q').value=v,$('#ask').requestSubmit())}
+  else if(c.kind=='text'){$('#dvt').textContent=c.name;$('#dvb').innerHTML=md(v);$('#dv').showModal()}}
+$('#dvb').onclick=e=>{if(e.target.closest('a'))$('#dv').close()};
+const kHint=()=>{$('#kh').textContent=KD[$('#kkd').value]};
+$('#kkd').onchange=kHint;
+function editCell(i){ek=i;const c=cells[i]||{sign:'',name:'',kind:'link',val:''};
+  $('#dkt').textContent=i<0?'Nouvelle cellule':'Modifier la cellule';$('#ksg').value=c.sign;$('#knm').value=c.name;$('#kkd').value=c.kind;$('#kvl').value=c.val;kHint();$('#kdel').hidden=i<0;$('#dk').showModal()}
+$('#fk').onsubmit=e=>{e.preventDefault();const c={sign:$('#ksg').value.trim(),name:$('#knm').value.trim(),kind:$('#kkd').value,val:$('#kvl').value.trim()};
+  if(c.kind=='link'){const u=safeUrl(c.val);if(!u){$('#kh').textContent='Adresse invalide : elle doit commencer par https://';return}c.val=u}
+  if(ek<0)cells.push(c);else cells[ek]=c;saveCells();drawDock();$('#dk').close()};
+$('#kdel').onclick=()=>{cells.splice(ek,1);saveCells();drawDock();$('#dk').close()};
+$('#bnew').onclick=()=>$('#dn').showModal();
+$('#fn').onsubmit=()=>{const title=$('#nti').value.trim();if(!title)return;
+  const id=slug(title)||'note-'+Date.now(),loc=(store.get('loc')||[]).filter(n=>n.id!=id);
+  loc.push({id,dir:$('#ndr').value.trim(),title,type:'note',status:'inbox',date:new Date().toISOString().slice(0,10),tags:[],body:$('#nbd').value.trim()});
+  store.set('loc',loc);$('#fn').reset();load();setTimeout(()=>location.hash=id,400)};
+const say=(m,b)=>{const a=$('#ans');a.hidden=false;a.classList.toggle('busy',!!b);a.textContent=m};
+$('#bsync').onclick=async()=>{
+  if(!/^[\w.-]+\/[\w.-]+$/.test(cfg.repo||''))return $('#bcfg').click();
+  const b=$('#bsync');b.textContent='Synchro…';b.disabled=true;
+  try{const t=await(await fetch(`https://api.github.com/repos/${cfg.repo}/git/trees/HEAD?recursive=1`)).json();
+    if(!t.tree)throw new Error(t.message||'dépôt introuvable');
+    const fs=t.tree.filter(f=>f.type=='blob'&&/\.md$/i.test(f.path)&&!/(^|\/)readme\.md$/i.test(f.path)&&!f.path.split('/').some(s=>s[0]=='.')&&f.path.startsWith(cfg.dir||'')).slice(0,200);
+    const gh=await Promise.all(fs.map(async f=>parse(f.path,(await(await fetch(`https://raw.githubusercontent.com/${cfg.repo}/HEAD/${f.path.split('/').map(encodeURIComponent).join('/')}`)).text()).replace(/\r/g,''))));
+    store.set('gh',gh);store.set('sync',new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));load();
+    say(`${gh.length} notes lues depuis ${cfg.repo}.`)
+  }catch(e){say('Synchronisation impossible : '+e.message)}
+  b.textContent='Synchroniser';b.disabled=false};
+
+/* ---------- Plasticité : le cerveau se modifie seul, par règles simples (aucune IA), en temps réel ---------- */
+let syn=store.get('syn')||{},lastOpen=null,lastT=0;
+const sk=(a,b)=>a<b?a+'|'+b:b+'|'+a;
+/* 1) un lien [[vers une note absente]] fait naître une note à compléter (jamais enregistrée : elle disparaît dès que tu écris la vraie) */
+function stubs(){const m={};N.filter(n=>n.type!='template').forEach(n=>[...n.body.matchAll(/\[\[([^\]|#]+)/g)].forEach(x=>{const t=x[1].trim(),k=t.toLowerCase();if(!byKey[k])(m[k]=m[k]||{t,by:new Set()}).by.add(n.title)}));
+  Object.values(m).forEach(({t,by})=>{const n={id:slug(t)||'note-'+N.length,dir:'00_Inbox',title:t,type:'capture',status:'inbox',date:new Date().toISOString().slice(0,10),tags:['auto'],auto:1,body:'Note créée par le cerveau : '+[...by].map(x=>`[[${x}]]`).join(', ')+' la citent, mais elle n’existait pas. À compléter.'};N.push(n);[n.id,n.title].forEach(k=>byKey[k.toLowerCase()]=n)})}
+/* 2) deux notes qui partagent au moins 2 tags se relient (3 liens max par note) ; 3) deux notes que tu ouvres 3 fois de suite se relient */
+function plastic(){N.forEach(n=>n.ext={});
+  const add=(a,b,w)=>{if(a&&b&&a!==b&&!a.links.includes(b.id)&&!b.links.includes(a.id)){a.links.push(b.id);a.ext[b.id]=w;return 1}};
+  for(const k in syn)if(syn[k]>=3){const[x,y]=k.split('|');add(byKey[x],byKey[y],'appris')}
+  const R=lite(),c={};
+  for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){const a=R[i],b=R[j];if((c[a.id]||0)>2||(c[b.id]||0)>2)continue;
+    if(a.tags.filter(t=>t!='auto'&&b.tags.includes(t)).length>1&&add(a,b,'tags')){c[a.id]=(c[a.id]||0)+1;c[b.id]=(c[b.id]||0)+1}}}
+function learn(n){const t=Date.now();
+  if(lastOpen&&lastOpen!==n.id&&t-lastT<120000){const k=sk(lastOpen,n.id);syn[k]=(syn[k]||0)+1;store.set('syn',syn);if(syn[k]==3)setTimeout(load,0)}
+  lastOpen=n.id;lastT=t}
+/* ---------- Chatbot : séries de questions prédéfinies (tout est calculé ici : ni IA, ni clé, aucun envoi de données) ---------- */
+const lk=n=>`[[${n.id}|${n.title.replace(/[\[\]|]/g,' ')}]]`,dirOf=n=>n.dir||'racine',deg=n=>n.links.length+n.back.length,
+ nw=n=>(n.body.match(/\S+/g)||[]).length,pl=(k,s,p)=>k+' '+(k>1?p||s+'s':s),
+ ls=(a,f,m=25)=>a.length?a.slice(0,m).map(x=>'- '+f(x)).join('\n')+(a.length>m?`\n- … et ${a.length-m} autres`:''):'Aucune.',
+ tally=(a,f)=>Object.entries(a.reduce((o,x)=>{const k=f(x)||'—';o[k]=(o[k]||0)+1;return o},{})).sort((x,y)=>y[1]-x[1]||x[0].localeCompare(y[0])),
+ real=()=>N.filter(n=>n.type!='template'),
+ lite=()=>N.filter(n=>!['template','daily','dashboard'].includes(n.type)),
+ tasks=done=>real().flatMap(n=>n.body.split('\n').map(l=>l.match(/^\s*[-*] \[( |x)\] (.*)/i)).filter(m=>m&&(m[1]!=' ')==done).map(m=>({n,t:m[2]}))),
+ broken=()=>real().flatMap(n=>[...n.body.matchAll(/\[\[([^\]|#]+)/g)].map(m=>m[1].trim()).filter(t=>!byKey[t.toLowerCase()]).map(t=>({n,t}))),
+ recent=()=>[...N].sort((a,b)=>(b.date||'').localeCompare(a.date||'')),
+ byDeg=()=>[...N].sort((a,b)=>deg(b)-deg(a)||a.title.localeCompare(b.title)),
+ plain=s=>s.replace(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g,(m,t,l)=>l||t).replace(/[#>*`]/g,'').replace(/\s+/g,' ').trim(),
+ suggest=()=>{const R=lite(),o=[];for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){const a=R[i],b=R[j],s=a.tags.filter(t=>b.tags.includes(t));if(s.length&&!a.links.includes(b.id)&&!b.links.includes(a.id))o.push({a,b,s})}return o.sort((x,y)=>y.s.length-x.s.length)},
+ detail=id=>{const n=byKey[id.toLowerCase()];return`**${n.title}** : ${[n.type,n.status,n.date].filter(Boolean).join(', ')||'note'}.\n\nTags : ${n.tags.join(', ')||'aucun'}.\n\n${plain(n.body).slice(0,260)}…\n\n**Liens sortants**\n${ls(n.links.map(i=>byKey[i]),lk)}\n\n**Liens entrants**\n${ls(n.back,lk)}`};
+const SERIES=[
+{sg:'◎',name:'Vue d’ensemble',qs:[
+ {q:'Résume le coffre',a:()=>{if(!N.length)return'Le coffre est vide.';const t=tally(N,dirOf),h=byDeg()[0];return`Le coffre contient **${pl(N.length,'note')}** et **${pl(E.length,'lien')}**, dans ${pl(t.length,'dossier')}.\n\n${ls(t,x=>x[0]+' : '+x[1])}\n\nNote la plus connectée : ${lk(h)} (${pl(deg(h),'lien')}).\n\nTâches à faire : **${tasks(false).length}**. Notes dans l’Inbox : **${N.filter(n=>n.dir=='00_Inbox').length}**.`}},
+ {q:'Combien de notes par dossier ?',a:()=>ls(tally(N,dirOf),x=>`${x[0]} : ${pl(x[1],'note')}`)},
+ {q:'Quels types et statuts de notes ?',a:()=>`**Types**\n${ls(tally(N,n=>n.type),x=>x.join(' : '))}\n\n**Statuts**\n${ls(tally(N,n=>n.status),x=>x.join(' : '))}`},
+ {q:'Quelles sont les notes les plus récentes ?',a:()=>ls(recent(),n=>`${lk(n)} : ${n.date||'sans date'}`,8)},
+ {q:'Quelles sont les notes les plus longues ?',a:()=>ls([...real()].sort((a,b)=>nw(b)-nw(a)),n=>`${lk(n)} : ${pl(nw(n),'mot')}`,8)}]},
+{sg:'⌖',name:'Navigation',qs:[
+ {q:'Quelles notes sont les plus connectées ?',a:()=>ls(byDeg(),n=>`${lk(n)} : ${pl(deg(n),'lien')}`,8)},
+ {q:'Quelles notes sont orphelines ?',a:()=>ls(real().filter(n=>!deg(n)),lk)},
+ {q:'Quelles notes le cerveau a-t-il créées ?',a:()=>ls(N.filter(n=>n.auto),lk)+'\n\nChaque lien [[vers une note absente]] fait naître une note à compléter dans l’Inbox. Écris-la pour qu’elle devienne une vraie note.'},
+ {q:'Ouvre une note au hasard',a:()=>{const R=real();if(!R.length)return'Le coffre est vide.';const n=R[Math.floor(Math.random()*R.length)];return`Tirée au hasard : ${lk(n)}.\n\n${plain(n.body).slice(0,200)}…`}},
+ {q:'Qu’a appris le cerveau ?',a:()=>{const ex=N.flatMap(n=>Object.entries(n.ext||{}).map(([i,w])=>({a:n,b:byKey[i],w}))),pe=Object.entries(syn).filter(x=>x[1]<3).map(([k,v])=>{const[x,y]=k.split('|');return{a:byKey[x],b:byKey[y],v}}).filter(x=>x.a&&x.b);return`**Liens créés par le cerveau**\n${ls(ex,x=>`${lk(x.a)} ↔ ${lk(x.b)} : ${x.w=='appris'?'tu passes souvent de l’une à l’autre':'au moins 2 tags en commun'}`)}\n\n**En cours d’apprentissage** (3 passages d’une note à l’autre créent le lien)\n${ls(pe,x=>`${lk(x.a)} ↔ ${lk(x.b)} : ${x.v}/3`)}`}},
+ {q:'Oublie ce que tu as appris',a:()=>{syn={};store.set('syn',syn);load();return'Mémoire d’apprentissage effacée : les liens appris ont disparu du graphe.'}},
+ {q:'Que sait-on d’une note précise ?',pick:()=>byDeg().map(n=>[n.title,n.id]),a:detail}]},
+{sg:'#',name:'Tags et dossiers',qs:[
+ {q:'Quels sont les tags les plus utilisés ?',a:()=>ls(tally(N.flatMap(n=>n.tags),t=>t),x=>`${x[0]} : ${pl(x[1],'note')}`,12)},
+ {q:'Quelles notes portent un tag précis ?',pick:()=>tally(N.flatMap(n=>n.tags),t=>t).map(x=>[x[0],x[0]]),a:t=>ls(N.filter(n=>n.tags.includes(t)),lk)},
+ {q:'Que contient un dossier précis ?',pick:()=>tally(N,dirOf).map(x=>[x[0],x[0]]),a:d=>ls(N.filter(n=>dirOf(n)==d),n=>`${lk(n)} : ${n.date||'sans date'}`)},
+ {q:'Quelles notes n’ont aucun tag ?',a:()=>ls(real().filter(n=>!n.tags.length),lk)}]},
+{sg:'☐',name:'Travail en cours',qs:[
+ {q:'Quelles tâches restent à faire ?',a:()=>ls(tasks(false),x=>`${lk(x.n)} : ${x.t}`,30)},
+ {q:'Quelles tâches sont terminées ?',a:()=>ls(tasks(true),x=>`${lk(x.n)} : ${x.t}`,30)},
+ {q:'Que contient l’Inbox ?',a:()=>ls(N.filter(n=>n.dir=='00_Inbox'||n.status=='inbox'),n=>`${lk(n)} : ${n.date||'sans date'}`)},
+ {q:'Quels projets sont en cours ?',a:()=>ls(N.filter(n=>n.type=='projet'||n.dir=='01_Projects'),n=>`${lk(n)} : ${n.status||'sans statut'}`)},
+ {q:'Quelles notes ne sont pas encore permanentes ?',a:()=>ls(lite().filter(n=>n.status&&n.status!='permanent'),n=>`${lk(n)} : ${n.status}`)}]},
+{sg:'✓',name:'Qualité du coffre',qs:[
+ {q:'Quels liens pourrait-on ajouter ?',a:()=>ls(suggest(),x=>`${lk(x.a)} et ${lk(x.b)} : tags communs (${x.s.join(', ')})`,10)},
+ {q:'Quelles notes sont trop courtes ?',a:()=>ls(lite().filter(n=>nw(n)<25),n=>`${lk(n)} : ${pl(nw(n),'mot')}`)},
+ {q:'Quelles notes n’ont aucun lien sortant ?',a:()=>ls(lite().filter(n=>!n.links.length),lk)},
+ {q:'Quelles notes n’ont pas de date ou de statut ?',a:()=>ls(real().filter(n=>!n.date||!n.status),lk)},
+ {q:'Bilan de santé du coffre',a:()=>{const c=[['Notes orphelines',real().filter(n=>!deg(n)).length],['Notes à compléter (créées par le cerveau)',N.filter(n=>n.auto).length],['Notes sans tag',real().filter(n=>!n.tags.length).length],['Notes très courtes',lite().filter(n=>nw(n)<25).length],['Tâches à faire',tasks(false).length]],p=c.reduce((t,x)=>t+x[1],0);return`${ls(c,x=>`${x[0]} : **${x[1]}**`)}\n\n${p?pl(p,'point')+' à regarder.':'Rien à signaler : le coffre est en bon état.'}`}}]}];
+const nz=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),
+ ALLQ=SERIES.flatMap((s,i)=>s.qs.map(q=>({...q,si:i}))),
+ hay=x=>nz(x.q+' '+SERIES[x.si].name),
+ strict=t=>{const w=nz(t).split(/\s+/).filter(Boolean);return w.length?ALLQ.filter(x=>w.every(k=>hay(x).includes(k))):[]},
+ best=t=>{const w=nz(t).split(/[^a-z0-9]+/).filter(k=>k.length>2);let b=null,m=0;ALLQ.forEach(x=>{const c=w.filter(k=>hay(x).includes(k)).length;if(c>m){m=c;b=x}});return b};
+let act=0;
+function show(title,body,picks){$('#qp').hidden=true;const a=$('#ans');a.hidden=false;a.classList.remove('busy');
+  a.innerHTML=`<div class="qt">${esc(title)}</div>`+md(body);const xb=document.createElement('button');xb.type='button';xb.className='ax';xb.textContent='×';xb.title='Fermer';xb.onclick=()=>a.hidden=true;a.prepend(xb);
+  if(picks){const w=document.createElement('div');w.className='chips';picks.forEach(([l,f])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=l;b.onclick=f;w.append(b)});a.append(w)}
+  a.scrollTo(0,0);const ids=[...body.matchAll(/\[\[([^\]|#]+)/g)].map(m=>(byKey[m[1].trim().toLowerCase()]||{}).id).filter(Boolean);
+  if(ids.length){focus=new Set(ids);setTimeout(()=>{if(!isOpen&&!$('#s').value)focus=null},8000)}}
+function runQ(q){const si=q.si||0;if(!q.pick)return think(si,()=>show(q.q,q.a()));
+  const o=q.pick();if(!o.length)return show(q.q,'Rien à choisir pour l’instant.');
+  show(q.q,o.length>30?'Choisis (les 30 premiers) :':'Choisis :',o.slice(0,30).map(([l,v])=>[l,()=>think(si,()=>show(q.q+' → '+l,q.a(v)))]))}
+function drawMenu(list){const s=$('#ser'),q=$('#qs');s.textContent=q.textContent='';
+  SERIES.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.className='chip'+(list||i!=act?'':' on');b.textContent=x.sg+' '+x.name;b.onclick=()=>{act=i;$('#q').value='';drawMenu()};s.append(b)});
+  const L=list||SERIES[act].qs;if(!L.length)q.textContent='Aucune question ne correspond : appuie sur Entrée pour chercher ce mot dans les notes.';
+  L.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='chip q';b.textContent=x.q;b.onclick=()=>runQ(x);q.append(b)})}
+$('#q').oninput=e=>{const t=e.target.value.trim();drawMenu(t?strict(t):null)};
+$('#ask').onsubmit=e=>{e.preventDefault();const t=$('#q').value.trim();if(!t)return;const m=strict(t);
+  if(m.length)return runQ(m[0]);
+  const k=nz(t),r=N.filter(n=>nz(n.title+' '+n.tags.join(' ')+' '+n.body).includes(k));
+  think(0,()=>show('Notes contenant « '+t+' »',r.length?ls(r,lk):'Aucune note ne contient ce mot. Clique sur le cube pour voir les questions.'))};
+
+drawDock();drawMenu();initFx();
+size();addEventListener('resize',size);load();route();R.setAnimationLoop(frame);
+</script>
+</body>
+</html>
