@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Synapse V3</title>
+<title>Synapse V4</title>
 <meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
@@ -261,6 +261,50 @@ body.light #sideTabs button.on{background:#1a1a1a;color:#f4f1ea;border-color:#1a
 @keyframes mbp{0%,100%{transform:scale(.92);opacity:.2}50%{transform:scale(1.08);opacity:.55}}
 body.flat-mode .ring{opacity:.35}
 body.flat-mode #minimap{opacity:.4}
+/* ===== Interface complexe V4 ===== */
+#hud-top{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;justify-content:space-between;align-items:center;padding:8px 14px 0 max(56px,env(safe-area-inset-left));pointer-events:none;font:10px/1.2 var(--mo);color:var(--mu);letter-spacing:.06em;text-transform:uppercase}
+#hud-top span{opacity:.75}
+#hud-top b{color:#fff;font-weight:400}
+#top{padding-top:max(42px,env(safe-area-inset-top));background:linear-gradient(to bottom,rgba(0,0,0,.55),transparent 100%);padding-bottom:12px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand .ver{font:10px var(--mo);letter-spacing:.18em;color:var(--mu)}
+#stats{display:grid;grid-template-columns:repeat(2,auto);gap:2px 14px;margin-top:8px}
+#stats div{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+#topbar{display:flex;flex-direction:column;gap:8px;align-items:stretch;min-width:min(340px,70vw)}
+#topbar .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#topbar .pills{display:flex;gap:4px;flex-wrap:wrap}
+#topbar .pill{padding:4px 8px;font:10px var(--mo);letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--ln);color:var(--mu);background:rgba(0,0,0,.4)}
+#topbar .pill.on{color:#fff;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08)}
+#s{width:min(240px,50vw);margin:0;background:rgba(0,0,0,.35);border:1px solid var(--ln);border-bottom:1px solid var(--ln);padding:8px 10px}
+#s:focus{border-color:#fff}
+#bghost,#b2d{font:11px var(--mo);letter-spacing:.06em;text-transform:uppercase;padding:7px 10px;background:rgba(0,0,0,.4)}
+#hud-right{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+#hud-right .box{border:1px solid var(--ln);background:rgba(0,0,0,.55);backdrop-filter:blur(8px);padding:10px 12px;min-width:120px;font:11px/1.5 var(--mo);color:var(--mu)}
+#hud-right .box strong{display:block;color:#fff;font-weight:400;letter-spacing:.08em;text-transform:uppercase;font-size:10px;margin-bottom:6px}
+#hud-right .box i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#6f6;margin-right:6px;box-shadow:0 0 6px #6f6}
+#hud-bot{position:fixed;left:0;right:0;bottom:0;z-index:4;display:flex;justify-content:space-between;gap:12px;padding:0 14px max(10px,env(safe-area-inset-bottom));pointer-events:none;font:10px/1.4 var(--mo);color:var(--mu);letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(to top,rgba(0,0,0,.65),transparent)}
+#hud-bot b{color:#fff;font-weight:400}
+#bot{width:min(760px,100%);padding-bottom:max(48px,env(safe-area-inset-bottom))}
+#dock{gap:6px;padding:6px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.35);backdrop-filter:blur(10px)}
+.cell{width:70px;height:64px;background:rgba(0,0,0,.65)}
+.cell .sg{font:500 16px/1 var(--mo);letter-spacing:.04em}
+#ans{border:1px solid rgba(255,255,255,.2);box-shadow:0 0 40px rgba(0,0,0,.5);max-height:34vh}
+#qp{border:1px solid rgba(255,255,255,.25);box-shadow:0 12px 60px rgba(0,0,0,.6)}
+#pn{width:min(560px,100%);border-left:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.94)}
+#pn .pn-tools{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px;clear:both}
+#pn .pn-tools button{font-size:11px;padding:5px 10px;letter-spacing:.04em}
+.props{background:rgba(255,255,255,.03)}
+#sidePanel{width:280px;border-right:1px solid rgba(255,255,255,.18)}
+#sideHead{background:rgba(255,255,255,.03)}
+#sideTabs{background:rgba(0,0,0,.3)}
+.mode-grid button{min-height:72px;background:rgba(255,255,255,.03)}
+#statusline{position:fixed;left:50%;bottom:max(36px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;font:11px var(--mo);color:var(--mu);pointer-events:none;opacity:.8;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){
+  #hud-right{display:none}
+  #topbar{min-width:0;width:100%}
+  #stats{grid-template-columns:1fr}
+  #hud-top{font-size:9px;padding-left:50px}
+}
 </style>
 </head>
 <body>
@@ -340,7 +384,7 @@ body.flat-mode #minimap{opacity:.4}
           <span><i style="background:#fbbf24"></i>Occipital</span>
           <span><i style="background:#94a3b8"></i>Tronc / cervelet</span>
         </div>
-        <div class="side-foot">V2 · choisis un mode, filtre, ou outil</div>
+        <div class="side-foot">V4 · interface etendue · modes · filtres · outils</div>
       </section>
       <section id="tab-filtres">
         <h3>Filtrer le graphe</h3>
@@ -364,19 +408,38 @@ body.flat-mode #minimap{opacity:.4}
     </div>
   </div>
 </div>
+<div id="hud-top"><span>SYS <b id="hudClock">--:--:--</b></span><span>NODE <b id="hudUser">offline</b></span><span>VIEW <b id="hudView">3D / FULL</b></span><span>FPS <b id="hudFps">--</b></span></div>
 <header id="top">
-<div><div class="brand">Synapse <span style="font-size:12px;letter-spacing:.2em;color:var(--mu)">V3</span></div><div id="stats"></div><div id="statsPanel"></div></div>
-<div style="display:flex;flex-direction:column;gap:6px;align-items:stretch">
-  <div style="display:flex;gap:8px;align-items:center">
-    <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:200px;margin:0">
-    <button type="button" id="bghost" title="Tout transparent / normal" style="padding:6px 10px;font-size:12px;white-space:nowrap">Transparent</button>
-    <button type="button" id="b2d" title="Vue 2D detaillee" style="padding:6px 10px;font-size:12px;white-space:nowrap">2D</button>
+<div>
+  <div class="brand">Synapse <span class="ver">V4</span></div>
+  <div id="stats"></div>
+  <div id="statsPanel"></div>
+</div>
+<div id="topbar">
+  <div class="row">
+    <input id="s" type="search" placeholder="Rechercher  (/ ) · notes, tags, corps" aria-label="Rechercher une note">
+    <button type="button" id="bghost" title="Tout transparent / normal">Transparent</button>
+    <button type="button" id="b2d" title="Vue 2D detaillee">2D</button>
+  </div>
+  <div class="row pills" id="quickPills">
+    <span class="pill on" data-q="all">Tout</span>
+    <span class="pill" data-q="inbox">Inbox</span>
+    <span class="pill" data-q="projet">Projets</span>
+    <span class="pill" data-q="taches">Taches</span>
+    <span class="pill" data-q="recent">Recent</span>
   </div>
   <div id="sres" role="listbox" aria-label="Resultats de recherche"></div>
 </div>
 </header>
+<div id="hud-right">
+  <div class="box"><strong>Reseau</strong><div><i></i><span id="hudNet">local · stable</span></div><div id="hudSync">sync —</div></div>
+  <div class="box"><strong>Coffre</strong><div id="hudVault">0 notes</div><div id="hudLinks">0 liens</div><div id="hudTasks">0 taches</div></div>
+  <div class="box"><strong>Session</strong><div id="hudMode">mode full</div><div id="hudFlat">vue 3d</div></div>
+</div>
 <div id="minimap" aria-hidden="true"><canvas id="mm"></canvas></div>
 <div id="minibrains" aria-hidden="true"></div>
+<div id="statusline">pret · clique + pour le panneau · / pour chercher · n nouvelle note</div>
+<div id="hud-bot"><span>LAYER <b id="hudLayer">cortex</b></span><span>FOCUS <b id="hudFocus">none</b></span><span>OPACITY <b id="hudOp">100%</b></span><span>BUILD <b>V4</b></span></div>
 <div id="dropzone">Dépose des fichiers .md pour les importer</div>
 <div id="kbhelp"><div class="box">
   <strong>Raccourcis clavier</strong>
@@ -964,7 +1027,8 @@ function rebuild(){
   nodes=new THREE.Points(g,pm);
   lines=makeLinks();brain.add(nodes,lines);
   $('#labels').innerHTML=N.length>120?'':N.map(n=>`<div class="lb">${esc(n.title)}</div>`).join('');lb=[...$('#labels').children];
-  $('#stats').innerHTML=`<div>${N.length} notes</div><div>${E.length} liens</div><div>${cellE.length} cellules</div><div id="nf"></div><div>synchro : ${store.get('sync')||'jamais'}</div>`}
+  $('#stats').innerHTML=`<div>notes <b style="color:#fff">${N.length}</b></div><div>liens <b style="color:#fff">${E.length}</b></div><div>cellules <b style="color:#fff">${cellE.length}</b></div><div id="nf"></div><div>sync ${store.get('sync')||'jamais'}</div>`;
+  updateHUD&&updateHUD()}
 const load=()=>{setNotes();rebuild()};
 
 /* ===== Colonne vertébrale en fibres : apparaît quand on dézoome (molette) ===== */
@@ -1081,6 +1145,22 @@ function think(si,fn){if(busyQ)return;busyQ=true;$('#qp').hidden=true;
 const openQ=()=>{$('#qp').hidden=false;$('#ans').hidden=true;drawMenu()};
 $('#qx').onclick=()=>$('#qp').hidden=true;
 let viewMode='full',ghostOn=false,TR_save=1;
+function updateHUD(){
+  const set=(id,v)=>{const el=$(id);if(el)el.textContent=v};
+  set('#hudVault',N.length+' notes');
+  set('#hudLinks',E.length+' liens');
+  set('#hudTasks',(typeof tasks==='function'?tasks(false).length:0)+' taches');
+  set('#hudSync','sync '+(store.get('sync')||'jamais'));
+  set('#hudMode','mode '+viewMode);
+  set('#hudFlat',flatMode?'vue 2d':'vue 3d');
+  set('#hudView',(flatMode?'2D':'3D')+' / '+String(viewMode).toUpperCase());
+  set('#hudOp',Math.round(TR*100)+'%');
+  set('#hudFocus',focus&&focus.size?focus.size+' nodes':'none');
+  set('#hudLayer',viewMode==='notes'?'graphe':viewMode==='zones'?'lobes':viewMode==='minimal'?'signal':'cortex');
+  set('#hudUser',currentUser?currentUser.user:'offline');
+  const sl=$('#statusline');
+  if(sl)sl.textContent=(currentUser?currentUser.user+' · ':'')+N.length+' notes · '+viewMode+(flatMode?' · 2D':'')+(ghostOn?' · ghost':'')+' · / chercher · n note · + menu';
+}
 const applyTR=()=>{
   const brainMul=viewMode==='notes'||viewMode==='minimal'?0.2:1;
   LM.forEach(m=>m.opacity=m.userData.b*TR*brainMul);
@@ -1093,7 +1173,8 @@ const applyTR=()=>{
   if(lines)lines.visible=viewMode==='full'||viewMode==='notes'||viewMode==='minimal';
   if(dust)dust.visible=viewMode==='full'||viewMode==='zones';
   if(cube)cube.visible=true;
-  $('#labels').style.opacity=viewMode==='zones'||viewMode==='minimal'?'0.35':'1';
+  const lab=$('#labels');if(lab)lab.style.opacity=viewMode==='zones'||viewMode==='minimal'?'0.35':'1';
+  updateHUD();
 };
 $('#tr').oninput=e=>{TR=e.target.value/100;ghostOn=false;if(currentUser)store.set('tr',TR);applyTR()};
 $('#bghost').onclick=()=>{
@@ -1127,6 +1208,23 @@ $('#sideTabs')&&$('#sideTabs').addEventListener('click',e=>{
   document.querySelectorAll('#sideBody section').forEach(s=>s.classList.toggle('on',s.id==='tab-'+b.dataset.tab));
   if(b.dataset.tab==='filtres')drawFilters();
 });
+/* pills rapides */
+$('#quickPills')&&$('#quickPills').addEventListener('click',e=>{
+  const p=e.target.closest('.pill');if(!p)return;
+  document.querySelectorAll('#quickPills .pill').forEach(x=>x.classList.toggle('on',x===p));
+  const q=p.dataset.q;
+  if(q==='all'){focus=null;activeFilter=null}
+  else if(q==='inbox'){focus=new Set(N.filter(n=>n.dir==='00_Inbox'||n.status==='inbox').map(n=>n.id));activeFilter='d:00_Inbox'}
+  else if(q==='projet'){focus=new Set(N.filter(n=>n.type==='projet'||n.dir==='01_Projects').map(n=>n.id))}
+  else if(q==='taches'){const ids=new Set((typeof tasks==='function'?tasks(false):[]).map(x=>x.n.id));focus=ids}
+  else if(q==='recent'){focus=new Set([...N].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,8).map(n=>n.id))}
+  drawFilters&&drawFilters();updateHUD();
+});
+/* horloge + fps HUD */
+setInterval(()=>{const el=$('#hudClock');if(el)el.textContent=new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})},1000);
+let _fpsN=0,_fpsT=performance.now();
+const _tickFps=()=>{_fpsN++;const now=performance.now();if(now-_fpsT>500){const el=$('#hudFps');if(el)el.textContent=String(Math.round(_fpsN*1000/(now-_fpsT)));_fpsN=0;_fpsT=now}requestAnimationFrame(_tickFps)};
+requestAnimationFrame(_tickFps);
 
 /* ---------- Boucle de rendu ---------- */
 const v3=V(0,0,0),v4=V(0,0,0);
@@ -1210,13 +1308,29 @@ $('#hback').onclick=()=>{if(navIdx<=0)return;navLock=true;navIdx--;location.hash
 $('#hfwd').onclick=()=>{if(navIdx>=navStack.length-1)return;navLock=true;navIdx++;location.hash=navStack[navIdx];setTimeout(()=>navLock=false,50);updHistBtns()};
 
 function open(id){const n=byKey[id.toLowerCase()];if(!n)return close();learn(n);pushNav(n.id);
-  const exportBtn=`<button type="button" id="bExpMd" style="float:right;margin:0 8px 0 0;font-size:12px">Export MD</button>`;
-  $('#nt').innerHTML=`${exportBtn}<h1>${esc(n.title)}</h1><dl class="props"><dt>Type</dt><dd>${esc(n.type)}</dd><dt>Statut</dt><dd>${esc(n.status)}</dd><dt>Date</dt><dd>${esc(n.date)}</dd><dt>Tags</dt><dd>${n.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</dd></dl>`
-    +md(n.body)+(n.back.length?`<h2>Liens entrants</h2><ul>${n.back.map(b=>`<li><a class="wl" href="#${b.id}">${esc(b.title)}</a></li>`).join('')}</ul>`:'');
+  $('#nt').innerHTML=`<div class="pn-tools">
+      <button type="button" id="bExpMd">Export MD</button>
+      <button type="button" id="bFocusNet">Focus reseau</button>
+      <button type="button" id="bCopyLink">Copier id</button>
+    </div>
+    <h1>${esc(n.title)}</h1>
+    <dl class="props">
+      <dt>Type</dt><dd>${esc(n.type)||'—'}</dd>
+      <dt>Statut</dt><dd>${esc(n.status)||'—'}</dd>
+      <dt>Date</dt><dd>${esc(n.date)||'—'}</dd>
+      <dt>Dossier</dt><dd>${esc(n.dir||'racine')}</dd>
+      <dt>Degre</dt><dd>${(n.links.length+n.back.length)} liens</dd>
+      <dt>Tags</dt><dd>${n.tags.length?n.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join(''):'—'}</dd>
+    </dl>`
+    +md(n.body)
+    +(n.links.length?`<h2>Liens sortants</h2><ul>${n.links.map(i=>{const x=byKey[i]||{id:i,title:i};return`<li><a class="wl" href="#${x.id}">${esc(x.title||i)}</a></li>`}).join('')}</ul>`:'')
+    +(n.back.length?`<h2>Liens entrants</h2><ul>${n.back.map(b=>`<li><a class="wl" href="#${b.id}">${esc(b.title)}</a></li>`).join('')}</ul>`:'');
   const be=$('#bExpMd');if(be)be.onclick=()=>{const blob=new Blob([`---\ntype: ${n.type}\nstatus: ${n.status}\ndate: ${n.date}\ntags: [${n.tags.join(', ')}]\n---\n\n# ${n.title}\n\n${n.body}`],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(n.id||'note')+'.md';a.click();URL.revokeObjectURL(a.href)};
+  const bf=$('#bFocusNet');if(bf)bf.onclick=()=>{focus=new Set([n.id,...n.links,...n.back.map(b=>b.id)]);updateHUD()};
+  const bc=$('#bCopyLink');if(bc)bc.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(n.id);const sl=$('#statusline');if(sl)sl.textContent='id copie : '+n.id};
   {const nt=$('#nt');nt.classList.remove('sw');void nt.offsetWidth;nt.classList.add('sw')}$('#pn').classList.add('on');$('#pn').scrollTo(0,0);isOpen=true;
-  focus=new Set([n.id,...n.links,...n.back.map(b=>b.id)]);tgt=Math.atan2(-P[n.id].x,P[n.id].z);activeFilter=null;drawFilters()}
-function close(){$('#pn').classList.remove('on');isOpen=false;if(!$('#s').value)focus=null;tgt=null;
+  focus=new Set([n.id,...n.links,...n.back.map(b=>b.id)]);tgt=Math.atan2(-P[n.id].x,P[n.id].z);activeFilter=null;drawFilters();updateHUD()}
+function close(){$('#pn').classList.remove('on');isOpen=false;if(!$('#s').value)focus=null;tgt=null;updateHUD&&updateHUD();
   if(location.hash)history.replaceState(null,'',location.pathname+location.search)}
 const route=()=>{const h=decodeURIComponent(location.hash.slice(1));h?open(h):close()};
 addEventListener('hashchange',route);
