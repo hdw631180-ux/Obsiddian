@@ -22,7 +22,7 @@ input,textarea{background:none;border:0;border-bottom:1px solid var(--ln);paddin
 input:focus,textarea:focus{outline:0;border-color:#fff}
 input::placeholder,textarea::placeholder{color:var(--mu)}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
-.ring{position:fixed;left:50%;top:48%;border-radius:50%;border:1px dashed rgba(255,255,255,.14);transform:translate(-50%,-50%);pointer-events:none;animation:spin 140s linear infinite}
+.ring{position:fixed;left:50%;top:48%;border-radius:50%;border:1px dashed rgba(255,255,255,.1);transform:translate(-50%,-50%);pointer-events:none;animation:spin 220s linear infinite}
 .r1{width:min(84vmin,820px);height:min(84vmin,820px)}
 .r2{width:min(102vmin,990px);height:min(102vmin,990px);border-style:dotted;animation-direction:reverse}
 @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
@@ -304,7 +304,10 @@ body.light #sidePlus,body.light #sidePanel{background:rgba(244,241,234,.94);bord
 <header id="top">
 <div><div class="brand">Synapse</div><div id="stats"></div><div id="statsPanel"></div></div>
 <div style="display:flex;flex-direction:column;gap:6px;align-items:stretch">
-  <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:240px;margin:0">
+  <div style="display:flex;gap:8px;align-items:center">
+    <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:220px;margin:0">
+    <button type="button" id="bghost" title="Tout transparent / normal" style="padding:6px 10px;font-size:12px;white-space:nowrap">Transparent</button>
+  </div>
   <div id="sres" role="listbox" aria-label="Resultats de recherche"></div>
 </div>
 </header>
@@ -852,7 +855,7 @@ function makeLinks(){const g=fgeo(Math.max(1,E.length)),t0=clock.elapsedTime;NL=
 
 /* ===== Image par image ===== */
 function netFrame(t,dt){U.uZ.value=(t*.4)%4-1.5;dust.rotation.y=t*.012;
-  if(Math.random()<.035)fire(Math.random()*CORT|0,t,pk());
+  if(Math.random()<.02)fire(Math.random()*CORT|0,t,pk());
   for(let i=ev.length-1;i>=0;i--)if(ev[i][0]<=t){const f=ev[i][1];ev.splice(i,1);f(t)}
   if(NL.length&&t>nlNext){nlNext=t+.7+Math.random()*.8;const l=NL[Math.random()*NL.length|0],fw=Math.random()<.5,a=fw?l.a:l.b,b=fw?l.b:l.a;
     wave(a,l.c,b,t,1.4,[.9,.95,1]);ev.push([t+1.4,tt=>ripple(b,tt,[.9,.95,1])])}
@@ -937,12 +940,12 @@ const spineG=new THREE.Group(),spL=new THREE.LineBasicMaterial({color:0xffffff,t
 
 /* ===== Cube central : animé, il ouvre les questions quand on clique dessus ===== */
 const cube=new THREE.Group(),cubeS={x:-99,y:-99,r:0,h:0,over:false};
-{const cm2=o=>new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending}),bx=new THREE.BoxGeometry(.36,.36,.36),ob=new THREE.LineSegments(new THREE.EdgesGeometry(bx),cm2(.95)),ib=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.2,.2,.2)),cm2(1)),
- fm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.06,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
+{const cm2=o=>new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending}),bx=new THREE.BoxGeometry(.18,.18,.18),ob=new THREE.LineSegments(new THREE.EdgesGeometry(bx),cm2(.9)),ib=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.1,.1,.1)),cm2(.95)),
+ fm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.05,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
  ob.material.color.set(0xff2020);ib.material.color.set(0xff7a45);fm.color.set(0xff1010);ob.add(new THREE.Mesh(bx,fm));cube.add(ob,ib);cube.userData={ob,ib};brain.add(cube)}
 function cubeFrame(t,dt){const{ob,ib}=cube.userData,W=innerWidth,H=innerHeight;
-  ob.rotation.set(t*.55,t*.8,t*.3);ib.rotation.set(-t*.77,-t*1.12,-t*.42);cube.position.y=Math.sin(t*1.6)*.04;
-  cubeS.h+=((cubeS.over?1:0)-cubeS.h)*Math.min(1,dt*10);cube.scale.setScalar(1+.07*Math.sin(t*3)+.35*cubeS.h);
+  ob.rotation.set(t*.22,t*.32,t*.12);ib.rotation.set(-t*.28,-t*.4,-t*.16);cube.position.y=Math.sin(t*.7)*.012;
+  cubeS.h+=((cubeS.over?1:0)-cubeS.h)*Math.min(1,dt*8);cube.scale.setScalar(1+.02*Math.sin(t*1.2)+.18*cubeS.h);
   v3.copy(cube.position).applyMatrix4(brain.matrixWorld).project(cam);v4.set(.3,0,0).add(cube.position).applyMatrix4(brain.matrixWorld).project(cam);
   cubeS.x=(v3.x+1)/2*W;cubeS.y=(1-v3.y)/2*H;cubeS.r=Math.hypot((v4.x-v3.x)*W/2,(v4.y-v3.y)*H/2)+14;
   cubeS.over=!drag&&Math.hypot(ptr.x-cubeS.x,ptr.y-cubeS.y)<cubeS.r;
@@ -962,8 +965,19 @@ function think(si,fn){if(busyQ)return;busyQ=true;$('#qp').hidden=true;
   setTimeout(()=>{srch=null;busyQ=false;fn()},1500+Math.min(N.length*10,1500)+Math.random()*700)}
 const openQ=()=>{$('#qp').hidden=false;$('#ans').hidden=true;drawMenu()};
 $('#qx').onclick=()=>$('#qp').hidden=true;
-const applyTR=()=>LM.forEach(m=>m.opacity=m.userData.b*TR);
-$('#tr').oninput=e=>{TR=e.target.value/100;if(currentUser)store.set('tr',TR);applyTR()};
+const applyTR=()=>{
+  LM.forEach(m=>m.opacity=m.userData.b*TR);
+  const g=$('#bghost');if(g){g.textContent=ghostOn?'Normal':'Transparent';g.style.borderColor=ghostOn?'#fff':'';}
+  const tr=$('#tr');if(tr&&!ghostOn)tr.value=Math.round(TR*100);
+};
+let ghostOn=false,TR_save=1;
+$('#tr').oninput=e=>{TR=e.target.value/100;ghostOn=false;if(currentUser)store.set('tr',TR);applyTR()};
+$('#bghost').onclick=()=>{
+  if(!ghostOn){TR_save=TR;TR=.12;ghostOn=true}
+  else{TR=TR_save||1;ghostOn=false}
+  if(currentUser&&!ghostOn)store.set('tr',TR);
+  applyTR();
+};
 
 /* ---------- Boucle de rendu ---------- */
 const v3=V(0,0,0),v4=V(0,0,0);
@@ -986,12 +1000,12 @@ function frame(){
   U.uFade.value+=(TR-U.uFade.value)*Math.min(1,dt*1.2);
   S+=((3.2+1.3*Math.cbrt(N.length))-S)*Math.min(1,dt*1.8);brain.scale.setScalar(S);
   if(tgt!=null){let d=tgt-rot.y;rot.y+=Math.atan2(Math.sin(d),Math.cos(d))*k;rot.x+=(.15-rot.x)*k}
-  else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*.06}iv.x*=Math.exp(-dt*2.8);iv.y*=Math.exp(-dt*2.8)}
+  else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*.025}iv.x*=Math.exp(-dt*3.2);iv.y*=Math.exp(-dt*3.2)}
   brain.rotation.set(rot.x,rot.y,0);
   brain.position.x+=((isOpen&&innerWidth>900?-S*.3:0)-brain.position.x)*k;
   D+=((S*1.55*zf*Math.max(1,1.5/cam.aspect))-D)*k;U.uN.value=D-S;U.uW.value=2*S;U.uT.value=t;
   const cy=-Math.max(0,zf-1)*S*.7;
-  cam.position.set(reduce?0:Math.sin(t*.12)*S*.02,cy+(reduce?0:Math.sin(t*.09)*S*.018),D);cam.lookAt(0,cy,0);
+  cam.position.set(0,cy,D);cam.lookAt(0,cy,0);
   brain.updateMatrixWorld();cam.updateMatrixWorld();cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
   if(!nodes){comp?comp.render(dt):R.render(scene,cam);return}
   const W=innerWidth,H=innerHeight,aS=nodes.geometry.attributes.aS,aA=nodes.geometry.attributes.aA;
