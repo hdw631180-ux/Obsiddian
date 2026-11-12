@@ -204,6 +204,27 @@ body.light #userbar,body.light #stats{color:rgba(0,0,0,.55)}
 #kbhelp .box{width:min(420px,92vw);border:1px solid var(--ln);padding:24px;background:#000}
 #kbhelp kbd{border:1px solid var(--ln);padding:1px 6px;font:12px var(--mo);margin-right:8px}
 #kbhelp .row{display:flex;align-items:center;margin:8px 0;font-size:14px}
+/* ===== Onglet gauche ===== */
+#side{position:fixed;left:0;top:0;bottom:0;z-index:8;display:flex;pointer-events:none}
+#sideTab{pointer-events:auto;width:36px;background:rgba(0,0,0,.75);border-right:1px solid var(--ln);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;backdrop-filter:blur(8px)}
+#sideTab button{width:28px;height:28px;padding:0;font-size:12px;letter-spacing:0;border-color:transparent;display:flex;align-items:center;justify-content:center}
+#sideTab button:hover,#sideTab button.on{border-color:#fff;background:rgba(255,255,255,.08)}
+#sidePanel{pointer-events:auto;width:200px;background:rgba(0,0,0,.9);border-right:1px solid var(--ln);padding:16px 14px;overflow:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.2,.7,.2,1);backdrop-filter:blur(10px)}
+#sidePanel.on{transform:none}
+#sidePanel h3{font:500 12px var(--ui);letter-spacing:.08em;color:var(--mu);margin:16px 0 8px;text-transform:uppercase}
+#sidePanel h3:first-child{margin-top:0}
+#sidePanel .side-acts{display:flex;flex-direction:column;gap:6px}
+#sidePanel .side-acts button,#sidePanel .side-acts label{width:100%;text-align:left;font-size:13px;padding:8px 10px}
+#sidePanel .tr{display:flex;align-items:center;gap:8px;color:var(--mu);border:1px solid var(--ln);padding:8px 10px}
+#sidePanel .tr input{width:100%;flex:1}
+#filters{position:relative;left:auto;top:auto;transform:none;max-height:none;margin-top:4px}
+#filters .fchip{width:100%;text-align:left}
+#loblegend{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mu);margin-top:6px}
+#loblegend span{display:flex;align-items:center;gap:8px}
+#loblegend i{width:10px;height:10px;border-radius:2px;flex:none}
+body.light #sideTab,body.light #sidePanel{background:rgba(244,241,234,.92);border-color:rgba(0,0,0,.2)}
+#top{padding-left:48px}
+@media(max-width:700px){#sidePanel{width:170px}#top{padding-left:42px}}
 </style>
 </head>
 <body>
@@ -240,27 +261,46 @@ body.light #userbar,body.light #stats{color:rgba(0,0,0,.55)}
 <div class="ring r1"></div><div class="ring r2"></div>
 <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
 <div class="vg"></div><div id="labels"></div>
-<header id="top">
-<div><div class="brand">Synapse</div><div id="stats"></div><div id="userbar"></div><div id="statsPanel"></div></div>
-<div style="display:flex;flex-direction:column;gap:6px;align-items:stretch">
-  <div style="display:flex;gap:6px;align-items:center">
-    <div id="hist"><button type="button" id="hback" title="Précédent (Alt+←)">←</button><button type="button" id="hfwd" title="Suivant (Alt+→)">→</button></div>
-    <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:220px;margin:0">
+<div id="side">
+  <div id="sideTab">
+    <button type="button" id="sideToggle" title="Menu">III</button>
+    <button type="button" id="hback" title="Precedent">←</button>
+    <button type="button" id="hfwd" title="Suivant">→</button>
+    <button type="button" id="brec" title="Recadrer">[+]</button>
   </div>
-  <div id="sres" role="listbox" aria-label="Résultats de recherche"></div>
+  <div id="sidePanel">
+    <h3>Actions</h3>
+    <div class="side-acts">
+      <button type="button" id="bnew">Nouvelle note</button>
+      <button type="button" id="bsync">Synchroniser</button>
+      <button type="button" id="bcfg">Reglages</button>
+      <button type="button" id="themeBtn" title="Theme">Theme</button>
+      <button type="button" id="bstaff">Staff</button>
+      <button type="button" id="blogout">Deconnexion</button>
+    </div>
+    <h3>Transparence</h3>
+    <label class="tr"><input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label>
+    <h3>Filtres</h3>
+    <div id="filters"></div>
+    <h3>Zones</h3>
+    <div id="loblegend">
+      <span><i style="background:#5eb8ff"></i>Frontal</span>
+      <span><i style="background:#a78bfa"></i>Parietal</span>
+      <span><i style="background:#f472b6"></i>Temporal</span>
+      <span><i style="background:#fbbf24"></i>Occipital</span>
+      <span><i style="background:#94a3b8"></i>Tronc / cervelet</span>
+    </div>
+    <h3>Compte</h3>
+    <div id="userbar" style="font-size:12px;color:var(--mu)"></div>
+  </div>
 </div>
-<div id="acts">
-  <label class="tr" title="Transparence">◐<input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label>
-  <button type="button" id="themeBtn" title="Thème clair / sombre">◑</button>
-  <button type="button" id="bfilter" title="Filtres">Filtres</button>
-  <button id="bsync">Synchroniser</button>
-  <button id="bnew">Nouvelle note</button>
-  <button id="bcfg">Réglages</button>
-  <button id="bstaff">Staff</button>
-  <button id="blogout">Déconnexion</button>
+<header id="top">
+<div><div class="brand">Synapse</div><div id="stats"></div><div id="statsPanel"></div></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:stretch">
+  <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:240px;margin:0">
+  <div id="sres" role="listbox" aria-label="Resultats de recherche"></div>
 </div>
 </header>
-<div id="filters" hidden></div>
 <div id="minimap" aria-hidden="true"><canvas id="mm"></canvas></div>
 <div id="dropzone">Dépose des fichiers .md pour les importer</div>
 <div id="kbhelp"><div class="box">
@@ -307,7 +347,7 @@ body.light #userbar,body.light #stats{color:rgba(0,0,0,.55)}
 
 <dialog id="dk"><form id="fk" method="dialog">
 <strong id="dkt">Nouvelle cellule</strong>
-<label for="ksg">Signe (un symbole ou un emoji)</label><input id="ksg" maxlength="4" placeholder="✦" required>
+<label for="ksg">Signe (lettre ou symbole court)</label><input id="ksg" maxlength="4" placeholder="N" required>
 <label for="knm">Nom</label><input id="knm" maxlength="24" required>
 <label for="kkd">Type</label><select id="kkd"><option value="link">Lien web</option><option value="note">Note du coffre</option><option value="text">Texte libre</option><option value="prompt">Question du chatbot</option></select>
 <label for="kvl">Contenu</label><textarea id="kvl" rows="4" required></textarea>
@@ -567,11 +607,11 @@ function enterApp(user){
   applyTheme&&applyTheme();
   cells=store.get('cells');
   if(!Array.isArray(cells))cells=[
-   {sign:'⌂',name:'Accueil',kind:'note',val:'accueil'},
-   {sign:'Σ',name:'Résumé',kind:'prompt',val:'Résume le coffre'},
-   {sign:'📅',name:'Journal',kind:'note',val:'daily-'+new Date().toISOString().slice(0,10)},
-   {sign:'✦',name:'Mémo',kind:'text',val:'Écris ici ce que tu veux : listes, liens, idées.\n\n- [ ] première tâche'},
-   {sign:'↗',name:'GitHub',kind:'link',val:'https://github.com'}];
+   {sign:'H',name:'Accueil',kind:'note',val:'accueil'},
+   {sign:'R',name:'Resume',kind:'prompt',val:'Résume le coffre'},
+   {sign:'J',name:'Journal',kind:'note',val:'daily-'+new Date().toISOString().slice(0,10)},
+   {sign:'M',name:'Memo',kind:'text',val:'Ecris ici ce que tu veux : listes, liens, idees.\n\n- [ ] premiere tache'},
+   {sign:'G',name:'GitHub',kind:'link',val:'https://github.com'}];
   syn=store.get('syn')||{};
   rebuildSeries&&rebuildSeries();
   drawDock&&drawDock();
@@ -680,7 +720,7 @@ const VS=`attribute float aS;attribute float aA;varying float vA;${UNI}
 void main(){vec4 mv=modelViewMatrix*vec4(position,1.);${DP}vA=aA*uFade*dp*(1.+2.2*wv(position.z));gl_PointSize=aS*uPx*(9./-mv.z);gl_Position=projectionMatrix*mv;}`;
 /* cellules : s’illuminent de la couleur de l’onde qui les touche */
 const VC=`attribute float aS;attribute float aA;attribute vec3 aCol;varying float vA;varying vec3 vC;${UNI}
-void main(){vec4 mv=modelViewMatrix*vec4(position,1.);${DP}vA=aA*uFade*dp*(1.+1.5*wv(position.z));vC=mix(vec3(1.),aCol,clamp((aA-.45)*2.,0.,1.));gl_PointSize=aS*uPx*(9./-mv.z);gl_Position=projectionMatrix*mv;}`;
+void main(){vec4 mv=modelViewMatrix*vec4(position,1.);${DP}vA=aA*uFade*dp*(1.+1.5*wv(position.z));vC=mix(aCol*0.85,vec3(1.),clamp((aA-.5)*1.8,0.,0.55));gl_PointSize=aS*uPx*(9./-mv.z);gl_Position=projectionMatrix*mv;}`;
 /* fibres : croissance depuis la naissance, lueur qui coule, pointe brillante, extinction */
 const VL=`attribute float aT;attribute vec4 aF;varying float vA;varying vec3 vC;${UNI}${HUE}
 void main(){vec4 mv=modelViewMatrix*vec4(position,1.);${DP}
@@ -775,7 +815,18 @@ function fire(i,t,h){cellE[i]=1;const rgb=RGB(h);cellC.setXYZ(i,rgb[0],rgb[1],rg
   const fl=new THREE.LineSegments(lg,flm);fl.frustumCulled=false;brain.add(fl);
   /* corps cellulaires et dendrites */
   const cg=new THREE.BufferGeometry().setFromPoints(cellP);attr(cg,'aS',cellP.map(()=>18+Math.random()*14));
-  cellA=new THREE.Float32BufferAttribute(cellP.map(()=>.4),1);cellC=new THREE.Float32BufferAttribute(cellP.flatMap(()=>[1,1,1]),3);
+  /* couleurs par lobe selon la position */
+  const lobeRGB=p=>{
+    if(p.y<-.25)return [.58,.65,.72]; /* tronc / cervelet */
+    if(p.z>.35)return [.37,.72,1];    /* frontal */
+    if(p.z<-.3)return [.98,.75,.14];  /* occipital */
+    if(Math.abs(p.x)>.42&&p.y<.25)return [.96,.45,.71]; /* temporal */
+    return [.66,.55,.98];             /* parietal */
+  };
+  cellA=new THREE.Float32BufferAttribute(cellP.map(()=>.55),1);
+  const baseCols=cellP.flatMap(p=>{const c=lobeRGB(p);return[c[0],c[1],c[2]]});
+  cellC=new THREE.Float32BufferAttribute(baseCols.slice(),3);
+  window.__lobeBase=baseCols;
   cg.setAttribute('aA',cellA);cg.setAttribute('aCol',cellC);brain.add(new THREE.Points(cg,cm));
   const dn=[];cellP.forEach(c=>{for(let k=0;k<5;k++){const d=rv(),q=c.clone().addScaledVector(d,.05+Math.random()*.05);dn.push(c,q);
     for(let f=0;f<2;f++)dn.push(q,q.clone().addScaledVector(d.clone().add(rv().multiplyScalar(.7)).normalize(),.04+Math.random()*.05))}});
@@ -801,7 +852,12 @@ function netFrame(t,dt){U.uZ.value=(t*.4)%4-1.5;dust.rotation.y=t*.012;
     if(rq.length&&rq[0][0]<=t)spawnDyn(rq.shift()[1],t);
     else{const s=dcur;dcur=dcur+1>=NMAX?NP:dcur+1;const f=FS[s];
       if(f){f.dead=t;const fa=lg.attributes.aF.array;for(let i=0;i<SEG*2;i++)fa[(s*SEG*2+i)*4+1]=t;touch(s);rq.push([t+2.2,s])}else spawnDyn(s,t)}}
-  for(let i=0;i<cellE.length;i++){cellE[i]*=Math.pow(.06,dt);cellA.array[i]=.4+.95*cellE[i]}
+  const base=window.__lobeBase;
+  for(let i=0;i<cellE.length;i++){
+    cellE[i]*=Math.pow(.06,dt);
+    cellA.array[i]=.5+.9*cellE[i];
+    if(base&&cellE[i]<.05){cellC.array[i*3]=base[i*3];cellC.array[i*3+1]=base[i*3+1];cellC.array[i*3+2]=base[i*3+2]}
+  }
   cellA.needsUpdate=cellC.needsUpdate=true;
   if(whi>=0){[WP,WC,WE,WW,WK].forEach(a=>{a.updateRange={offset:wlo*4*a.itemSize,count:(whi-wlo+1)*4*a.itemSize};a.needsUpdate=true});wlo=1e9;whi=-1}
   if(rd){RP.needsUpdate=RT.needsUpdate=RK.needsUpdate=true;rd=false}
@@ -992,11 +1048,21 @@ function drawFilters(){
     drawFilters();
   });
 }
-$('#bfilter').onclick=()=>{const el=$('#filters');el.hidden=!el.hidden;if(!el.hidden)drawFilters()};
+/* ---------- Onglet gauche + recadrage ---------- */
+$('#sideToggle').onclick=()=>{
+  const p=$('#sidePanel');
+  p.classList.toggle('on');
+  $('#sideToggle').classList.toggle('on',p.classList.contains('on'));
+  if(p.classList.contains('on'))drawFilters();
+};
+$('#brec').onclick=()=>{
+  zf=1;rot={x:.35,y:-.6};tgt=null;focus=null;activeFilter=null;
+  drawFilters();
+};
 
-/* ---------- Thème ---------- */
-let lightMode=store.get('theme')==='light';
-function applyTheme(){document.body.classList.toggle('light',lightMode);$('#themeBtn').textContent=lightMode?'◐':'◑';if(currentUser)store.set('theme',lightMode?'light':'dark')}
+/* ---------- Theme ---------- */
+let lightMode=false;
+function applyTheme(){document.body.classList.toggle('light',lightMode);const t=$('#themeBtn');if(t)t.textContent=lightMode?'Theme sombre':'Theme clair';if(currentUser)store.set('theme',lightMode?'light':'dark')}
 $('#themeBtn').onclick=()=>{lightMode=!lightMode;applyTheme()};
 
 /* ---------- Raccourcis clavier ---------- */
@@ -1160,13 +1226,13 @@ const lk=n=>`[[${n.id}|${n.title.replace(/[\[\]|]/g,' ')}]]`,dirOf=n=>n.dir||'ra
  suggest=()=>{const R=lite(),o=[];for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){const a=R[i],b=R[j],s=a.tags.filter(t=>b.tags.includes(t));if(s.length&&!a.links.includes(b.id)&&!b.links.includes(a.id))o.push({a,b,s})}return o.sort((x,y)=>y.s.length-x.s.length)},
  detail=id=>{const n=byKey[id.toLowerCase()];return`**${n.title}** : ${[n.type,n.status,n.date].filter(Boolean).join(', ')||'note'}.\n\nTags : ${n.tags.join(', ')||'aucun'}.\n\n${plain(n.body).slice(0,260)}…\n\n**Liens sortants**\n${ls(n.links.map(i=>byKey[i]),lk)}\n\n**Liens entrants**\n${ls(n.back,lk)}`};
 let SERIES=[
-{sg:'◎',name:'Vue d’ensemble',qs:[
+{sg:'V',name:'Vue d’ensemble',qs:[
  {q:'Résume le coffre',a:()=>{if(!N.length)return'Le coffre est vide.';const t=tally(N,dirOf),h=byDeg()[0];return`Le coffre contient **${pl(N.length,'note')}** et **${pl(E.length,'lien')}**, dans ${pl(t.length,'dossier')}.\n\n${ls(t,x=>x[0]+' : '+x[1])}\n\nNote la plus connectée : ${lk(h)} (${pl(deg(h),'lien')}).\n\nTâches à faire : **${tasks(false).length}**. Notes dans l’Inbox : **${N.filter(n=>n.dir=='00_Inbox').length}**.`}},
  {q:'Combien de notes par dossier ?',a:()=>ls(tally(N,dirOf),x=>`${x[0]} : ${pl(x[1],'note')}`)},
  {q:'Quels types et statuts de notes ?',a:()=>`**Types**\n${ls(tally(N,n=>n.type),x=>x.join(' : '))}\n\n**Statuts**\n${ls(tally(N,n=>n.status),x=>x.join(' : '))}`},
  {q:'Quelles sont les notes les plus récentes ?',a:()=>ls(recent(),n=>`${lk(n)} : ${n.date||'sans date'}`,8)},
  {q:'Quelles sont les notes les plus longues ?',a:()=>ls([...real()].sort((a,b)=>nw(b)-nw(a)),n=>`${lk(n)} : ${pl(nw(n),'mot')}`,8)}]},
-{sg:'⌖',name:'Navigation',qs:[
+{sg:'N',name:'Navigation',qs:[
  {q:'Quelles notes sont les plus connectées ?',a:()=>ls(byDeg(),n=>`${lk(n)} : ${pl(deg(n),'lien')}`,8)},
  {q:'Quelles notes sont orphelines ?',a:()=>ls(real().filter(n=>!deg(n)),lk)},
  {q:'Quelles notes le cerveau a-t-il créées ?',a:()=>ls(N.filter(n=>n.auto),lk)+'\n\nChaque lien [[vers une note absente]] fait naître une note à compléter dans l’Inbox. Écris-la pour qu’elle devienne une vraie note.'},
@@ -1179,13 +1245,13 @@ let SERIES=[
  {q:'Quelles notes portent un tag précis ?',pick:()=>tally(N.flatMap(n=>n.tags),t=>t).map(x=>[x[0],x[0]]),a:t=>ls(N.filter(n=>n.tags.includes(t)),lk)},
  {q:'Que contient un dossier précis ?',pick:()=>tally(N,dirOf).map(x=>[x[0],x[0]]),a:d=>ls(N.filter(n=>dirOf(n)==d),n=>`${lk(n)} : ${n.date||'sans date'}`)},
  {q:'Quelles notes n’ont aucun tag ?',a:()=>ls(real().filter(n=>!n.tags.length),lk)}]},
-{sg:'☐',name:'Travail en cours',qs:[
+{sg:'T',name:'Travail en cours',qs:[
  {q:'Quelles tâches restent à faire ?',a:()=>ls(tasks(false),x=>`${lk(x.n)} : ${x.t}`,30)},
  {q:'Quelles tâches sont terminées ?',a:()=>ls(tasks(true),x=>`${lk(x.n)} : ${x.t}`,30)},
  {q:'Que contient l’Inbox ?',a:()=>ls(N.filter(n=>n.dir=='00_Inbox'||n.status=='inbox'),n=>`${lk(n)} : ${n.date||'sans date'}`)},
  {q:'Quels projets sont en cours ?',a:()=>ls(N.filter(n=>n.type=='projet'||n.dir=='01_Projects'),n=>`${lk(n)} : ${n.status||'sans statut'}`)},
  {q:'Quelles notes ne sont pas encore permanentes ?',a:()=>ls(lite().filter(n=>n.status&&n.status!='permanent'),n=>`${lk(n)} : ${n.status}`)}]},
-{sg:'✓',name:'Qualité du coffre',qs:[
+{sg:'Q',name:'Qualite du coffre',qs:[
  {q:'Quels liens pourrait-on ajouter ?',a:()=>ls(suggest(),x=>`${lk(x.a)} et ${lk(x.b)} : tags communs (${x.s.join(', ')})`,10)},
  {q:'Quelles notes sont trop courtes ?',a:()=>ls(lite().filter(n=>nw(n)<25),n=>`${lk(n)} : ${pl(nw(n),'mot')}`)},
  {q:'Quelles notes n’ont aucun lien sortant ?',a:()=>ls(lite().filter(n=>!n.links.length),lk)},
@@ -1198,7 +1264,7 @@ function rebuildSeries(){
   SERIES=BASE_SERIES.map(s=>({...s,qs:s.qs.slice()}));
   const cust=store.get('custQ')||[];
   if(cust.length){
-    SERIES.push({sg:'★',name:'Perso',qs:cust.map(c=>({
+    SERIES.push({sg:'P',name:'Perso',qs:cust.map(c=>({
       q:c.q,
       a:()=>c.a||ls(N.filter(n=>nz(n.title+' '+n.tags.join(' ')+' '+n.body).includes(nz(c.q))),lk)||'Aucune note ne correspond à cette question.'
     }))});
