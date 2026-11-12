@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Synapse</title>
+<title>Synapse V2</title>
 <meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
@@ -204,32 +204,52 @@ body.light #userbar,body.light #stats{color:rgba(0,0,0,.55)}
 #kbhelp .box{width:min(420px,92vw);border:1px solid var(--ln);padding:24px;background:#000}
 #kbhelp kbd{border:1px solid var(--ln);padding:1px 6px;font:12px var(--mo);margin-right:8px}
 #kbhelp .row{display:flex;align-items:center;margin:8px 0;font-size:14px}
-/* ===== Bouton + et panneau gauche ===== */
+/* ===== Bouton + et panneau gauche V2 ===== */
 #side{position:fixed;left:0;top:0;bottom:0;z-index:8;display:flex;align-items:stretch;pointer-events:none}
-#sidePlus{pointer-events:auto;position:fixed;left:12px;top:50%;transform:translateY(-50%);z-index:9;width:36px;height:36px;padding:0;font-size:22px;line-height:1;border:1px solid var(--ln);background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:border-color .25s ease,background .25s ease,opacity .28s ease,visibility .28s;cursor:pointer;will-change:opacity}
+#sidePlus{pointer-events:auto;position:fixed;left:12px;top:50%;transform:translateY(-50%);z-index:9;width:40px;height:40px;padding:0;font-size:24px;line-height:1;border:1px solid var(--ln);background:rgba(0,0,0,.82);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;transition:border-color .25s ease,background .25s ease,opacity .28s ease,visibility .28s;cursor:pointer;will-change:opacity}
 #sidePlus:hover{border-color:#fff;background:rgba(255,255,255,.08)}
 #sidePlus.hide{opacity:0;visibility:hidden;pointer-events:none}
-#sidePanel{pointer-events:auto;width:220px;max-height:100%;background:rgba(0,0,0,.92);border-right:1px solid var(--ln);padding:16px 16px 24px;overflow:auto;transform:translate3d(-105%,0,0);transition:transform .38s cubic-bezier(.22,.8,.24,1);backdrop-filter:blur(12px);will-change:transform}
+#sidePanel{pointer-events:auto;width:260px;max-height:100%;background:rgba(0,0,0,.94);border-right:1px solid var(--ln);padding:0;overflow:hidden;display:flex;flex-direction:column;transform:translate3d(-105%,0,0);transition:transform .38s cubic-bezier(.22,.8,.24,1);backdrop-filter:blur(14px);will-change:transform}
 #sidePanel.on{transform:translate3d(0,0,0)}
-#sideClose{float:right;width:32px;height:32px;padding:0;font-size:18px;line-height:1;border-color:transparent;margin:-4px -6px 8px 8px}
+#sideHead{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px;border-bottom:1px solid var(--ln);flex:none}
+#sideHead .ttl{font:500 13px var(--ui);letter-spacing:.14em;text-transform:uppercase}
+#sideClose{width:32px;height:32px;padding:0;font-size:16px;line-height:1;border-color:transparent}
 #sideClose:hover{border-color:#fff}
-.lb{transition:opacity .15s linear}
-#sidePanel h3{font:500 11px var(--ui);letter-spacing:.1em;color:var(--mu);margin:18px 0 8px;text-transform:uppercase;clear:both}
-#sidePanel h3:first-of-type{margin-top:4px}
+#sideTabs{display:flex;gap:4px;padding:10px 12px;border-bottom:1px solid var(--ln);flex:none}
+#sideTabs button{flex:1;padding:8px 6px;font-size:12px;letter-spacing:.04em;border-color:transparent;background:transparent;color:var(--mu)}
+#sideTabs button:hover{color:#fff;border-color:var(--ln)}
+#sideTabs button.on{color:#000;background:#fff;border-color:#fff}
+#sideBody{flex:1;overflow:auto;padding:14px 14px 28px;scrollbar-width:thin}
+#sideBody section{display:none}
+#sideBody section.on{display:block}
+#sidePanel h3{font:500 10px var(--ui);letter-spacing:.12em;color:var(--mu);margin:16px 0 8px;text-transform:uppercase}
+#sidePanel h3:first-child{margin-top:2px}
 #sidePanel .side-acts{display:flex;flex-direction:column;gap:6px}
-#sidePanel .side-acts button{width:100%;text-align:left;font-size:13px;padding:8px 10px}
+#sidePanel .side-acts button{width:100%;text-align:left;font-size:13px;padding:9px 11px}
 #sidePanel .side-row{display:flex;gap:6px}
 #sidePanel .side-row button{flex:1;padding:8px 6px;font-size:12px}
 #sidePanel .tr{display:flex;align-items:center;gap:8px;color:var(--mu);border:1px solid var(--ln);padding:8px 10px}
 #sidePanel .tr input{width:100%;flex:1}
-#filters{position:relative;left:auto;top:auto;transform:none;max-height:none;margin-top:4px}
-#filters .fchip{width:100%;text-align:left}
-#loblegend{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mu);margin-top:6px}
+#filters{position:relative;left:auto;top:auto;transform:none;max-height:none;margin-top:4px;display:flex;flex-direction:column;gap:4px}
+#filters .fchip{width:100%;text-align:left;padding:7px 10px;font-size:12px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mode-grid button{padding:12px 8px;font-size:12px;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:64px;border-color:var(--ln);background:rgba(255,255,255,.02)}
+.mode-grid button strong{font-weight:500;font-size:13px;letter-spacing:.02em}
+.mode-grid button span{color:var(--mu);font-size:11px;line-height:1.35}
+.mode-grid button.on{border-color:#fff;background:rgba(255,255,255,.1)}
+.mode-grid button:hover{border-color:#fff}
+.preset-row{display:flex;gap:6px;flex-wrap:wrap}
+.preset-row button{padding:6px 10px;font-size:11px}
+.preset-row button.on{background:#fff;color:#000;border-color:#fff}
+#loblegend{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--mu);margin-top:6px}
 #loblegend span{display:flex;align-items:center;gap:8px}
 #loblegend i{width:10px;height:10px;border-radius:2px;flex:none}
-body.light #sidePlus,body.light #sidePanel{background:rgba(244,241,234,.94);border-color:rgba(0,0,0,.2);color:#1a1a1a}
+.side-foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--ln);font:11px var(--mo);color:var(--mu)}
+body.light #sidePlus,body.light #sidePanel{background:rgba(244,241,234,.96);border-color:rgba(0,0,0,.2);color:#1a1a1a}
+body.light #sideTabs button.on{background:#1a1a1a;color:#f4f1ea;border-color:#1a1a1a}
 #top{padding-left:56px}
-@media(max-width:700px){#sidePanel{width:190px}#top{padding-left:50px}}
+@media(max-width:700px){#sidePanel{width:230px}#top{padding-left:50px}}
+.lb{transition:opacity .15s linear}
 </style>
 </head>
 <body>
@@ -269,40 +289,72 @@ body.light #sidePlus,body.light #sidePanel{background:rgba(244,241,234,.94);bord
 <button type="button" id="sidePlus" title="Menu">+</button>
 <div id="side">
   <div id="sidePanel">
-    <button type="button" id="sideClose" title="Fermer">X</button>
-    <h3>Navigation</h3>
-    <div class="side-row">
-      <button type="button" id="hback" title="Precedent">←</button>
-      <button type="button" id="hfwd" title="Suivant">→</button>
-      <button type="button" id="brec" title="Recadrer">Recadrer</button>
+    <div id="sideHead">
+      <div class="ttl">Synapse</div>
+      <button type="button" id="sideClose" title="Fermer">X</button>
     </div>
-    <h3>Actions</h3>
-    <div class="side-acts">
-      <button type="button" id="bnew">Nouvelle note</button>
-      <button type="button" id="bsync">Synchroniser</button>
-      <button type="button" id="bcfg">Reglages</button>
-      <button type="button" id="themeBtn" title="Theme">Theme</button>
-      <button type="button" id="bstaff">Staff</button>
-      <button type="button" id="blogout">Deconnexion</button>
+    <div id="sideTabs">
+      <button type="button" class="on" data-tab="vue">Vue</button>
+      <button type="button" data-tab="filtres">Filtres</button>
+      <button type="button" data-tab="outils">Outils</button>
     </div>
-    <h3>Transparence</h3>
-    <label class="tr"><input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label>
-    <h3>Filtres</h3>
-    <div id="filters"></div>
-    <h3>Zones</h3>
-    <div id="loblegend">
-      <span><i style="background:#5eb8ff"></i>Frontal</span>
-      <span><i style="background:#a78bfa"></i>Parietal</span>
-      <span><i style="background:#f472b6"></i>Temporal</span>
-      <span><i style="background:#fbbf24"></i>Occipital</span>
-      <span><i style="background:#94a3b8"></i>Tronc / cervelet</span>
+    <div id="sideBody">
+      <section id="tab-vue" class="on">
+        <h3>Mode d'affichage</h3>
+        <div class="mode-grid" id="viewModes">
+          <button type="button" class="on" data-mode="full"><strong>Complet</strong><span>Cerveau + notes + liens</span></button>
+          <button type="button" data-mode="zones"><strong>Zones</strong><span>Couleurs des lobes</span></button>
+          <button type="button" data-mode="notes"><strong>Notes</strong><span>Graphe des idees</span></button>
+          <button type="button" data-mode="minimal"><strong>Minimal</strong><span>Essentiel seulement</span></button>
+        </div>
+        <h3>Navigation</h3>
+        <div class="side-row">
+          <button type="button" id="hback" title="Precedent">←</button>
+          <button type="button" id="hfwd" title="Suivant">→</button>
+          <button type="button" id="brec" title="Recadrer">Recadrer</button>
+        </div>
+        <h3>Opacite</h3>
+        <div class="preset-row" id="opPresets">
+          <button type="button" data-op="1" class="on">100%</button>
+          <button type="button" data-op="0.55">55%</button>
+          <button type="button" data-op="0.25">25%</button>
+          <button type="button" data-op="0.12">12%</button>
+        </div>
+        <label class="tr" style="margin-top:8px"><input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label>
+        <h3>Zones du cerveau</h3>
+        <div id="loblegend">
+          <span><i style="background:#5eb8ff"></i>Frontal</span>
+          <span><i style="background:#a78bfa"></i>Parietal</span>
+          <span><i style="background:#f472b6"></i>Temporal</span>
+          <span><i style="background:#fbbf24"></i>Occipital</span>
+          <span><i style="background:#94a3b8"></i>Tronc / cervelet</span>
+        </div>
+        <div class="side-foot">V2 · choisis un mode, filtre, ou outil</div>
+      </section>
+      <section id="tab-filtres">
+        <h3>Filtrer le graphe</h3>
+        <div id="filters"></div>
+        <div class="side-foot">Clique un dossier ou un tag pour isoler une partie du cerveau</div>
+      </section>
+      <section id="tab-outils">
+        <h3>Actions</h3>
+        <div class="side-acts">
+          <button type="button" id="bnew">Nouvelle note</button>
+          <button type="button" id="bsync">Synchroniser</button>
+          <button type="button" id="bcfg">Reglages</button>
+          <button type="button" id="themeBtn" title="Theme">Theme clair / sombre</button>
+          <button type="button" id="bstaff">Staff</button>
+          <button type="button" id="blogout">Deconnexion</button>
+        </div>
+        <h3>Compte</h3>
+        <div id="userbar" style="font-size:12px;color:var(--mu)"></div>
+        <div class="side-foot">Les donnees restent dans ce navigateur</div>
+      </section>
     </div>
-    <h3>Compte</h3>
-    <div id="userbar" style="font-size:12px;color:var(--mu)"></div>
   </div>
 </div>
 <header id="top">
-<div><div class="brand">Synapse</div><div id="stats"></div><div id="statsPanel"></div></div>
+<div><div class="brand">Synapse <span style="font-size:12px;letter-spacing:.2em;color:var(--mu)">V2</span></div><div id="stats"></div><div id="statsPanel"></div></div>
 <div style="display:flex;flex-direction:column;gap:6px;align-items:stretch">
   <div style="display:flex;gap:8px;align-items:center">
     <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:220px;margin:0">
@@ -615,6 +667,9 @@ function enterApp(user){
   applyTR&&applyTR();
   lightMode=store.get('theme')==='light';
   applyTheme&&applyTheme();
+  viewMode=store.get('viewMode')||'full';
+  document.querySelectorAll('#viewModes button').forEach(b=>b.classList.toggle('on',b.dataset.mode===viewMode));
+  applyTR&&applyTR();
   cells=store.get('cells');
   if(!Array.isArray(cells))cells=[
    {sign:'H',name:'Accueil',kind:'note',val:'accueil'},
@@ -965,12 +1020,21 @@ function think(si,fn){if(busyQ)return;busyQ=true;$('#qp').hidden=true;
   setTimeout(()=>{srch=null;busyQ=false;fn()},1500+Math.min(N.length*10,1500)+Math.random()*700)}
 const openQ=()=>{$('#qp').hidden=false;$('#ans').hidden=true;drawMenu()};
 $('#qx').onclick=()=>$('#qp').hidden=true;
+let viewMode='full',ghostOn=false,TR_save=1;
 const applyTR=()=>{
-  LM.forEach(m=>m.opacity=m.userData.b*TR);
+  const brainMul=viewMode==='notes'||viewMode==='minimal'?0.2:1;
+  LM.forEach(m=>m.opacity=m.userData.b*TR*brainMul);
   const g=$('#bghost');if(g){g.textContent=ghostOn?'Normal':'Transparent';g.style.borderColor=ghostOn?'#fff':'';}
   const tr=$('#tr');if(tr&&!ghostOn)tr.value=Math.round(TR*100);
+  document.querySelectorAll('#opPresets button').forEach(b=>{
+    b.classList.toggle('on',Math.abs(parseFloat(b.dataset.op)-(ghostOn?0.12:TR))<0.03);
+  });
+  if(nodes)nodes.visible=viewMode!=='zones';
+  if(lines)lines.visible=viewMode==='full'||viewMode==='notes'||viewMode==='minimal';
+  if(dust)dust.visible=viewMode==='full'||viewMode==='zones';
+  if(cube)cube.visible=true;
+  $('#labels').style.opacity=viewMode==='zones'||viewMode==='minimal'?'0.35':'1';
 };
-let ghostOn=false,TR_save=1;
 $('#tr').oninput=e=>{TR=e.target.value/100;ghostOn=false;if(currentUser)store.set('tr',TR);applyTR()};
 $('#bghost').onclick=()=>{
   if(!ghostOn){TR_save=TR;TR=.12;ghostOn=true}
@@ -978,6 +1042,23 @@ $('#bghost').onclick=()=>{
   if(currentUser&&!ghostOn)store.set('tr',TR);
   applyTR();
 };
+$('#opPresets')&&$('#opPresets').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-op]');if(!b)return;
+  TR=parseFloat(b.dataset.op);ghostOn=TR<=0.13;if(!ghostOn&&currentUser)store.set('tr',TR);applyTR();
+});
+$('#viewModes')&&$('#viewModes').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-mode]');if(!b)return;
+  viewMode=b.dataset.mode;
+  document.querySelectorAll('#viewModes button').forEach(x=>x.classList.toggle('on',x===b));
+  if(currentUser)store.set('viewMode',viewMode);
+  applyTR();
+});
+$('#sideTabs')&&$('#sideTabs').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-tab]');if(!b)return;
+  document.querySelectorAll('#sideTabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('#sideBody section').forEach(s=>s.classList.toggle('on',s.id==='tab-'+b.dataset.tab));
+  if(b.dataset.tab==='filtres')drawFilters();
+});
 
 /* ---------- Boucle de rendu ---------- */
 const v3=V(0,0,0),v4=V(0,0,0);
@@ -997,7 +1078,8 @@ function frame(){
   const k=1-Math.exp(-dt*4.2),k2=1-Math.exp(-dt*8),k4=1-Math.exp(-dt*16),kz=1-Math.exp(-dt*6);
   adapt(raw,t);
   zf+=(zfT-zf)*kz;
-  U.uFade.value+=(TR-U.uFade.value)*Math.min(1,dt*1.2);
+  const fadeT=TR*(viewMode==='notes'||viewMode==='minimal'?0.22:viewMode==='zones'?0.85:1);
+  U.uFade.value+=(fadeT-U.uFade.value)*Math.min(1,dt*1.2);
   S+=((3.2+1.3*Math.cbrt(N.length))-S)*Math.min(1,dt*1.8);brain.scale.setScalar(S);
   if(tgt!=null){let d=tgt-rot.y;rot.y+=Math.atan2(Math.sin(d),Math.cos(d))*k;rot.x+=(.15-rot.x)*k}
   else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*.025}iv.x*=Math.exp(-dt*3.2);iv.y*=Math.exp(-dt*3.2)}
