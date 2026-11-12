@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Synapse V2</title>
+<title>Synapse V3</title>
 <meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
 <meta name="theme-color" content="#000000">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
@@ -250,6 +250,17 @@ body.light #sideTabs button.on{background:#1a1a1a;color:#f4f1ea;border-color:#1a
 #top{padding-left:56px}
 @media(max-width:700px){#sidePanel{width:230px}#top{padding-left:50px}}
 .lb{transition:opacity .15s linear}
+/* ===== Mode 2D + mini-cerveaux ===== */
+#b2d.on{background:#fff;color:#000;border-color:#fff}
+.mb{position:absolute;left:0;top:0;pointer-events:none;transform:translate(-50%,-50%);text-align:center;z-index:3;will-change:transform,opacity}
+.mb .ring2{width:52px;height:52px;border:1px solid rgba(255,255,255,.35);border-radius:50%;margin:0 auto 4px;position:relative;box-shadow:0 0 18px rgba(255,255,255,.08)}
+.mb .ring2::after{content:"";position:absolute;inset:8px;border:1px dashed rgba(255,255,255,.25);border-radius:50%;animation:spin 24s linear infinite}
+.mb .nm{font:500 11px var(--ui);letter-spacing:.08em;text-transform:uppercase;text-shadow:0 0 8px #000}
+.mb .role{font:10px var(--mo);color:var(--mu);margin-top:1px;text-shadow:0 0 6px #000}
+.mb .pulse{position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(255,255,255,.2);animation:mbp 2.8s ease-in-out infinite}
+@keyframes mbp{0%,100%{transform:scale(.92);opacity:.2}50%{transform:scale(1.08);opacity:.55}}
+body.flat-mode .ring{opacity:.35}
+body.flat-mode #minimap{opacity:.4}
 </style>
 </head>
 <body>
@@ -354,16 +365,18 @@ body.light #sideTabs button.on{background:#1a1a1a;color:#f4f1ea;border-color:#1a
   </div>
 </div>
 <header id="top">
-<div><div class="brand">Synapse <span style="font-size:12px;letter-spacing:.2em;color:var(--mu)">V2</span></div><div id="stats"></div><div id="statsPanel"></div></div>
+<div><div class="brand">Synapse <span style="font-size:12px;letter-spacing:.2em;color:var(--mu)">V3</span></div><div id="stats"></div><div id="statsPanel"></div></div>
 <div style="display:flex;flex-direction:column;gap:6px;align-items:stretch">
   <div style="display:flex;gap:8px;align-items:center">
-    <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:220px;margin:0">
+    <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:200px;margin:0">
     <button type="button" id="bghost" title="Tout transparent / normal" style="padding:6px 10px;font-size:12px;white-space:nowrap">Transparent</button>
+    <button type="button" id="b2d" title="Vue 2D detaillee" style="padding:6px 10px;font-size:12px;white-space:nowrap">2D</button>
   </div>
   <div id="sres" role="listbox" aria-label="Resultats de recherche"></div>
 </div>
 </header>
 <div id="minimap" aria-hidden="true"><canvas id="mm"></canvas></div>
+<div id="minibrains" aria-hidden="true"></div>
 <div id="dropzone">Dépose des fichiers .md pour les importer</div>
 <div id="kbhelp"><div class="box">
   <strong>Raccourcis clavier</strong>
@@ -669,6 +682,8 @@ function enterApp(user){
   applyTheme&&applyTheme();
   viewMode=store.get('viewMode')||'full';
   document.querySelectorAll('#viewModes button').forEach(b=>b.classList.toggle('on',b.dataset.mode===viewMode));
+  flatMode=!!store.get('flat');
+  const b2=$('#b2d');if(b2){b2.classList.toggle('on',flatMode);document.body.classList.toggle('flat-mode',flatMode);if(miniG)miniG.visible=flatMode}
   applyTR&&applyTR();
   cells=store.get('cells');
   if(!Array.isArray(cells))cells=[
@@ -998,9 +1013,54 @@ const cube=new THREE.Group(),cubeS={x:-99,y:-99,r:0,h:0,over:false};
 {const cm2=o=>new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending}),bx=new THREE.BoxGeometry(.18,.18,.18),ob=new THREE.LineSegments(new THREE.EdgesGeometry(bx),cm2(.9)),ib=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.1,.1,.1)),cm2(.95)),
  fm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.05,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
  ob.material.color.set(0xff2020);ib.material.color.set(0xff7a45);fm.color.set(0xff1010);ob.add(new THREE.Mesh(bx,fm));cube.add(ob,ib);cube.userData={ob,ib};brain.add(cube)}
+
+/* ===== Mini-cerveaux satellites (roles) ===== */
+const ROLES=[
+  {name:'Memoire',role:'Garde les notes',col:[.45,.8,1]},
+  {name:'Liens',role:'Relie les idees',col:[.7,.55,1]},
+  {name:'Taches',role:'Suit le travail',col:[1,.75,.35]},
+  {name:'Inbox',role:'Capture rapide',col:[1,.45,.55]},
+  {name:'Projets',role:'Mene les plans',col:[.4,.9,.7]},
+  {name:'Analyse',role:'Lit la donnee',col:[.55,.9,.95]},
+  {name:'Journal',role:'Trace le temps',col:[.95,.6,.85]},
+  {name:'Focus',role:'Isole le signal',col:[1,1,1]}
+];
+const miniG=new THREE.Group();brain.add(miniG);miniG.visible=false;
+const miniFeed=[];
+const mbHTML=[];
+{const host=$('#minibrains');
+  ROLES.forEach((r,i)=>{
+    const a=(i/ROLES.length)*Math.PI*2-Math.PI/2,rad=2.35+((i%2)*.22);
+    const pos=V(Math.cos(a)*rad,.08+Math.sin(i*1.7)*.12,Math.sin(a)*rad*.92);
+    const pts=[...Array(48)].map(()=>{const u=rv();return pos.clone().add(shell(u,.16+.04*Math.random()).sub(shell(V(0,0,0),.01)).multiplyScalar(.22));});
+    /* petit nuage local */
+    const local=[];for(let k=0;k<36;k++){const u=rv();local.push(pos.clone().add(V(u.x*AX[0],u.y*AX[1],u.z*AX[2]).multiplyScalar(.14+.05*Math.random())));}
+    const g=new THREE.BufferGeometry().setFromPoints(local);
+    attr(g,'aS',local.map(()=>2.2+Math.random()*2));attr(g,'aA',local.map(()=>.45+Math.random()*.35));
+    const mat=pm.clone();mat.uniforms=U; /* share fade */
+    const ptsObj=new THREE.Points(g,cm.clone());
+    /* color the points */
+    const cols=[];local.forEach(()=>cols.push(r.col[0],r.col[1],r.col[2]));
+    g.setAttribute('aCol',new THREE.Float32BufferAttribute(cols,3));
+    g.setAttribute('aA',new THREE.Float32BufferAttribute(local.map(()=>.65),1));
+    g.setAttribute('aS',new THREE.Float32BufferAttribute(local.map(()=>10+Math.random()*8),1));
+    ptsObj.material=cm;
+    miniG.add(ptsObj);
+    /* fibre d'alimentation depuis le centre */
+    const feed=[];const steps=8;for(let s=0;s<=steps;s++){const t=s/steps;feed.push(V(0,0,0).lerp(pos,t).add(V(0,Math.sin(t*Math.PI)*.15,0)));}
+    const fg=new THREE.BufferGeometry().setFromPoints(feed);
+    const fln=new THREE.Line(fg,lineMat(.22));
+    miniG.add(fln);
+    miniFeed.push({pos,obj:ptsObj,line:fln,phase:Math.random()*Math.PI*2,role:r});
+    const el=document.createElement('div');el.className='mb';el.innerHTML=`<div class="ring2"><div class="pulse"></div></div><div class="nm">${r.name}</div><div class="role">${r.role}</div>`;
+    el.style.opacity='0';host.appendChild(el);mbHTML.push(el);
+  });
+}
+let flatMode=false,flatT=0;
+
 function cubeFrame(t,dt){const{ob,ib}=cube.userData,W=innerWidth,H=innerHeight;
   ob.rotation.set(t*.22,t*.32,t*.12);ib.rotation.set(-t*.28,-t*.4,-t*.16);cube.position.y=Math.sin(t*.7)*.012;
-  cubeS.h+=((cubeS.over?1:0)-cubeS.h)*Math.min(1,dt*8);cube.scale.setScalar(1+.02*Math.sin(t*1.2)+.18*cubeS.h);
+  cubeS.h+=((cubeS.over?1:0)-cubeS.h)*Math.min(1,dt*8);cube.scale.setScalar((flatMode?.7:1)*(1+.02*Math.sin(t*1.2)+.18*cubeS.h));
   v3.copy(cube.position).applyMatrix4(brain.matrixWorld).project(cam);v4.set(.3,0,0).add(cube.position).applyMatrix4(brain.matrixWorld).project(cam);
   cubeS.x=(v3.x+1)/2*W;cubeS.y=(1-v3.y)/2*H;cubeS.r=Math.hypot((v4.x-v3.x)*W/2,(v4.y-v3.y)*H/2)+14;
   cubeS.over=!drag&&Math.hypot(ptr.x-cubeS.x,ptr.y-cubeS.y)<cubeS.r;
@@ -1042,6 +1102,14 @@ $('#bghost').onclick=()=>{
   if(currentUser&&!ghostOn)store.set('tr',TR);
   applyTR();
 };
+$('#b2d').onclick=()=>{
+  flatMode=!flatMode;
+  $('#b2d').classList.toggle('on',flatMode);
+  document.body.classList.toggle('flat-mode',flatMode);
+  miniG.visible=flatMode;
+  if(flatMode){zfT=Math.max(zfT,1.35);tgt=null}
+  if(currentUser)store.set('flat',flatMode);
+};
 $('#opPresets')&&$('#opPresets').addEventListener('click',e=>{
   const b=e.target.closest('button[data-op]');if(!b)return;
   TR=parseFloat(b.dataset.op);ghostOn=TR<=0.13;if(!ghostOn&&currentUser)store.set('tr',TR);applyTR();
@@ -1080,15 +1148,29 @@ function frame(){
   zf+=(zfT-zf)*kz;
   const fadeT=TR*(viewMode==='notes'||viewMode==='minimal'?0.22:viewMode==='zones'?0.85:1);
   U.uFade.value+=(fadeT-U.uFade.value)*Math.min(1,dt*1.2);
-  S+=((3.2+1.3*Math.cbrt(N.length))-S)*Math.min(1,dt*1.8);brain.scale.setScalar(S);
-  if(tgt!=null){let d=tgt-rot.y;rot.y+=Math.atan2(Math.sin(d),Math.cos(d))*k;rot.x+=(.15-rot.x)*k}
-  else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*.025}iv.x*=Math.exp(-dt*3.2);iv.y*=Math.exp(-dt*3.2)}
+  S+=((3.2+1.3*Math.cbrt(N.length))-S)*Math.min(1,dt*1.8);
+  flatT+=((flatMode?1:0)-flatT)*Math.min(1,dt*3.2);
+  if(tgt!=null){let d=tgt-rot.y;rot.y+=Math.atan2(Math.sin(d),Math.cos(d))*k;rot.x+=((flatMode?.55:.15)-rot.x)*k}
+  else if(!drag){if(!reduce){rot.y+=iv.y*dt*60;rot.x=Math.max(-1,Math.min(1,rot.x+iv.x*dt*60));if(!isOpen)rot.y+=dt*(flatMode?.015:.025);if(flatMode)rot.x+=(.55-rot.x)*k}iv.x*=Math.exp(-dt*3.2);iv.y*=Math.exp(-dt*3.2)}
   brain.rotation.set(rot.x,rot.y,0);
+  const sy=1-flatT*.62;brain.scale.set(S*(1+flatT*.08),S*sy,S*(1+flatT*.12));
   brain.position.x+=((isOpen&&innerWidth>900?-S*.3:0)-brain.position.x)*k;
-  D+=((S*1.55*zf*Math.max(1,1.5/cam.aspect))-D)*k;U.uN.value=D-S;U.uW.value=2*S;U.uT.value=t;
-  const cy=-Math.max(0,zf-1)*S*.7;
-  cam.position.set(0,cy,D);cam.lookAt(0,cy,0);
+  D+=((S*1.55*zf*Math.max(1,1.5/cam.aspect))*(1+flatT*.15)-D)*k;U.uN.value=D-S;U.uW.value=2*S;U.uT.value=t;
+  const cy=-Math.max(0,zf-1)*S*.7*(1-flatT*.5);
+  cam.position.set(0,cy+flatT*S*.35,D);cam.lookAt(0,cy*.4,0);
   brain.updateMatrixWorld();cam.updateMatrixWorld();cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
+  /* labels mini-cerveaux */
+  if(flatT>.05){
+    const W=innerWidth,H=innerHeight;
+    miniFeed.forEach((m,i)=>{
+      m.obj.rotation.y=t*.3+m.phase;m.obj.scale.setScalar(1+.06*Math.sin(t*2+m.phase));
+      v3.copy(m.pos).applyMatrix4(brain.matrixWorld).project(cam);
+      const el=mbHTML[i];if(!el)return;
+      const x=(v3.x+1)/2*W,y=(1-v3.y)/2*H,vis=v3.z<1&&flatT;
+      el.style.opacity=vis?String(Math.min(1,flatT*1.4)):0;
+      if(vis)el.style.transform=`translate(${x}px,${y}px) translate(-50%,-50%)`;
+    });
+  }else if(mbHTML[0]&&mbHTML[0].style.opacity!=='0'){mbHTML.forEach(el=>el.style.opacity='0')}
   if(!nodes){comp?comp.render(dt):R.render(scene,cam);return}
   const W=innerWidth,H=innerHeight,aS=nodes.geometry.attributes.aS,aA=nodes.geometry.attributes.aA;
   const doLabels=!(frameN&1)&&lb.length;
