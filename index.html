@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Synapse V8</title>
 <meta name="description" content="Synapse : coffre de notes en graphe 3D, avec chatbot de questions prédéfinies et cellules personnalisables.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#000000"><link rel="manifest" href="manifest.json"><script>if(innerWidth<700&&!/[?&]full/.test(location.search))location.replace("m.html"+location.hash)</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22white%22/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
 <style>
@@ -566,187 +566,27 @@ body.light #ans,body.light .ix,body.light .fi{background:rgba(247,244,238,.92);c
 
 <script type="text/plain" id="vault">
 === accueil | | Accueil | dashboard | permanent | 2026-11-12 | index
-Notes de travail publiées depuis mon coffre Obsidian. Le coffre suit la méthode **PARA** et, dans les Areas, des notes atomiques à la façon Zettelkasten.
+Synapse est un **cerveau de notes** : envoie-lui n’importe quel sujet, il va chercher sur Wikipédia et le web, puis Ollama écrit une **synthèse**.
 
-> [!info] Comment naviguer
-> Ouvre un dossier à gauche, suis les liens entre notes, ou explore le graphe avec le bouton en haut à droite.
+## Comment faire
+- Clique sur **Nouvelle note** et écris ce que tu veux (idée, cours, article, projet…)
+- Le cerveau explore le web et ajoute des *Découvertes* à la note
+- Ouvre la note puis **Synthèse IA**, ou demande une **Synthèse du coffre** dans le chatbot
+- Lis [[comment-ca-marche|comment ça marche]] et regarde l’[[exemple-note|exemple]]
+=== comment-ca-marche | 02_Areas | Comment ça marche | zettel | permanent | 2026-11-12 | methode
+1. Tu écris une note.
+2. Ollama choisit une requête de recherche.
+3. Le navigateur interroge Wikipédia FR/EN, Hacker News et OpenAlex.
+4. Ollama résume : résumé, apports du web, liens possibles, questions à creuser.
 
-## Points d’entrée
-- [[aero-base|Aérodynamique : les bases]]
-- [[strategie-arrets|Stratégie d’arrêts aux stands]]
-- [[telemetrie|Lire la télémétrie]]
-- [[projet-plancher|Projet : évolution du plancher]]
-- [[zettelkasten|La méthode Zettelkasten]]
+Les liens `[[comme ça]]` relient les notes dans le graphe. Retour à l’[[accueil]].
+=== exemple-note | 00_Inbox | Exemple : apprendre le piano | capture | inbox | 2026-11-12 | exemple,apprentissage
+Je veux apprendre le piano en 6 mois. Pratique courte et régulière, solfège de base, un morceau simple par mois.
 
-## Règles du coffre
-- Chaque note porte un frontmatter : `type`, `status`, `date`, `tags`
-- Une idée par note, reliée à au moins une autre
-- Le dossier `00_Inbox` se vide chaque semaine
-=== idee-diffuseur | 00_Inbox | Idée : diffuseur plus doux | capture | inbox | 2026-11-11 | aero,idee
-Piste à creuser : adoucir le gradient du diffuseur pour limiter le décrochage du flux à basse vitesse.
+- [ ] Choisir un premier morceau
+- [ ] Planifier 20 minutes par jour
 
-- [ ] Comparer avec les données de [[effet-de-sol]]
-- [ ] En parler au prochain point avec l’équipe aéro
-
-Lié au projet [[projet-plancher]].
-=== projet-plancher | 01_Projects | Projet : évolution du plancher | projet | en-cours | 2026-11-02 | projet,aero
-## Objectif
-Gagner en appui dans les virages lents sans pénaliser la traînée en ligne droite.
-
-## Tâches
-- [x] Revue des corrélations soufflerie et CFD
-- [x] Choix des deux variantes à tester
-- [ ] Valider en piste avec [[telemetrie|la télémétrie]]
-- [ ] Rédiger le rapport de décision
-
-> [!warning] Risque
-> Un plancher plus sensible à la garde au sol peut réveiller le [[porpoising]].
-
-Voir aussi [[effet-de-sol]] et [[idee-diffuseur]].
-=== aero-base | 02_Areas | Aérodynamique : les bases | zettel | permanent | 2026-10-20 | aero,fondamentaux
-Une F1 cherche l’**appui** (déportance) tout en limitant la **traînée**. Leur rapport donne l’efficacité aérodynamique.
-
-- Appui : plaque la voiture au sol et augmente la vitesse en courbe
-- Traînée : freine la voiture et coûte de la vitesse de pointe
-
-> [!tip] À retenir
-> Le bon compromis dépend du circuit : appui maximal à Monaco, traînée minimale à Monza.
-
-Suite : [[effet-de-sol]] puis [[porpoising]].
-=== effet-de-sol | 02_Areas | Effet de sol | zettel | permanent | 2026-10-22 | aero
-Les tunnels sous le plancher accélèrent l’air. Plus l’air va vite, plus la pression baisse : la dépression plaque la voiture sur la piste.
-
-## Points de vigilance
-- Très sensible à la garde au sol et au roulis
-- Le diffuseur gère la détente du flux en sortie
-
-Prérequis : [[aero-base]]. Effet secondaire : [[porpoising]].
-=== porpoising | 02_Areas | Porpoising | zettel | permanent | 2026-10-24 | aero,dynamique
-Oscillations verticales à haute vitesse : le plancher s’approche du sol, le flux se bloque, l’appui chute, la voiture remonte, puis le flux se rétablit et le cycle recommence.
-
-## Leviers
-- Augmenter la garde au sol
-- Raidir les suspensions
-- Ajuster la géométrie du bord de plancher
-
-Cause racine : [[effet-de-sol]]. Impact sur le [[projet-plancher]].
-=== strategie-arrets | 02_Areas | Stratégie d’arrêts aux stands | zettel | permanent | 2026-10-28 | strategie
-Un arrêt coûte de l’ordre de 20 secondes selon le circuit, car il faut compter l’entrée et la sortie des stands, pas seulement l’immobilisation.
-
-Le bon moment dépend de la dégradation ([[degradation-pneus]]), du trafic et du risque de voiture de sécurité.
-
-> [!note] Undercut
-> S’arrêter avant un rival pour profiter de pneus neufs et le dépasser lors de son propre arrêt.
-
-Données d’entrée : [[telemetrie]].
-=== degradation-pneus | 02_Areas | Dégradation des pneus | zettel | permanent | 2026-10-30 | strategie,pneus
-Le grip baisse au fil des tours à cause de l’usure et de la surchauffe. On modélise la perte par tour pour estimer la fenêtre d’arrêt.
-
-- Mesurer le delta de temps au tour, carburant corrigé
-- Séparer l’effet de l’allègement de la voiture
-
-Utilisé dans [[strategie-arrets]]. Données : [[telemetrie]].
-=== telemetrie | 02_Areas | Lire la télémétrie | zettel | permanent | 2026-11-03 | donnees,analyse
-Plusieurs centaines de capteurs enregistrent vitesse, pression de freinage, températures et accélérations.
-
-## Routine d’analyse
-1. Superposer deux tours sur le même graphique
-2. Repérer où le temps se gagne ou se perd
-3. Chercher la cause : freinage, trajectoire ou motricité
-
-~~~
-delta = temps_tour_A - temps_tour_B
-~~~
-
-Alimente [[strategie-arrets]], [[degradation-pneus]] et le [[projet-plancher]].
-=== zettelkasten | 03_Resources | La méthode Zettelkasten | ressource | permanent | 2026-10-15 | methode
-Une idée par note, écrite avec tes mots, reliée à d’autres notes. Les liens comptent plus que les dossiers.
-
-- Note éclair : capture brute dans l’inbox
-- Note permanente : idée reformulée et reliée
-
-Exemple de note permanente : [[aero-base]]. Modèle : [[tpl-zettel]].
-=== daily-2026-11-12 | 05_Daily | 2026-11-12 | daily | actif | 2026-11-12 | journal
-## Journal
-- Revu la corrélation du [[projet-plancher]]
-- Capturé [[idee-diffuseur]]
-
-## À faire demain
-- [ ] Préparer le point stratégie
-=== tpl-zettel | 90_Templates | Modèle : Zettel | template | permanent | 2026-10-15 | template
-Modèle Templater pour une note atomique.
-
-~~~
----
-type: zettel
-status: draft
-date: <% tp.date.now("YYYY-MM-DD") %>
-tags: []
----
-~~~
-
-Règle : une idée, une note. Voir [[zettelkasten]].
-=== ers | 02_Areas | Récupération d’énergie (ERS) | zettel | permanent | 2026-11-04 | groupe-motopropulseur
-Le MGU-K récupère l’énergie au freinage puis la restitue à l’accélération. La batterie limite ce qu’on peut stocker et déployer sur un tour.
-
-- Plus on freine fort, plus la récupération est élevée
-- Le déploiement se planifie tour par tour
-
-Données associées : [[telemetrie]] et [[freinage]]. Impact course : [[strategie-arrets]].
-=== freinage | 02_Areas | Freinage et refroidissement | zettel | permanent | 2026-11-04 | freins
-Les disques en carbone fonctionnent à très haute température, jusqu’à plus de 1 000 °C. Les conduits de refroidissement coûtent de la traînée : tout est un compromis avec [[aero-base]].
-
-Voir aussi [[ers]] et [[setup]].
-=== suspension | 02_Areas | Suspension et garde au sol | zettel | permanent | 2026-11-05 | mecanique
-La suspension contrôle la hauteur de caisse, donc la qualité de l’effet de sol. Une voiture trop basse gagne en appui mais risque le [[porpoising]].
-
-Réglages liés : [[setup]]. Contexte : [[effet-de-sol]].
-=== setup | 02_Areas | Réglages de la voiture (setup) | zettel | permanent | 2026-11-05 | setup
-Le setup combine ailerons, hauteur de caisse, barres antiroulis et pressions de pneus.
-
-- Se prépare au [[simulateur]] avant la piste
-- Se valide avec la [[telemetrie]]
-
-Dépend de [[suspension]], [[aero-base]] et [[degradation-pneus]].
-=== simulateur | 02_Areas | Simulateur de pilotage | zettel | permanent | 2026-11-06 | outils
-Le simulateur permet d’essayer un setup sans rouler. Sa valeur dépend de la corrélation avec la piste.
-
-Lié à [[setup]], [[soufflerie]] et [[telemetrie]].
-=== soufflerie | 02_Areas | Soufflerie et corrélation | zettel | permanent | 2026-11-06 | aero,outils
-Une maquette à échelle réduite roule sur un tapis dans la soufflerie. La corrélation vérifie que les mesures collent avec la [[cfd]] puis avec la piste.
-
-Utilisée dans le [[projet-plancher]]. Cadre : [[reglement]].
-=== cfd | 02_Areas | CFD : simulation du flux | zettel | permanent | 2026-11-07 | aero,outils
-La CFD résout les équations du fluide sur un maillage. Un maillage plus fin donne plus de précision, mais coûte plus de calcul.
-
-Bases : [[aero-base]]. Validation : [[soufflerie]].
-=== reglement | 02_Areas | Règlement technique | zettel | permanent | 2026-11-07 | fia
-Chaque évolution doit rester conforme au règlement de la FIA. Une idée brillante hors règlement ne vaut rien.
-
-Concerne le [[projet-plancher]] et la [[soufflerie]].
-=== radio | 02_Areas | Communication radio | zettel | permanent | 2026-11-08 | course
-Les messages doivent être courts et sans ambiguïté. Un ordre clair vaut mieux qu’une longue explication.
-
-Sert [[strategie-arrets]], [[meteo]] et [[voiture-securite]].
-=== meteo | 02_Areas | Météo et température de piste | zettel | permanent | 2026-11-08 | course
-La température de piste change le grip et la [[degradation-pneus]]. La pluie bouleverse la [[strategie-arrets]].
-
-Information à relayer par [[radio]].
-=== voiture-securite | 02_Areas | Voiture de sécurité | zettel | permanent | 2026-11-09 | course
-Une neutralisation réduit le coût d’un arrêt, car le peloton roule lentement. Il faut décider vite : on rentre ou on reste en piste ?
-
-Décision liée à [[strategie-arrets]] et [[radio]].
-=== carburant | 02_Areas | Gestion du carburant | zettel | permanent | 2026-11-09 | course
-La voiture s’allège au fil des tours, ce qui améliore les chronos et masque la [[degradation-pneus]]. D’où la correction carburant dans l’analyse de la [[telemetrie]].
-=== boite | 02_Areas | Boîte de vitesses | zettel | permanent | 2026-11-10 | mecanique
-Les changements de rapport doivent être les plus rapides possible. L’étagement se choisit circuit par circuit avec le [[setup]].
-=== idee-simulation | 00_Inbox | Idée : tester le diffuseur au simulateur | capture | inbox | 2026-11-12 | idee,aero
-- [ ] Voir si le [[simulateur]] reflète l’effet du diffuseur ([[idee-diffuseur]])
-- [ ] Comparer avec la [[cfd]]
-=== daily-2026-11-11 | 05_Daily | 2026-11-11 | daily | actif | 2026-11-11 | journal
-## Journal
-- Relu [[effet-de-sol]] avant la réunion aéro
-- Noté les leviers du [[porpoising]]
+Voir [[comment-ca-marche]].
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -1471,6 +1311,7 @@ function open(id){const n=byKey[id.toLowerCase()];if(!n)return close();learn(n);
   $('#nt').innerHTML=`<div class="pn-tools">
       <button type="button" id="bExpMd">Export MD</button>
       <button type="button" id="bFocusNet">Focus reseau</button>
+      <button type="button" id="bSyn">Synthèse IA</button>
       <button type="button" id="bCopyLink">Copier id</button>
     </div>
     <h1>${esc(n.title)}</h1>
@@ -1482,7 +1323,7 @@ function open(id){const n=byKey[id.toLowerCase()];if(!n)return close();learn(n);
       <dt>Degre</dt><dd>${(n.links.length+n.back.length)} liens</dd>
       <dt>Tags</dt><dd>${n.tags.length?n.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join(''):'—'}</dd>
     </dl>`
-    +md(n.body)+(window.discHTML?window.discHTML(n):'')
+    +md(n.body)+(window.synHTML?window.synHTML(n):'')+(window.discHTML?window.discHTML(n):'')
     +(n.links.length?`<h2>Liens sortants</h2><ul>${n.links.map(i=>{const x=byKey[i]||{id:i,title:i};return`<li><a class="wl" href="#${x.id}">${esc(x.title||i)}</a></li>`}).join('')}</ul>`:'')
     +(n.back.length?`<h2>Liens entrants</h2><ul>${n.back.map(b=>`<li><a class="wl" href="#${b.id}">${esc(b.title)}</a></li>`).join('')}</ul>`:'');
   const be=$('#bExpMd');if(be)be.onclick=()=>{const blob=new Blob([`---\ntype: ${n.type}\nstatus: ${n.status}\ndate: ${n.date}\ntags: [${n.tags.join(', ')}]\n---\n\n# ${n.title}\n\n${n.body}`],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(n.id||'note')+'.md';a.click();URL.revokeObjectURL(a.href)};
@@ -1670,7 +1511,7 @@ $('#bnew').onclick=()=>$('#dn').showModal();
 $('#fn').onsubmit=()=>{const title=$('#nti').value.trim();if(!title)return;
   const id=slug(title)||'note-'+Date.now(),loc=(store.get('loc')||[]).filter(n=>n.id!=id);
   loc.push({id,dir:$('#ndr').value.trim(),title,type:'note',status:'inbox',date:new Date().toISOString().slice(0,10),tags:[],body:$('#nbd').value.trim()});
-  store.set('loc',loc);$('#fn').reset();load();setTimeout(()=>location.hash=id,400)};
+  store.set('loc',loc);$('#fn').reset();load();setTimeout(()=>location.hash=id,400);if(store.get('autoSyn')!==0)setTimeout(()=>window.SYN_AI&&byKey[id]&&window.SYN_AI.synth(byKey[id],1),2500)};
 const say=(m,b)=>{const a=$('#ans');a.hidden=false;a.classList.toggle('busy',!!b);a.textContent=m};
 $('#bsync').onclick=async()=>{
   if(!/^[\w.-]+\/[\w.-]+$/.test(cfg.repo||''))return $('#bcfg').click();
@@ -1941,7 +1782,30 @@ $('#aiCtx').parentNode.insertAdjacentHTML('afterend','<label style="display:flex
 $('#expOn').onchange=e=>store.set('exp',+e.target.checked);$('#expN').onchange=e=>store.set('expN',+e.target.value);
 $('#bcfg').addEventListener('click',()=>{$('#expOn').checked=XO();$('#expN').value=XN()});
 hud(A().on?'…':'off');if(A().on)setTimeout(test,1500);setInterval(()=>{if(A().on&&!document.hidden)test()},30000);
-window.SYN_AI={ask:askAI,test};
+/* ---- Synthèse : web (Wikipédia, HN, OpenAlex) puis Ollama analyse ---- */
+async function chat(msgs,onTok){const a=A();ctl=new AbortController();const r=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:.3,num_ctx:4096}})});if(!r.ok)throw new Error(r.status==404?'modèle introuvable : ollama pull '+a.model:'erreur '+r.status);
+ const rd=r.body.getReader(),dc=new TextDecoder();let buf='',out='',last=0;for(;;){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});const L=buf.split('\n');buf=L.pop();for(const l of L){if(!l.trim())continue;const j=JSON.parse(l);if(j.error)throw new Error(j.error);if(j.message)out+=j.message.content}const t=performance.now();if(t-last>80){last=t;onTok(out)}}return out}
+const SY=()=>store.get('sy')||{};
+window.synHTML=n=>{const s=SY()[n.id];return s?'<h2>Synthèse IA</h2>'+md(s.t)+'<p class="hint">'+new Date(s.d).toLocaleDateString('fr-FR')+'</p>':''};
+async function synth(n,quiet){
+ if(busy)return;if(!A().on)return quiet?0:show('Synthèse','Active l’IA (Ollama) dans les réglages.');
+ const T=n?[n]:real().filter(x=>x.type!='template').slice(0,8);if(!T.length)return show('Synthèse','Le coffre est vide.');
+ busy=true;hud('analyse');render('**1/2** Recherche sur Wikipédia et le web…',true);
+ try{const parts=[];
+  for(const x of T){const q=await plan(x),R=(await Promise.allSettled([WK(q),WK(q,'en'),HN(q),OA(q)])).map(r=>r.value).filter(Boolean);
+   R.slice(0,3).forEach(w=>dAdd(x,{t:cut(w.x.split(/(?<=[.!?])\s/)[0],240),u:w.u,s:w.s,k:w.k,q,d:Date.now()}));if(R[0])flow(x,Math.random()*CORT|0,cut(R[0].x,140),R[0].k);parts.push({x,R})}
+  render('**2/2** Ollama analyse…',true);
+  const ctx=parts.map(p=>'NOTE « '+p.x.title+' » : '+plain(p.x.body).slice(0,800)+'\nWEB :\n'+(p.R.slice(0,3).map(w=>'- ('+w.k+') '+w.s+' : '+w.x.slice(0,450)).join('\n')||'- rien trouvé')).join('\n\n'),
+   oth=real().filter(r=>!T.includes(r)).slice(0,25).map(r=>r.title).join(', '),
+   out=await chat([{role:'system',content:'Tu es Synapse, analyste de notes. Réponds en français, en Markdown. N’invente rien : appuie-toi uniquement sur les notes et les sources web fournies.'},{role:'user',content:ctx+'\n\nAutres notes du coffre : '+(oth||'aucune')+'\n\nÉcris une synthèse avec exactement ces titres :\n## Résumé\n(3 phrases maximum)\n## Ce que le web ajoute\n(3 puces maximum, source entre parenthèses)\n## Liens possibles\n(notes du coffre à relier, écrites [[titre]])\n## À creuser\n(2 questions)'}],t=>render(t,true)),
+   y=SY();y[n?n.id:'_coffre']={t:out,d:Date.now()};store.set('sy',y);up=true;hud('prêt');
+  show('Synthèse · '+(n?n.title:'coffre'),(out.trim()||'Réponse vide.')+'\n\n**Sources web**\n'+(parts.flatMap(p=>p.R.slice(0,3)).map(w=>'- '+w.k+' · '+w.s).join('\n')||'- aucune'));
+  if(n&&isOpen&&location.hash.slice(1)==n.id)open(n.id)}
+ catch(e){hud('hors ligne');if(e.name!=='AbortError')render(e instanceof TypeError?help():'**Erreur IA :** '+e.message,false)}
+ finally{busy=false;ctl=null}}
+$('#aiBtn').insertAdjacentHTML('afterend','<button type="button" id="synBtn" style="margin:8px 0 0 8px">Synthèse du coffre</button>');$('#synBtn').onclick=()=>synth(null);
+document.addEventListener('click',e=>{if(e.target.id==='bSyn'){const n=byKey[location.hash.slice(1).toLowerCase()];if(n)synth(n)}});
+window.SYN_AI={ask:askAI,test,synth};
 })();
 </script>
 </body>

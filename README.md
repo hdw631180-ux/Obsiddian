@@ -56,3 +56,11 @@ L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'auto
 - L'info voyage sur la fibre de la couleur de la cellule dans une étiquette (source + texte), puis arrive sur la note ; le **Flux du cerveau** (bas gauche, écrans larges) liste les dernières découvertes.
 - Réglages : liste des modèles installés, bascule automatique si le modèle choisi est absent, 1 à 4 cellules en vol simultanées.
 - Conseil : `qwen2.5:0.5b` est très limité ; préfère `qwen2.5:3b` ou `llama3.2:3b`.
+
+## V9 : cerveau généraliste + mobile
+
+- Le coffre n’est plus limité à un sujet : il démarre avec 3 notes d’accueil, tu écris sur ce que tu veux.
+- **Synthèse IA** : bouton dans une note (ou « Synthèse du coffre » dans le chatbot). Le navigateur cherche sur Wikipédia FR/EN, Hacker News et OpenAlex, puis Ollama écrit : Résumé, Ce que le web ajoute, Liens possibles, À creuser. La synthèse est gardée sur la note.
+- Chaque **nouvelle note** déclenche automatiquement cette analyse.
+- **Version mobile** : `m.html` (sans 3D, légère, installable sur l’écran d’accueil). Un écran étroit est redirigé automatiquement ; `index.html?full` force la version 3D. Les notes sont partagées avec la version 3D (même navigateur).
+- **Ollama depuis le téléphone** : `localhost` désigne le téléphone. Lance Ollama sur le PC avec `OLLAMA_HOST=0.0.0.0` et `OLLAMA_ORIGINS=*`, puis mets `http://IP-DU-PC:11434` dans Réglages. Une page https (GitHub Pages) ne peut pas appeler un Ollama en http : ouvre `m.html` depuis le PC (`python -m http.server 8000`, puis `http://IP-DU-PC:8000/m.html`) ou passe par un tunnel https (Tailscale, Cloudflare).

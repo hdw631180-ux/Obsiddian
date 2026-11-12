@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json"><title>Synapse</title>
+<style>
+:root{color-scheme:dark;--ln:rgba(255,255,255,.2);--mu:rgba(255,255,255,.6)}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#000;color:#fff;font:16px/1.5 system-ui,sans-serif}
+body{display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+header{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--ln)}
+header b{letter-spacing:.35em;font-weight:300;flex:1}#dot{width:10px;height:10px;border-radius:50%;background:#ff3b3b}#dot.ok{background:#6fe8ff}#dot.th{background:#ff4fa3}
+main{flex:1;overflow:auto;padding:16px}section{display:none}section.on{display:block}
+nav{display:flex;border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom)}nav button{flex:1;border:0;padding:14px 4px;background:none;color:var(--mu);font-size:13px}nav button.on{color:#fff;box-shadow:inset 0 2px #fff}
+input,textarea,select{width:100%;background:#0b0b0b;border:1px solid var(--ln);color:#fff;padding:12px;font:inherit;border-radius:8px;margin:0 0 10px}
+.b{background:#fff;color:#000;border:0;border-radius:8px;padding:12px 16px;font:inherit;font-weight:600;width:100%;margin:0 0 10px}.b.g{background:none;color:#fff;border:1px solid var(--ln)}.b:disabled{opacity:.5}
+.card{border:1px solid var(--ln);border-radius:10px;padding:12px 14px;margin:0 0 10px}.card h3{margin:0 0 4px;font-size:16px}.card small,.hint{color:var(--mu);font-size:13px}
+.md h2{font-size:17px;margin:1.2em 0 .3em}.md p,.md ul{margin:0 0 .8em}.md a{color:#6fe8ff}.tg{border:1px solid var(--mu);border-radius:99px;padding:0 8px;font-size:12px;margin-right:6px}
+</style></head><body>
+<header><b>SYNAPSE</b><span class="hint" id="st">…</span><i id="dot"></i></header>
+<main>
+<section id="t-notes" class="on"><input id="sr" type="search" placeholder="Chercher une note"><div id="list"></div><div id="det" hidden></div></section>
+<section id="t-add"><input id="nt" placeholder="Titre (ex : Apprendre le piano)"><textarea id="nb" rows="8" placeholder="Écris ta note : l’IA ira chercher sur Wikipédia et le web, puis fera la synthèse."></textarea><button class="b" id="sv">Envoyer et analyser</button><p class="hint" id="addst"></p></section>
+<section id="t-ask"><button class="b g" id="gs">Synthèse de tout le coffre</button><textarea id="q" rows="3" placeholder="Pose une question (web + tes notes)"></textarea><button class="b" id="go">Demander</button><div id="out" class="md"></div></section>
+<section id="t-cfg"><label class="hint">Adresse d’Ollama</label><input id="url" placeholder="http://192.168.1.20:11434"><label class="hint">Modèle</label><input id="mod" placeholder="qwen2.5:3b"><button class="b" id="tst">Enregistrer et tester</button><p class="hint" id="cst"></p>
+<p class="hint">Sur téléphone, « localhost » est le téléphone lui-même. Mets l’IP de ton PC (Ollama lancé avec OLLAMA_HOST=0.0.0.0 et OLLAMA_ORIGINS=*). Une page https (GitHub Pages) ne peut pas appeler un Ollama en http : ouvre plutôt cette page depuis ton PC (python -m http.server 8000 puis http://IP-du-PC:8000/m.html) ou utilise un tunnel https (Tailscale, Cloudflare).</p>
+<button class="b g" onclick="location.href='index.html?full'">Version 3D complète</button></section>
+</main>
+<nav><button data-t="notes" class="on">Notes</button><button data-t="add">Ajouter</button><button data-t="ask">Demander</button><button data-t="cfg">Réglages</button></nav>
+<script>
+const $=s=>document.querySelector(s),ls=localStorage;let U='';try{const S=JSON.parse(ls.synapse_session||'null');if(S&&S.user)U='u_'+S.user+'_'}catch{}
+const G=k=>{try{return JSON.parse(ls.getItem(U+k))}catch{return null}},P=(k,v)=>ls.setItem(U+k,JSON.stringify(v));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const md=t=>esc(t).replace(/^## (.*)$/gm,'<h2>$1</h2>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g,'<i>$1</i>').replace(/^[-*] (.*)$/gm,'<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g,m=>'<ul>'+m+'</ul>').replace(/\n{2,}/g,'<br><br>');
+const A=()=>({on:1,url:'http://localhost:11434',model:'qwen2.5:3b',...(G('ai')||{})}),base=()=>A().url.trim().replace(/\/+$/,'');
+const cut=(s,n)=>{s=(s||'').replace(/\s+/g,' ').trim();return s.length>n?s.slice(0,n-1)+'…':s};
+const J=async(u,ms=7000)=>{const r=await fetch(u,{signal:AbortSignal.timeout(ms)});if(!r.ok)throw 0;return r.json()};
+const WK=async(q,l='fr')=>{const j=await J('https://'+l+'.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent(q)+'&gsrlimit=1&prop=extracts&exintro=1&explaintext=1&exsentences=4&format=json&origin=*'),p=Object.values((j.query||{}).pages||{})[0];return p&&p.extract?{s:p.title,x:p.extract,u:'https://'+l+'.wikipedia.org/?curid='+p.pageid,k:'Wikipédia '+l.toUpperCase()}:null};
+const HN=async q=>{const j=await J('https://hn.algolia.com/api/v1/search?tags=story&hitsPerPage=4&query='+encodeURIComponent(q)),h=(j.hits||[]).find(x=>x.title&&(x.points||0)>15);return h?{s:h.title,x:h.title+' ('+h.points+' points sur Hacker News)',u:h.url||'https://news.ycombinator.com/item?id='+h.objectID,k:'Hacker News'}:null};
+const OA=async q=>{const j=await J('https://api.openalex.org/works?search='+encodeURIComponent(q)+'&per-page=3&sort=cited_by_count:desc&select=id,title,publication_year,cited_by_count,doi'),w=(j.results||[]).find(x=>x.title);return w?{s:w.title,x:'Étude « '+w.title+' » ('+w.publication_year+', citée '+w.cited_by_count+' fois).',u:w.doi||w.id,k:'OpenAlex'}:null};
+const web=async q=>(await Promise.allSettled([WK(q),WK(q,'en'),HN(q),OA(q)])).map(r=>r.value).filter(Boolean);
+const notes=()=>[...(G('gh')||[]),...(G('loc')||[])];
+const dot=c=>{$('#dot').className=c};
+async function chat(msgs,on){const a=A(),r=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:.3,num_ctx:4096}})});if(!r.ok)throw new Error(r.status==404?'modèle absent : ollama pull '+a.model:'erreur '+r.status);const rd=r.body.getReader(),dc=new TextDecoder();let b='',o='';for(;;){const{done,value}=await rd.read();if(done)break;b+=dc.decode(value,{stream:true});const L=b.split('\n');b=L.pop();for(const l of L){if(!l.trim())continue;const j=JSON.parse(l);if(j.error)throw new Error(j.error);if(j.message){o+=j.message.content;on(o)}}}return o}
+async function gen(p){const a=A(),r=await fetch(base()+'/api/generate',{method:'POST',body:JSON.stringify({model:a.model,prompt:p,stream:false,options:{temperature:.3,num_predict:24}}),signal:AbortSignal.timeout(60000)});return((await r.json()).response||'').split('\n')[0].replace(/["«»]/g,'').trim()}
+const plan=async n=>{try{const q=await gen('Note « '+n.title+' » : '+n.body.slice(0,260)+'\n\nDonne UNE requête de recherche (2 à 5 mots) pour enrichir cette note. Réponds uniquement par la requête.');return q.length>2&&q.length<60?q:n.title}catch{return n.title}};
+const SYS='Tu es Synapse, analyste de notes. Réponds en français, en Markdown. N’invente rien : appuie-toi uniquement sur les notes et les sources web fournies.';
+async function synth(T,key,el){dot('th');el.innerHTML='<p class="hint">1/2 Recherche sur Wikipédia et le web…</p>';
+ try{const parts=[],D=G('disc')||{};for(const x of T){const q=await plan(x),R=await web(q);D[x.id]=[...(D[x.id]||[]),...R.slice(0,3).map(w=>({t:cut(w.x.split(/(?<=[.!?])\s/)[0],240),u:w.u,s:w.s,k:w.k,d:Date.now()}))].slice(-12);parts.push({x,R})}P('disc',D);
+  el.innerHTML='<p class="hint">2/2 Ollama analyse…</p>';
+  const ctx=parts.map(p=>'NOTE « '+p.x.title+' » : '+p.x.body.slice(0,800)+'\nWEB :\n'+(p.R.slice(0,3).map(w=>'- ('+w.k+') '+w.s+' : '+w.x.slice(0,450)).join('\n')||'- rien trouvé')).join('\n\n'),
+   o=await chat([{role:'system',content:SYS},{role:'user',content:ctx+'\n\nÉcris une synthèse avec exactement ces titres :\n## Résumé\n(3 phrases maximum)\n## Ce que le web ajoute\n(3 puces, source entre parenthèses)\n## Liens possibles\n(autres notes à relier)\n## À creuser\n(2 questions)'}],t=>el.innerHTML=md(t)),y=G('sy')||{};
+  y[key]={t:o,d:Date.now()};P('sy',y);el.innerHTML=md(o)+'<h2>Sources</h2><ul>'+parts.flatMap(p=>p.R.slice(0,3)).map(w=>'<li><a href="'+esc(w.u)+'" target="_blank" rel="noopener">'+esc(w.k+' · '+w.s)+'</a></li>').join('')+'</ul>';dot('ok')}
+ catch(e){dot('');el.innerHTML='<p>'+(e instanceof TypeError?'Ollama injoignable : vérifie l’adresse dans Réglages.':esc(e.message))+'</p>'}}
+function list(){const f=($('#sr').value||'').toLowerCase(),L=notes().filter(n=>(n.title+n.body).toLowerCase().includes(f)).reverse();$('#list').innerHTML=L.length?L.map(n=>'<div class="card" data-id="'+esc(n.id)+'"><h3>'+esc(n.title)+'</h3><small>'+esc(cut(n.body,90))+'</small></div>').join(''):'<p class="hint">Aucune note. Ajoute-en une depuis l’onglet Ajouter.</p>'}
+function detail(id){const n=notes().find(x=>x.id==id);if(!n)return;const D=(G('disc')||{})[id]||[],y=(G('sy')||{})[id];$('#list').hidden=$('#sr').hidden=true;const d=$('#det');d.hidden=false;
+ d.innerHTML='<button class="b g" id="bk">← Retour</button><h2>'+esc(n.title)+'</h2><div class="md">'+md(n.body)+'</div><button class="b" id="an">Analyser (web + Ollama)</button><div class="md" id="sy">'+(y?md(y.t):'')+'</div>'+(D.length?'<h3>Découvertes du web</h3>'+D.slice().reverse().map(x=>'<div class="card"><span class="tg">'+esc(x.k)+'</span>'+esc(x.t)+' <a href="'+esc(x.u)+'" target="_blank" rel="noopener" style="color:#6fe8ff">'+esc(x.s)+'</a></div>').join(''):'');
+ $('#bk').onclick=()=>{d.hidden=true;$('#list').hidden=$('#sr').hidden=false};$('#an').onclick=()=>synth([n],id,$('#sy'))}
+$('#list').onclick=e=>{const c=e.target.closest('.card');if(c)detail(c.dataset.id)};$('#sr').oninput=list;
+$('#sv').onclick=()=>{const t=$('#nt').value.trim();if(!t)return;const id=t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'note-'+Date.now(),l=(G('loc')||[]).filter(n=>n.id!=id),n={id,dir:'00_Inbox',title:t,type:'note',status:'inbox',date:new Date().toISOString().slice(0,10),tags:[],body:$('#nb').value.trim()};l.push(n);P('loc',l);$('#nt').value=$('#nb').value='';list();$('#addst').textContent='Note enregistrée, analyse en cours…';document.querySelector('[data-t=notes]').click();detail(id);if(A().on)synth([n],id,$('#sy'))};
+$('#go').onclick=async()=>{const q=$('#q').value.trim();if(!q)return;const o=$('#out');dot('th');o.innerHTML='<p class="hint">Recherche…</p>';
+ try{const w=(await web(q)).slice(0,3),w2=q.toLowerCase().split(/\W+/).filter(k=>k.length>2),ctx=notes().filter(n=>w2.some(k=>(n.title+n.body).toLowerCase().includes(k))).slice(0,4);
+  const t=await chat([{role:'system',content:SYS+(w.length?'\nSources web :\n'+w.map(x=>'- ('+x.k+') '+x.s+' : '+x.x.slice(0,500)).join('\n'):'')+(ctx.length?'\nNotes :\n'+ctx.map(n=>n.title+' : '+n.body.slice(0,400)).join('\n'):'')},{role:'user',content:q}],x=>o.innerHTML=md(x));o.innerHTML=md(t)+'<h2>Sources</h2><ul>'+w.map(x=>'<li><a href="'+esc(x.u)+'" target="_blank" rel="noopener">'+esc(x.k+' · '+x.s)+'</a></li>').join('')+'</ul>';dot('ok')}
+ catch(e){dot('');o.innerHTML='<p>'+(e instanceof TypeError?'Ollama injoignable : vérifie les Réglages.':esc(e.message))+'</p>'}};
+$('#gs').onclick=()=>{const T=notes().slice(-8);if(!T.length)return $('#out').textContent='Le coffre est vide.';synth(T,'_coffre',$('#out'))};
+$('#tst').onclick=async()=>{P('ai',{...A(),url:$('#url').value.trim()||A().url,model:$('#mod').value.trim()||A().model});const s=$('#cst');s.textContent='test…';try{const j=await J(base()+'/api/tags',4000),L=(j.models||[]).map(m=>m.name);s.textContent=L.includes(A().model)||L.some(x=>x.startsWith(A().model))?'Connecté, modèle prêt.':'Connecté. Modèles : '+L.join(', ');ping()}catch{s.textContent='Injoignable (adresse, OLLAMA_HOST, OLLAMA_ORIGINS, http/https ?)';dot('')}};
+async function ping(){try{await J(base()+'/api/tags',3000);dot('ok');$('#st').textContent=A().model}catch{dot('');$('#st').textContent='hors ligne'}}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button,section').forEach(x=>x.classList.remove('on'));b.classList.add('on');$('#t-'+b.dataset.t).classList.add('on')});
+$('#url').value=A().url;$('#mod').value=A().model;list();ping();
+</script></body></html>
