@@ -164,6 +164,46 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 #stafflist .u{font-weight:500}
 #stafflist .d{color:var(--mu);font-size:12px}
 #staffcode{margin-top:8px}
+/* ===== Nouvelles UI ===== */
+#filters{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:4;max-height:60vh;overflow:auto;scrollbar-width:thin}
+#filters[hidden]{display:none}
+.fchip{padding:4px 10px;font-size:11px;letter-spacing:.04em;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);border:1px solid var(--ln);color:var(--mu);cursor:pointer;text-align:left;white-space:nowrap}
+.fchip.on,.fchip:hover{border-color:#fff;color:#fff}
+#hist{display:flex;gap:4px}
+#hist button{padding:5px 10px;font-size:14px}
+#sres{position:fixed;left:50%;top:90px;transform:translateX(-50%);width:min(420px,92vw);max-height:40vh;overflow:auto;background:rgba(0,0,0,.92);border:1px solid var(--ln);padding:8px 0;z-index:6;display:none}
+#sres.on{display:block}
+#sres button{display:block;width:100%;text-align:left;border:0;padding:8px 14px;font-size:13px;background:none;cursor:pointer}
+#sres button:hover{background:rgba(255,255,255,.08)}
+#sres .meta{color:var(--mu);font-size:11px;margin-left:6px}
+#minimap{position:fixed;right:14px;bottom:90px;width:120px;height:90px;border:1px solid var(--ln);background:rgba(0,0,0,.7);z-index:3;pointer-events:none;overflow:hidden}
+#minimap canvas{width:100%;height:100%;display:block}
+#dropzone{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.75);border:2px dashed #fff;font-size:20px;letter-spacing:.08em;pointer-events:none}
+#dropzone.on{display:flex}
+#themeBtn{padding:5px 10px}
+.ans-card{border:1px solid var(--ln);padding:10px 14px;margin:8px 0;cursor:pointer;transition:border-color .2s}
+.ans-card:hover{border-color:#fff}
+.ans-card .t{font-weight:500}
+.ans-card .m{font-size:12px;color:var(--mu);margin-top:2px}
+#custQ{margin-top:16px}
+#custQ textarea{min-height:60px}
+#statsPanel{font:13px/1.6 var(--mo);color:var(--mu);margin-top:8px}
+body.light{background:#f4f1ea;color:#1a1a1a}
+body.light #auth,body.light #authbox,body.light dialog,body.light #pn,body.light #ans,body.light #qp,body.light #sres{background:rgba(244,241,234,.95);color:#1a1a1a}
+body.light button,body.light input,body.light textarea,body.light select{color:#1a1a1a;border-color:rgba(0,0,0,.25)}
+body.light button:hover{border-color:#000;background:rgba(0,0,0,.05)}
+body.light .chip.on{background:#1a1a1a;color:#f4f1ea}
+body.light #cv{filter:invert(1) hue-rotate(180deg)}
+body.light .vg{background:radial-gradient(ellipse at 50% 46%,transparent 40%,rgba(244,241,234,.85) 100%)}
+body.light .ring{border-color:rgba(0,0,0,.2)}
+body.light .c{border-color:rgba(0,0,0,.4)}
+body.light .lb{text-shadow:0 0 6px #f4f1ea;color:#1a1a1a}
+body.light #userbar,body.light #stats{color:rgba(0,0,0,.55)}
+#kbhelp{position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8)}
+#kbhelp.on{display:flex}
+#kbhelp .box{width:min(420px,92vw);border:1px solid var(--ln);padding:24px;background:#000}
+#kbhelp kbd{border:1px solid var(--ln);padding:1px 6px;font:12px var(--mo);margin-right:8px}
+#kbhelp .row{display:flex;align-items:center;margin:8px 0;font-size:14px}
 </style>
 </head>
 <body>
@@ -201,10 +241,38 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
 <div class="vg"></div><div id="labels"></div>
 <header id="top">
-<div><div class="brand">Synapse</div><div id="stats"></div><div id="userbar"></div></div>
-<input id="s" type="search" placeholder="Rechercher une note" aria-label="Rechercher une note">
-<div id="acts"><label class="tr" title="Transparence">◐<input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label><button id="bsync">Synchroniser</button><button id="bnew">Nouvelle note</button><button id="bcfg">Réglages</button><button id="bstaff">Staff</button><button id="blogout">Déconnexion</button></div>
+<div><div class="brand">Synapse</div><div id="stats"></div><div id="userbar"></div><div id="statsPanel"></div></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:stretch">
+  <div style="display:flex;gap:6px;align-items:center">
+    <div id="hist"><button type="button" id="hback" title="Précédent (Alt+←)">←</button><button type="button" id="hfwd" title="Suivant (Alt+→)">→</button></div>
+    <input id="s" type="search" placeholder="Rechercher une note  (/ )" aria-label="Rechercher une note" style="width:220px;margin:0">
+  </div>
+  <div id="sres" role="listbox" aria-label="Résultats de recherche"></div>
+</div>
+<div id="acts">
+  <label class="tr" title="Transparence">◐<input id="tr" type="range" min="8" max="100" value="100" aria-label="Transparence"></label>
+  <button type="button" id="themeBtn" title="Thème clair / sombre">◑</button>
+  <button type="button" id="bfilter" title="Filtres">Filtres</button>
+  <button id="bsync">Synchroniser</button>
+  <button id="bnew">Nouvelle note</button>
+  <button id="bcfg">Réglages</button>
+  <button id="bstaff">Staff</button>
+  <button id="blogout">Déconnexion</button>
+</div>
 </header>
+<div id="filters" hidden></div>
+<div id="minimap" aria-hidden="true"><canvas id="mm"></canvas></div>
+<div id="dropzone">Dépose des fichiers .md pour les importer</div>
+<div id="kbhelp"><div class="box">
+  <strong>Raccourcis clavier</strong>
+  <div class="row"><kbd>/</kbd> Recherche</div>
+  <div class="row"><kbd>N</kbd> Nouvelle note</div>
+  <div class="row"><kbd>Esc</kbd> Fermer panneau / recherche</div>
+  <div class="row"><kbd>Alt</kbd>+<kbd>←</kbd> Note précédente</div>
+  <div class="row"><kbd>Alt</kbd>+<kbd>→</kbd> Note suivante</div>
+  <div class="row"><kbd>?</kbd> Cette aide</div>
+  <menu style="margin-top:18px;display:flex;justify-content:flex-end"><button type="button" id="kbclose">Fermer</button></menu>
+</div></div>
 <div id="bot"><div id="ans" hidden></div><div id="dock" role="toolbar" aria-label="Cellules"></div></div>
 <div id="qp" hidden><button type="button" id="qx">Fermer</button><div class="qt">Questions sur ton coffre</div><div id="ser" aria-label="Séries de questions"></div><div id="qs"></div><form id="ask"><input id="q" placeholder="Filtre les questions ou tape un mot à chercher" autocomplete="off" aria-label="Filtrer les questions"></form></div>
 <aside id="pn" aria-label="Note"><button id="x" type="button">Fermer</button><div id="nt"></div></aside>
@@ -213,6 +281,18 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 <p class="hint">Le chatbot répond à des questions prédéfinies, calculées sur tes notes dans ce navigateur : aucune IA, aucune clé, rien n’est envoyé.</p>
 <label for="rp">Dépôt GitHub du coffre (public)</label><input id="rp" placeholder="pseudo/mon-coffre">
 <label for="dr">Dossier à lire (facultatif)</label><input id="dr" placeholder="vide : tout le dépôt">
+<div id="custQ">
+  <label>Questions personnalisées (une par ligne : Question | réponse libre ou laisse vide)</label>
+  <textarea id="cqlist" rows="4" placeholder="Combien de notes aéro ?&#10;Notes créées cette semaine |"></textarea>
+  <p class="hint">Elles apparaissent dans la série « Perso » du chatbot.</p>
+</div>
+<label>Sauvegarde du coffre</label>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+  <button type="button" id="bexport">Exporter JSON</button>
+  <button type="button" id="bimport">Importer JSON</button>
+  <input id="importFile" type="file" accept=".json,application/json" hidden>
+</div>
+<p class="hint">L’export contient tes notes locales, cellules et réglages (pas les comptes).</p>
 <menu><button type="button" class="cl">Annuler</button><button>Enregistrer</button></menu>
 </form></dialog>
 <dialog id="dn"><form id="fn" method="dialog">
@@ -483,16 +563,21 @@ function enterApp(user){
   TR=store.get('tr')??1;
   $('#tr').value=Math.round(TR*100);
   applyTR&&applyTR();
+  lightMode=store.get('theme')==='light';
+  applyTheme&&applyTheme();
   cells=store.get('cells');
   if(!Array.isArray(cells))cells=[
    {sign:'⌂',name:'Accueil',kind:'note',val:'accueil'},
    {sign:'Σ',name:'Résumé',kind:'prompt',val:'Résume le coffre'},
+   {sign:'📅',name:'Journal',kind:'note',val:'daily-'+new Date().toISOString().slice(0,10)},
    {sign:'✦',name:'Mémo',kind:'text',val:'Écris ici ce que tu veux : listes, liens, idées.\n\n- [ ] première tâche'},
    {sign:'↗',name:'GitHub',kind:'link',val:'https://github.com'}];
   syn=store.get('syn')||{};
+  rebuildSeries&&rebuildSeries();
   drawDock&&drawDock();
   load&&load();
   route&&route();
+  updHistBtns&&updHistBtns();
 }
 /* UI login / register */
 $('#tabLogin').onclick=()=>{$('#tabLogin').classList.add('on');$('#tabReg').classList.remove('on');$('#fLogin').hidden=false;$('#fReg').hidden=true;$('#loginErr').textContent='';$('#regErr').textContent=''};
@@ -855,25 +940,142 @@ cv.onpointermove=e=>{ptr={x:e.clientX,y:e.clientY};if(drag){const dx=e.clientX-d
 cv.onpointerup=e=>{if(performance.now()-lm>90)iv.x=iv.y=0;if(drag&&drag.m<6){if(Math.hypot(e.clientX-cubeS.x,e.clientY-cubeS.y)<cubeS.r)openQ();else{const i=pick(e.clientX,e.clientY);if(i>=0)location.hash=N[i].id}}drag=null};
 cv.onwheel=e=>{e.preventDefault();zf=Math.max(.55,Math.min(3,zf*(1+e.deltaY*.001)))};
 
-function open(id){const n=byKey[id.toLowerCase()];if(!n)return close();learn(n);
-  $('#nt').innerHTML=`<h1>${esc(n.title)}</h1><dl class="props"><dt>Type</dt><dd>${esc(n.type)}</dd><dt>Statut</dt><dd>${esc(n.status)}</dd><dt>Date</dt><dd>${esc(n.date)}</dd><dt>Tags</dt><dd>${n.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</dd></dl>`
+/* ---------- Historique de navigation ---------- */
+let navStack=[],navIdx=-1,navLock=false;
+function pushNav(id){if(navLock)return;if(navIdx>=0&&navStack[navIdx]===id)return;navStack=navStack.slice(0,navIdx+1);navStack.push(id);if(navStack.length>50)navStack.shift();navIdx=navStack.length-1;updHistBtns()}
+function updHistBtns(){$('#hback').disabled=navIdx<=0;$('#hfwd').disabled=navIdx>=navStack.length-1}
+$('#hback').onclick=()=>{if(navIdx<=0)return;navLock=true;navIdx--;location.hash=navStack[navIdx];setTimeout(()=>navLock=false,50);updHistBtns()};
+$('#hfwd').onclick=()=>{if(navIdx>=navStack.length-1)return;navLock=true;navIdx++;location.hash=navStack[navIdx];setTimeout(()=>navLock=false,50);updHistBtns()};
+
+function open(id){const n=byKey[id.toLowerCase()];if(!n)return close();learn(n);pushNav(n.id);
+  const exportBtn=`<button type="button" id="bExpMd" style="float:right;margin:0 8px 0 0;font-size:12px">Export MD</button>`;
+  $('#nt').innerHTML=`${exportBtn}<h1>${esc(n.title)}</h1><dl class="props"><dt>Type</dt><dd>${esc(n.type)}</dd><dt>Statut</dt><dd>${esc(n.status)}</dd><dt>Date</dt><dd>${esc(n.date)}</dd><dt>Tags</dt><dd>${n.tags.map(t=>`<span class="tg">${esc(t)}</span>`).join('')}</dd></dl>`
     +md(n.body)+(n.back.length?`<h2>Liens entrants</h2><ul>${n.back.map(b=>`<li><a class="wl" href="#${b.id}">${esc(b.title)}</a></li>`).join('')}</ul>`:'');
+  const be=$('#bExpMd');if(be)be.onclick=()=>{const blob=new Blob([`---\ntype: ${n.type}\nstatus: ${n.status}\ndate: ${n.date}\ntags: [${n.tags.join(', ')}]\n---\n\n# ${n.title}\n\n${n.body}`],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(n.id||'note')+'.md';a.click();URL.revokeObjectURL(a.href)};
   {const nt=$('#nt');nt.classList.remove('sw');void nt.offsetWidth;nt.classList.add('sw')}$('#pn').classList.add('on');$('#pn').scrollTo(0,0);isOpen=true;
-  focus=new Set([n.id,...n.links,...n.back.map(b=>b.id)]);tgt=Math.atan2(-P[n.id].x,P[n.id].z)}
-function close(){$('#pn').classList.remove('on');isOpen=false;focus=null;tgt=null;$('#s').value='';
+  focus=new Set([n.id,...n.links,...n.back.map(b=>b.id)]);tgt=Math.atan2(-P[n.id].x,P[n.id].z);activeFilter=null;drawFilters()}
+function close(){$('#pn').classList.remove('on');isOpen=false;if(!$('#s').value)focus=null;tgt=null;
   if(location.hash)history.replaceState(null,'',location.pathname+location.search)}
 const route=()=>{const h=decodeURIComponent(location.hash.slice(1));h?open(h):close()};
 addEventListener('hashchange',route);
-addEventListener('keydown',e=>{if(e.key=='Escape'){close();$('#ans').hidden=true;$('#qp').hidden=true}});
 $('#x').onclick=close;
-$('#s').oninput=e=>{const q=e.target.value.trim().toLowerCase();
-  focus=q?new Set(N.filter(n=>(n.title+' '+n.tags.join(' ')+' '+n.body).toLowerCase().includes(q)).map(n=>n.id)):null};
-$('#s').onkeydown=e=>{if(e.key=='Enter'&&focus&&focus.size)location.hash=[...focus][0]};
 
-/* ---------- Réglages, nouvelles notes, synchro ---------- */
+/* ---------- Recherche améliorée ---------- */
+function doSearch(q){
+  q=(q||'').trim().toLowerCase();
+  const box=$('#sres');
+  if(!q){box.classList.remove('on');box.innerHTML='';if(!isOpen)focus=null;return}
+  const hits=N.filter(n=>(n.title+' '+n.tags.join(' ')+' '+n.body+' '+n.dir).toLowerCase().includes(q));
+  focus=new Set(hits.map(n=>n.id));
+  box.innerHTML=hits.length?hits.slice(0,40).map(n=>`<button type="button" data-id="${n.id}"><span>${esc(n.title)}</span><span class="meta">${esc(n.dir||'')} ${n.tags.slice(0,3).join(', ')}</span></button>`).join('')+'': '<button type="button" disabled>Aucun résultat</button>';
+  box.classList.add('on');
+  box.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>{location.hash=b.dataset.id;box.classList.remove('on')});
+}
+$('#s').oninput=e=>doSearch(e.target.value);
+$('#s').onkeydown=e=>{if(e.key=='Enter'&&focus&&focus.size){location.hash=[...focus][0];$('#sres').classList.remove('on')}if(e.key=='Escape'){$('#s').value='';doSearch('');$('#s').blur()}};
+document.addEventListener('click',e=>{if(!e.target.closest('#s')&&!e.target.closest('#sres'))$('#sres').classList.remove('on')});
+
+/* ---------- Filtres graphe ---------- */
+let activeFilter=null;
+function drawFilters(){
+  const el=$('#filters');if(!el)return;
+  const dirs=[...new Set(N.map(n=>n.dir||'racine'))].sort();
+  const tags=tally(N.flatMap(n=>n.tags),t=>t).slice(0,12).map(x=>x[0]);
+  el.innerHTML=`<button type="button" class="fchip ${!activeFilter?'on':''}" data-f="">Tout</button>`+
+    dirs.map(d=>`<button type="button" class="fchip ${activeFilter==='d:'+d?'on':''}" data-f="d:${d}">${esc(d)}</button>`).join('')+
+    tags.map(t=>`<button type="button" class="fchip ${activeFilter==='t:'+t?'on':''}" data-f="t:${t}">#${esc(t)}</button>`).join('');
+  el.querySelectorAll('.fchip').forEach(b=>b.onclick=()=>{
+    activeFilter=b.dataset.f||null;
+    if(!activeFilter)focus=null;
+    else if(activeFilter.startsWith('d:'))focus=new Set(N.filter(n=>(n.dir||'racine')===activeFilter.slice(2)).map(n=>n.id));
+    else if(activeFilter.startsWith('t:'))focus=new Set(N.filter(n=>n.tags.includes(activeFilter.slice(2))).map(n=>n.id));
+    drawFilters();
+  });
+}
+$('#bfilter').onclick=()=>{const el=$('#filters');el.hidden=!el.hidden;if(!el.hidden)drawFilters()};
+
+/* ---------- Thème ---------- */
+let lightMode=store.get('theme')==='light';
+function applyTheme(){document.body.classList.toggle('light',lightMode);$('#themeBtn').textContent=lightMode?'◐':'◑';if(currentUser)store.set('theme',lightMode?'light':'dark')}
+$('#themeBtn').onclick=()=>{lightMode=!lightMode;applyTheme()};
+
+/* ---------- Raccourcis clavier ---------- */
+addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  const typing=tag==='input'||tag==='textarea'||e.target.isContentEditable;
+  if(e.key==='Escape'){close();$('#ans').hidden=true;$('#qp').hidden=true;$('#sres').classList.remove('on');$('#kbhelp').classList.remove('on');$('#filters').hidden=true;if(typing)e.target.blur();return}
+  if(typing)return;
+  if(e.key==='/' ){e.preventDefault();$('#s').focus();$('#s').select()}
+  else if(e.key==='n'||e.key==='N'){e.preventDefault();$('#dn').showModal();$('#nti').focus()}
+  else if(e.key==='?' ){$('#kbhelp').classList.add('on')}
+  else if(e.altKey&&e.key==='ArrowLeft'){$('#hback').click()}
+  else if(e.altKey&&e.key==='ArrowRight'){$('#hfwd').click()}
+});
+$('#kbclose').onclick=()=>$('#kbhelp').classList.remove('on');
+
+/* ---------- Drag & drop .md ---------- */
+let dragC=0;
+addEventListener('dragenter',e=>{e.preventDefault();dragC++;$('#dropzone').classList.add('on')});
+addEventListener('dragleave',e=>{e.preventDefault();dragC=Math.max(0,dragC-1);if(!dragC)$('#dropzone').classList.remove('on')});
+addEventListener('dragover',e=>e.preventDefault());
+addEventListener('drop',async e=>{
+  e.preventDefault();dragC=0;$('#dropzone').classList.remove('on');
+  if(!currentUser)return;
+  const files=[...e.dataTransfer.files].filter(f=>/\.md$/i.test(f.name));
+  if(!files.length)return say('Aucun fichier .md détecté.');
+  const loc=store.get('loc')||[];
+  for(const f of files){
+    const txt=await f.text();
+    const parsed=parse(f.name,txt.replace(/\r/g,''));
+    parsed.dir=parsed.dir||'00_Inbox';
+    const i=loc.findIndex(n=>n.id===parsed.id);
+    if(i>=0)loc[i]=parsed;else loc.push(parsed);
+  }
+  store.set('loc',loc);load();say(files.length+' fichier(s) importé(s).');
+});
+
+/* ---------- Stats vivantes ---------- */
+function updateStatsPanel(){
+  const el=$('#statsPanel');if(!el||!N.length){if(el)el.textContent='';return}
+  const inbox=N.filter(n=>n.dir==='00_Inbox'||n.status==='inbox').length;
+  const todo=tasks(false).length;
+  const week=N.filter(n=>n.date&&(Date.now()-new Date(n.date).getTime())<7*864e5).length;
+  el.textContent=`inbox ${inbox} · tâches ${todo} · +${week} cette semaine`;
+}
+
+/* ---------- Réglages, export, questions perso ---------- */
 document.querySelectorAll('.cl').forEach(b=>b.onclick=()=>b.closest('dialog').close());
-$('#bcfg').onclick=()=>{$('#rp').value=cfg.repo||'';$('#dr').value=cfg.dir||'';$('#dc').showModal()};
-$('#fc').onsubmit=()=>{cfg={repo:$('#rp').value.trim(),dir:$('#dr').value.trim()};store.set('cfg',cfg)};
+$('#bcfg').onclick=()=>{
+  $('#rp').value=cfg.repo||'';$('#dr').value=cfg.dir||'';
+  $('#cqlist').value=(store.get('custQ')||[]).map(q=>q.a?`${q.q} | ${q.a}`:q.q).join('\n');
+  $('#dc').showModal();
+};
+$('#fc').onsubmit=()=>{
+  cfg={repo:$('#rp').value.trim(),dir:$('#dr').value.trim()};store.set('cfg',cfg);
+  const lines=$('#cqlist').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const cust=lines.map(l=>{const i=l.indexOf('|');return i<0?{q:l,a:''}:{q:l.slice(0,i).trim(),a:l.slice(i+1).trim()}});
+  store.set('custQ',cust);rebuildSeries();
+};
+$('#bexport').onclick=e=>{
+  e.preventDefault();
+  const data={notes:store.get('loc')||[],cells:store.get('cells')||[],cfg:store.get('cfg')||{},syn:store.get('syn')||{},custQ:store.get('custQ')||[],exported:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='synapse-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);
+};
+$('#bimport').onclick=e=>{e.preventDefault();$('#importFile').click()};
+$('#importFile').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const data=JSON.parse(await f.text());
+    if(data.notes)store.set('loc',data.notes);
+    if(data.cells){store.set('cells',data.cells);cells=data.cells}
+    if(data.cfg){store.set('cfg',data.cfg);cfg=data.cfg}
+    if(data.syn){store.set('syn',data.syn);syn=data.syn}
+    if(data.custQ)store.set('custQ',data.custQ);
+    load();drawDock();rebuildSeries();say('Import JSON terminé.');
+  }catch(err){say('Import impossible : '+err.message)}
+  e.target.value='';
+};
 
 /* ---------- Cellules : raccourcis que tu remplis comme tu veux ---------- */
 const KD={link:'Adresse du site, par exemple https://…',note:'Titre ou identifiant d’une note du coffre',text:'Ce que tu veux : Markdown et [[liens]] acceptés',prompt:'Mots d’une question du chatbot, par exemple « tâches à faire »'};
@@ -889,7 +1091,15 @@ function drawDock(){const d=$('#dock');d.textContent='';
   const add=mkCell('button','add','+','Ajouter','Ajouter une cellule'),tg=mkCell('button','tool','✎','Modifier','Modifier les cellules');
   add.onclick=()=>editCell(-1);tg.setAttribute('aria-pressed',editMode);tg.onclick=()=>{editMode=!editMode;drawDock();$('#dock .tool').focus()};d.append(add,tg)}
 function runCell(c){const v=c.val||'';
-  if(c.kind=='note'){const n=byKey[v.trim().toLowerCase()];n?location.hash=n.id:say('Note introuvable : '+v)}
+  if(c.kind=='note'){
+    let n=byKey[v.trim().toLowerCase()];
+    if(!n&&/^daily-\d{4}-\d{2}-\d{2}$/.test(v.trim())){
+      const id=v.trim(),title=id.replace('daily-',''),loc=store.get('loc')||[];
+      n={id,dir:'05_Daily',title,type:'daily',status:'actif',date:title,tags:['journal'],body:'## Journal\n\n- \n\n## À faire\n\n- [ ] '};
+      loc.push(n);store.set('loc',loc);load();
+    }
+    n?location.hash=n.id:say('Note introuvable : '+v)
+  }
   else if(c.kind=='prompt'){const m=best(v);m?runQ(m):($('#q').value=v,$('#ask').requestSubmit())}
   else if(c.kind=='text'){$('#dvt').textContent=c.name;$('#dvb').innerHTML=md(v);$('#dv').showModal()}}
 $('#dvb').onclick=e=>{if(e.target.closest('a'))$('#dv').close()};
@@ -949,7 +1159,7 @@ const lk=n=>`[[${n.id}|${n.title.replace(/[\[\]|]/g,' ')}]]`,dirOf=n=>n.dir||'ra
  plain=s=>s.replace(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/g,(m,t,l)=>l||t).replace(/[#>*`]/g,'').replace(/\s+/g,' ').trim(),
  suggest=()=>{const R=lite(),o=[];for(let i=0;i<R.length;i++)for(let j=i+1;j<R.length;j++){const a=R[i],b=R[j],s=a.tags.filter(t=>b.tags.includes(t));if(s.length&&!a.links.includes(b.id)&&!b.links.includes(a.id))o.push({a,b,s})}return o.sort((x,y)=>y.s.length-x.s.length)},
  detail=id=>{const n=byKey[id.toLowerCase()];return`**${n.title}** : ${[n.type,n.status,n.date].filter(Boolean).join(', ')||'note'}.\n\nTags : ${n.tags.join(', ')||'aucun'}.\n\n${plain(n.body).slice(0,260)}…\n\n**Liens sortants**\n${ls(n.links.map(i=>byKey[i]),lk)}\n\n**Liens entrants**\n${ls(n.back,lk)}`};
-const SERIES=[
+let SERIES=[
 {sg:'◎',name:'Vue d’ensemble',qs:[
  {q:'Résume le coffre',a:()=>{if(!N.length)return'Le coffre est vide.';const t=tally(N,dirOf),h=byDeg()[0];return`Le coffre contient **${pl(N.length,'note')}** et **${pl(E.length,'lien')}**, dans ${pl(t.length,'dossier')}.\n\n${ls(t,x=>x[0]+' : '+x[1])}\n\nNote la plus connectée : ${lk(h)} (${pl(deg(h),'lien')}).\n\nTâches à faire : **${tasks(false).length}**. Notes dans l’Inbox : **${N.filter(n=>n.dir=='00_Inbox').length}**.`}},
  {q:'Combien de notes par dossier ?',a:()=>ls(tally(N,dirOf),x=>`${x[0]} : ${pl(x[1],'note')}`)},
@@ -981,23 +1191,51 @@ const SERIES=[
  {q:'Quelles notes n’ont aucun lien sortant ?',a:()=>ls(lite().filter(n=>!n.links.length),lk)},
  {q:'Quelles notes n’ont pas de date ou de statut ?',a:()=>ls(real().filter(n=>!n.date||!n.status),lk)},
  {q:'Bilan de santé du coffre',a:()=>{const c=[['Notes orphelines',real().filter(n=>!deg(n)).length],['Notes à compléter (créées par le cerveau)',N.filter(n=>n.auto).length],['Notes sans tag',real().filter(n=>!n.tags.length).length],['Notes très courtes',lite().filter(n=>nw(n)<25).length],['Tâches à faire',tasks(false).length]],p=c.reduce((t,x)=>t+x[1],0);return`${ls(c,x=>`${x[0]} : **${x[1]}**`)}\n\n${p?pl(p,'point')+' à regarder.':'Rien à signaler : le coffre est en bon état.'}`}}]}];
-const nz=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(),
- ALLQ=SERIES.flatMap((s,i)=>s.qs.map(q=>({...q,si:i}))),
- hay=x=>nz(x.q+' '+SERIES[x.si].name),
- strict=t=>{const w=nz(t).split(/\s+/).filter(Boolean);return w.length?ALLQ.filter(x=>w.every(k=>hay(x).includes(k))):[]},
- best=t=>{const w=nz(t).split(/[^a-z0-9]+/).filter(k=>k.length>2);let b=null,m=0;ALLQ.forEach(x=>{const c=w.filter(k=>hay(x).includes(k)).length;if(c>m){m=c;b=x}});return b};
-let act=0;
-function show(title,body,picks){$('#qp').hidden=true;const a=$('#ans');a.hidden=false;a.classList.remove('busy');
-  a.innerHTML=`<div class="qt">${esc(title)}</div>`+md(body);const xb=document.createElement('button');xb.type='button';xb.className='ax';xb.textContent='×';xb.title='Fermer';xb.onclick=()=>a.hidden=true;a.prepend(xb);
+const BASE_SERIES=SERIES.slice();
+const nz=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+let ALLQ=[],act=0;
+function rebuildSeries(){
+  SERIES=BASE_SERIES.map(s=>({...s,qs:s.qs.slice()}));
+  const cust=store.get('custQ')||[];
+  if(cust.length){
+    SERIES.push({sg:'★',name:'Perso',qs:cust.map(c=>({
+      q:c.q,
+      a:()=>c.a||ls(N.filter(n=>nz(n.title+' '+n.tags.join(' ')+' '+n.body).includes(nz(c.q))),lk)||'Aucune note ne correspond à cette question.'
+    }))});
+  }
+  ALLQ=SERIES.flatMap((s,i)=>s.qs.map(q=>({...q,si:i})));
+  if(act>=SERIES.length)act=0;
+  drawMenu();
+}
+const hay=x=>nz(x.q+' '+(SERIES[x.si]||{}).name);
+const strict=t=>{const w=nz(t).split(/\s+/).filter(Boolean);return w.length?ALLQ.filter(x=>w.every(k=>hay(x).includes(k))):[]};
+const best=t=>{const w=nz(t).split(/[^a-z0-9]+/).filter(k=>k.length>2);let b=null,m=0;ALLQ.forEach(x=>{const c=w.filter(k=>hay(x).includes(k)).length;if(c>m){m=c;b=x}});return b};
+function show(title,body,picks){
+  $('#qp').hidden=true;const a=$('#ans');a.hidden=false;a.classList.remove('busy');
+  a.innerHTML=`<div class="qt">${esc(title)}</div>`+md(body);
+  const xb=document.createElement('button');xb.type='button';xb.className='ax';xb.textContent='×';xb.title='Fermer';xb.onclick=()=>a.hidden=true;a.prepend(xb);
+  /* cartes cliquables pour chaque lien wiki dans la réponse */
+  const ids=[...new Set([...body.matchAll(/\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/g)].map(m=>{
+    const n=byKey[m[1].trim().toLowerCase()];return n?{id:n.id,title:m[2]||n.title,dir:n.dir||'',tags:n.tags}:null}).filter(Boolean))];
+  if(ids.length){
+    const cards=document.createElement('div');cards.style.marginTop='12px';
+    ids.slice(0,12).forEach(n=>{
+      const c=document.createElement('div');c.className='ans-card';
+      c.innerHTML=`<div class="t">${esc(n.title)}</div><div class="m">${esc(n.dir)} ${n.tags.slice(0,4).map(t=>'#'+t).join(' ')}</div>`;
+      c.onclick=()=>{location.hash=n.id;a.hidden=true};cards.append(c);
+    });
+    a.append(cards);
+    focus=new Set(ids.map(n=>n.id));
+    setTimeout(()=>{if(!isOpen&&!$('#s').value&&!activeFilter)focus=null},10000);
+  }
   if(picks){const w=document.createElement('div');w.className='chips';picks.forEach(([l,f])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=l;b.onclick=f;w.append(b)});a.append(w)}
-  a.scrollTo(0,0);const ids=[...body.matchAll(/\[\[([^\]|#]+)/g)].map(m=>(byKey[m[1].trim().toLowerCase()]||{}).id).filter(Boolean);
-  if(ids.length){focus=new Set(ids);setTimeout(()=>{if(!isOpen&&!$('#s').value)focus=null},8000)}}
-function runQ(q){const si=q.si||0;if(!q.pick)return think(si,()=>show(q.q,q.a()));
+  a.scrollTo(0,0)}
+function runQ(q){const si=q.si||0;if(!q.pick)return think(si,()=>show(q.q,typeof q.a==='function'?q.a():q.a));
   const o=q.pick();if(!o.length)return show(q.q,'Rien à choisir pour l’instant.');
   show(q.q,o.length>30?'Choisis (les 30 premiers) :':'Choisis :',o.slice(0,30).map(([l,v])=>[l,()=>think(si,()=>show(q.q+' → '+l,q.a(v)))]))}
-function drawMenu(list){const s=$('#ser'),q=$('#qs');s.textContent=q.textContent='';
+function drawMenu(list){const s=$('#ser'),q=$('#qs');if(!s||!q)return;s.textContent=q.textContent='';
   SERIES.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.className='chip'+(list||i!=act?'':' on');b.textContent=x.sg+' '+x.name;b.onclick=()=>{act=i;$('#q').value='';drawMenu()};s.append(b)});
-  const L=list||SERIES[act].qs;if(!L.length)q.textContent='Aucune question ne correspond : appuie sur Entrée pour chercher ce mot dans les notes.';
+  const L=list||(SERIES[act]&&SERIES[act].qs)||[];if(!L.length)q.textContent='Aucune question ne correspond : appuie sur Entrée pour chercher ce mot dans les notes.';
   L.forEach(x=>{const b=document.createElement('button');b.type='button';b.className='chip q';b.textContent=x.q;b.onclick=()=>runQ(x);q.append(b)})}
 $('#q').oninput=e=>{const t=e.target.value.trim();drawMenu(t?strict(t):null)};
 $('#ask').onsubmit=e=>{e.preventDefault();const t=$('#q').value.trim();if(!t)return;const m=strict(t);
@@ -1005,8 +1243,29 @@ $('#ask').onsubmit=e=>{e.preventDefault();const t=$('#q').value.trim();if(!t)ret
   const k=nz(t),r=N.filter(n=>nz(n.title+' '+n.tags.join(' ')+' '+n.body).includes(k));
   think(0,()=>show('Notes contenant « '+t+' »',r.length?ls(r,lk):'Aucune note ne contient ce mot. Clique sur le cube pour voir les questions.'))};
 
-drawMenu();initFx();
+/* minimap simple */
+const mm=$('#mm'),mmx=mm.getContext('2d');
+function drawMinimap(){
+  if(!mm||!N.length||!P)return;
+  const W=mm.width=120,H=mm.height=90;
+  mmx.clearRect(0,0,W,H);
+  mmx.fillStyle='rgba(0,0,0,.3)';mmx.fillRect(0,0,W,H);
+  let minX=9,maxX=-9,minZ=9,maxZ=-9;
+  N.forEach(n=>{const p=P[n.id];if(!p)return;minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minZ=Math.min(minZ,p.z);maxZ=Math.max(maxZ,p.z)});
+  const sx=W/((maxX-minX)||1)*.8,sz=H/((maxZ-minZ)||1)*.8,ox=(minX+maxX)/2,oz=(minZ+maxZ)/2;
+  E.forEach(([a,b])=>{const pa=P[a],pb=P[b];if(!pa||!pb)return;
+    mmx.strokeStyle='rgba(255,255,255,.15)';mmx.beginPath();
+    mmx.moveTo(W/2+(pa.x-ox)*sx,H/2+(pa.z-oz)*sz);mmx.lineTo(W/2+(pb.x-ox)*sx,H/2+(pb.z-oz)*sz);mmx.stroke()});
+  N.forEach(n=>{const p=P[n.id];if(!p)return;
+    const on=!focus||focus.has(n.id);
+    mmx.fillStyle=on?'rgba(255,255,255,.85)':'rgba(255,255,255,.2)';
+    mmx.beginPath();mmx.arc(W/2+(p.x-ox)*sx,H/2+(p.z-oz)*sz,on?2:1.2,0,6.28);mmx.fill()});
+}
+
+initFx();
 size();addEventListener('resize',size);R.setAnimationLoop(frame);
+const _oldRebuild=rebuild;
+rebuild=function(){_oldRebuild();updateStatsPanel();drawFilters();drawMinimap()};
 
 /* ---------- Démarrage : session ou écran de connexion ---------- */
 (function boot(){
