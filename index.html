@@ -711,7 +711,8 @@ function md(src){const L=src.split('\n');let h='',i=0,m;
 
 /* ---------- Scène 3D (WebGL) ---------- */
 const cv=$('#cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});
-R.setClearColor(0x000000);R.setPixelRatio(Math.min(devicePixelRatio||1,2));
+R.setClearColor(0x000000);R.setPixelRatio(Math.min(devicePixelRatio||1,1.25));
+R.powerPreference='high-performance';
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,1,.1,100),brain=new THREE.Group(),clock=new THREE.Clock();
 scene.add(brain);
 const AX=[.82,.6,1],V=(x,y,z)=>new THREE.Vector3(x,y,z);
@@ -759,7 +760,7 @@ const LM=[],lineMat=o=>{const m=new THREE.LineBasicMaterial({color:0xffffff,tran
 const attr=(g,n,a,s=1)=>g.setAttribute(n,new THREE.Float32BufferAttribute(a,s));
 const lp=(a,b,t)=>a.clone().lerp(b,t),bz=(a,c,b,t)=>lp(lp(a,c,t),lp(c,b,t),t);
 const cord=t=>V(0,-.3-1.6*t,-.2-.28*t+.06*Math.sin(t*5));
-const SEG=16,NP=760,NMAX=2400,CORT=200,WN=1400,RN=220;
+const SEG=10,NP=480,NMAX=1200,CORT=140,WN=600,RN=100;
 const RGB=h=>h>1?[1,.3,.65]:h<0?[1,1,1]:h<.34?[.35,.85,1]:h<.67?[.66,.55,1]:[1,.72,.32];
 const pk=()=>{const r=Math.random();return r<.55?.1:r<.8?.5:.9};
 
@@ -801,9 +802,9 @@ function fire(i,t,h){cellE[i]=1;const rgb=RGB(h);cellC.setXYZ(i,rgb[0],rgb[1],rg
     brain.add(new THREE.Points(g,pm));const seg=[];
     pts.forEach((p,i)=>{let a=-1,b=-1,da=9,db=9;pts.forEach((q,j)=>{if(j==i)return;const d=p.distanceToSquared(q);if(d<da){b=a;db=da;a=j;da=d}else if(d<db){b=j;db=d}});[a,b].forEach(j=>seg.push(p,pts[j]))});
     brain.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),lineMat(op)))};
-  meshOf([...Array(1300)].map(()=>shell(rv())),.07);
-  meshOf([...Array(520)].map(()=>{const u=rv(),f=1+.07*Math.sin(u.y*22);return V(u.x*.42*f,u.y*.2*f-.34,u.z*.28*f-.7)}),.09);
-  meshOf([...Array(460)].map(()=>{const t=Math.random()*1.15-.12,r=.045+.085*Math.exp(-Math.max(t,0)*3.5),a=Math.random()*6.283;return cord(t).add(V(Math.cos(a)*r,0,Math.sin(a)*r))}),.09);
+  meshOf([...Array(700)].map(()=>shell(rv())),.07);
+  meshOf([...Array(280)].map(()=>{const u=rv(),f=1+.07*Math.sin(u.y*22);return V(u.x*.42*f,u.y*.2*f-.34,u.z*.28*f-.7)}),.09);
+  meshOf([...Array(240)].map(()=>{const t=Math.random()*1.15-.12,r=.045+.085*Math.exp(-Math.max(t,0)*3.5),a=Math.random()*6.283;return cord(t).add(V(Math.cos(a)*r,0,Math.sin(a)*r))}),.09);
   /* cellules : 200 corticales, 14 relais dans la moelle, 40 ganglions au bout des nerfs */
   for(let i=0;i<CORT;i++)cellP.push(shell(rv(),.9+Math.random()*.1));
   for(let i=0;i<14;i++)cellP.push(cord(i/13));
@@ -812,7 +813,7 @@ function fire(i,t,h){cellE[i]=1;const rgb=RGB(h);cellC.setXYZ(i,rgb[0],rgb[1],rg
   cellP.forEach(()=>cellE.push(0));
   /* fibres initiales, qui poussent au démarrage */
   let s=0;const T=()=>Math.random()*7,mid=(a,b)=>lp(a,b,.5);
-  for(let n=0;n<500;n++){const i=n%CORT,j=Math.random()<.7?nb[i][Math.random()*6|0]:Math.random()*CORT|0;if(j!=i)setFiber(s++,i,j,cellP[i],cellP[j],T(),true)}
+  for(let n=0;n<280;n++){const i=n%CORT,j=Math.random()<.7?nb[i][Math.random()*6|0]:Math.random()*CORT|0;if(j!=i)setFiber(s++,i,j,cellP[i],cellP[j],T(),true)}
   for(let k=0;k<13;k++)for(let r=0;r<2;r++){const a=cellP[CORT+k],b=cellP[CORT+k+1];setFiber(s++,CORT+k,CORT+k+1,a,b,T(),true,mid(a,b).add(V((Math.random()-.5)*.05,0,(Math.random()-.5)*.05)))}
   [...Array(CORT).keys()].sort((i,j)=>cellP[i].y-cellP[j].y).slice(0,6).forEach(i=>setFiber(s++,i,CORT,cellP[i],cellP[CORT],T(),true,mid(cellP[i],cellP[CORT])));
   for(let i=0;i<40;i++){const k=CORT+Math.round(i/39*13),q=CORT+14+i;setFiber(s++,k,q,cellP[k],cellP[q],T(),true,mid(cellP[k],cellP[q]).add(V(0,-.1,0)))}
@@ -839,7 +840,7 @@ function fire(i,t,h){cellE[i]=1;const rgb=RGB(h);cellC.setXYZ(i,rgb[0],rgb[1],rg
     for(let f=0;f<2;f++)dn.push(q,q.clone().addScaledVector(d.clone().add(rv().multiplyScalar(.7)).normalize(),.04+Math.random()*.05))}});
   brain.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(dn),lineMat(.28)));
   const wp=new THREE.Points(wg,wm),rp=new THREE.Points(rg,rm);wp.frustumCulled=rp.frustumCulled=false;brain.add(wp,rp);
-  const dp0=[...Array(500)].map(()=>rv().multiplyScalar(14+Math.random()*30)),dg=new THREE.BufferGeometry().setFromPoints(dp0);
+  const dp0=[...Array(220)].map(()=>rv().multiplyScalar(14+Math.random()*30)),dg=new THREE.BufferGeometry().setFromPoints(dp0);
   attr(dg,'aS',dp0.map(()=>2+Math.random()*3));attr(dg,'aA',dp0.map(()=>.15+Math.random()*.25));
   dust=new THREE.Points(dg,pm);dust.frustumCulled=false;scene.add(dust); /* poussière lointaine, pour la profondeur */
   ready=true}
@@ -851,24 +852,28 @@ function makeLinks(){const g=fgeo(Math.max(1,E.length)),t0=clock.elapsedTime;NL=
 
 /* ===== Image par image ===== */
 function netFrame(t,dt){U.uZ.value=(t*.4)%4-1.5;dust.rotation.y=t*.012;
-  if(Math.random()<.09)fire(Math.random()*CORT|0,t,pk());
+  if(Math.random()<.035)fire(Math.random()*CORT|0,t,pk());
   for(let i=ev.length-1;i>=0;i--)if(ev[i][0]<=t){const f=ev[i][1];ev.splice(i,1);f(t)}
-  if(NL.length&&t>nlNext){nlNext=t+.35+Math.random()*.5;const l=NL[Math.random()*NL.length|0],fw=Math.random()<.5,a=fw?l.a:l.b,b=fw?l.b:l.a;
+  if(NL.length&&t>nlNext){nlNext=t+.7+Math.random()*.8;const l=NL[Math.random()*NL.length|0],fw=Math.random()<.5,a=fw?l.a:l.b,b=fw?l.b:l.a;
     wave(a,l.c,b,t,1.4,[.9,.95,1]);ev.push([t+1.4,tt=>ripple(b,tt,[.9,.95,1])])}
-  if(t>nextOp){nextOp=t+.1+Math.random()*.2; /* expansion : une fibre naît, une ancienne s’éteint */
+  if(t>nextOp){nextOp=t+.25+Math.random()*.35;
     if(rq.length&&rq[0][0]<=t)spawnDyn(rq.shift()[1],t);
     else{const s=dcur;dcur=dcur+1>=NMAX?NP:dcur+1;const f=FS[s];
       if(f){f.dead=t;const fa=lg.attributes.aF.array;for(let i=0;i<SEG*2;i++)fa[(s*SEG*2+i)*4+1]=t;touch(s);rq.push([t+2.2,s])}else spawnDyn(s,t)}}
   const base=window.__lobeBase;
+  let cellDirty=false;
   for(let i=0;i<cellE.length;i++){
+    if(cellE[i]<.002&&cellA.array[i]<=.51)continue;
     cellE[i]*=Math.pow(.06,dt);
     cellA.array[i]=.5+.9*cellE[i];
     if(base&&cellE[i]<.05){cellC.array[i*3]=base[i*3];cellC.array[i*3+1]=base[i*3+1];cellC.array[i*3+2]=base[i*3+2]}
+    cellDirty=true;
   }
-  cellA.needsUpdate=cellC.needsUpdate=true;
+  cellA.needsUpdate=cellDirty;cellC.needsUpdate=cellDirty;
   if(whi>=0){[WP,WC,WE,WW,WK].forEach(a=>{a.updateRange={offset:wlo*4*a.itemSize,count:(whi-wlo+1)*4*a.itemSize};a.needsUpdate=true});wlo=1e9;whi=-1}
   if(rd){RP.needsUpdate=RT.needsUpdate=RK.needsUpdate=true;rd=false}
-  if(t>nfT){nfT=t+.6;const el=$('#nf');if(el)el.textContent=FS.filter(f=>f&&f.dead>1e8).length+' fibres'}}
+  if(t>nfT){nfT=t+1.5;const el=$('#nf');if(el){let c=0;for(let i=0;i<FS.length;i++)if(FS[i]&&FS[i].dead>1e8)c++;el.textContent=c+' fibres'}}
+}
 
 const P={},born={};let nodes,lines,lb=[];
 function relax(it){let nb=0;
@@ -880,7 +885,7 @@ function relax(it){let nb=0;
     E.forEach(([a,b])=>{const d=P[b].clone().sub(P[a]),l=d.length()||1;d.multiplyScalar((l-.4)/l*.04);F[idx[a]].add(d);F[idx[b]].sub(d)});
     N.forEach((n,i)=>{const p=P[n.id].add(F[i]),r=Math.hypot(p.x/AX[0],p.y/AX[1],p.z/AX[2])||1;p.multiplyScalar(Math.min(.95,Math.max(.62,r))/r)})}}
 function rebuild(){
-  relax(N.length>60?70:220);
+  relax(N.length>40?40:90);
   if(nodes)brain.remove(nodes,lines);
   const g=new THREE.BufferGeometry().setFromPoints(N.map(n=>P[n.id]));attr(g,'aS',N.map(()=>0));attr(g,'aA',N.map(()=>0));
   nodes=new THREE.Points(g,pm);
@@ -967,14 +972,14 @@ const pick=(x,y)=>{let b=-1,bd=676;sp.forEach((s,i)=>{const d=(s.x-x)**2+(s.y-y)
 let comp=null,pr=1,fe=.016,qt=0;const iv={x:0,y:0};let lm=0,hv=[],dmv=[],lo=[];
 /* qualité adaptative : si l’affichage ralentit, la résolution baisse par paliers (jamais l’inverse, pour éviter les va-et-vient) */
 function setPr(v){pr=v;R.setPixelRatio(v);if(comp)comp.setPixelRatio(v);size()}
-function adapt(raw,t){if(t<4||raw>.25)return;fe+=(raw-fe)*.05;qt+=raw;if(qt<2)return;qt=0;if(fe>.027&&pr>1)setPr(Math.max(1,pr-.25))}
+function adapt(raw,t){if(t<2||raw>.3)return;fe+=(raw-fe)*.08;qt+=raw;if(qt<1.2)return;qt=0;if(fe>.022&&pr>1)setPr(Math.max(1,pr-.25));else if(fe>.03&&comp){comp=null}}
 function initFx(){pr=R.getPixelRatio();if(!(THREE.EffectComposer&&THREE.UnrealBloomPass&&THREE.RenderPass))return;
-  pr=Math.min(devicePixelRatio||1,1.5);R.setPixelRatio(pr);comp=new THREE.EffectComposer(R);comp.addPass(new THREE.RenderPass(scene,cam));
-  comp.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.7,.55,.04))}
+  pr=Math.min(devicePixelRatio||1,1.25);R.setPixelRatio(pr);comp=new THREE.EffectComposer(R);comp.addPass(new THREE.RenderPass(scene,cam));
+  comp.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.45,.4,.08))}
 function size(){R.setSize(innerWidth,innerHeight,false);if(comp)comp.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();U.uPx.value=R.getPixelRatio()}
-let zfT=1; /* zoom cible (lisse) */
+let zfT=1, frameN=0; /* zoom cible + compteur */
 function frame(){
-  const raw=clock.getDelta(),dt=Math.min(raw,.033),t=clock.elapsedTime;
+  const raw=clock.getDelta(),dt=Math.min(raw,.033),t=clock.elapsedTime;frameN++;
   const k=1-Math.exp(-dt*4.2),k2=1-Math.exp(-dt*8),k4=1-Math.exp(-dt*16),kz=1-Math.exp(-dt*6);
   adapt(raw,t);
   zf+=(zfT-zf)*kz;
@@ -988,22 +993,25 @@ function frame(){
   const cy=-Math.max(0,zf-1)*S*.7;
   cam.position.set(reduce?0:Math.sin(t*.12)*S*.02,cy+(reduce?0:Math.sin(t*.09)*S*.018),D);cam.lookAt(0,cy,0);
   brain.updateMatrixWorld();cam.updateMatrixWorld();cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
+  if(!nodes){comp?comp.render(dt):R.render(scene,cam);return}
   const W=innerWidth,H=innerHeight,aS=nodes.geometry.attributes.aS,aA=nodes.geometry.attributes.aA;
+  const doLabels=!(frameN&1)&&lb.length;
   hov=drag?-1:pick(ptr.x,ptr.y);if(hv.length!=N.length){hv=N.map(()=>0);dmv=N.map(()=>0);lo=N.map(()=>0)}
-  N.forEach((n,i)=>{
+  for(let i=0;i<N.length;i++){
+    const n=N[i];
     v3.copy(P[n.id]).applyMatrix4(brain.matrixWorld);v4.copy(v3).applyMatrix4(cam.matrixWorldInverse);const dep=-v4.z;v3.project(cam);
     sp[i]={x:(v3.x+1)/2*W,y:(1-v3.y)/2*H};
     const g=Math.max(0,Math.min(1,(t-born[n.id])/1.4)),e=1-Math.pow(1-g,3),dm=focus&&!focus.has(n.id);
     hv[i]+=((hov==i?1:0)-hv[i])*k4;dmv[i]+=((dm?1:0)-dmv[i])*k2;aS.array[i]=(14+6*Math.sqrt(n.links.length+n.back.length))*e*(1+.4*hv[i]);
     aA.array[i]=(BR[n.dir]??.7)*(1-.85*dmv[i])*(1+.6*hv[i]);
-    if(lb[i]){
+    if(doLabels&&lb[i]){
       lb[i].style.transform=`translate3d(${(sp[i].x+10)|0}px,${(sp[i].y-7)|0}px,0)`;
       const targetOp=e<.3?0:focus?(dm?.1:1):hov==i?1:Math.max(.1,Math.min(.9,1.15-(dep-(D-S))/(2*S)*1.1));
       lo[i]+=(targetOp-lo[i])*k2;
       const op=lo[i].toFixed(2);
       if(lb[i].dataset.op!==op){lb[i].dataset.op=op;lb[i].style.opacity=op}
     }
-  });
+  }
   aS.needsUpdate=aA.needsUpdate=true;netFrame(t,dt);cubeFrame(t,dt);
   const cur=cubeS.over||hov>=0?'pointer':drag?'grabbing':'grab';
   if(cv.style.cursor!==cur)cv.style.cursor=cur;
