@@ -7,6 +7,7 @@ Aucun serveur, aucune clé API, aucune IA externe, aucune installation : tout to
 ## Sommaire
 
 1. [Aperçu](#aperçu)
+   - [Cube de recherche](#cube-de-recherche)
 2. [Démarrage rapide](#démarrage-rapide)
 3. [Déploiement sur GitHub Pages](#déploiement-sur-github-pages)
 4. [Fonctionnalités](#fonctionnalités)
@@ -85,6 +86,12 @@ Au premier lancement, crée un compte (stocké uniquement dans ton navigateur). 
 - **Mémoire du compte** (Réglages) : voir, couper ou effacer ce qui est retenu.
 - **Export / import** de toutes les données du compte en JSON.
 
+## Cube de recherche
+
+Le cube central est la **recherche du cerveau** (clic ou touche `i`). Une fenêtre s'ouvre avec un radar animé ; pendant que tu tapes, les notes du coffre (titre, tags, texte et découvertes du web) apparaissent par ordre de pertinence et le cerveau 3D scanne. Les anneaux du cube s'accélèrent et son étiquette passe à « recherche ». `Entrée` lance en plus une recherche sur le web (chatbot), `Échap` ferme, « Questions prédéfinies » ouvre l'ancien menu.
+
+**Nourrir le réseau** : les boutons « Pulse réseau » et « Nourrir depuis les notes » envoient aussi des cellules explorateurs sur le web (6 ou 10 notes tirées au hasard, une cellule toutes les 0,7 s) pour rapporter de nouvelles découvertes.
+
 ## Chatbot web
 
 Le chatbot n'utilise **aucune IA externe** et n'a besoin d'aucune installation. Clique sur le cube ou appuie sur `i`, puis pose une question.
@@ -117,7 +124,7 @@ Réglages utiles : activer ou couper chaque source, nombre de cellules par vague
 
 - Après un premier chargement en ligne, Synapse s'ouvre **sans connexion** avec tes notes ; l'enrichissement reprend au retour du réseau.
 - Bouton **Installer l'application** dans Réglages (si le navigateur le propose).
-- Le cache (`sw.js`) est versionné (`synapse-v19`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
+- Le cache (`sw.js`) est versionné (`synapse-v20`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
 
 ## Données et confidentialité
 
@@ -151,6 +158,7 @@ synapse-ghpages/
 
 ## Historique des versions
 
+- **V20** : cube central = recherche du cerveau (radar, résultats animés, anneaux scanner 3D) ; « Pulse réseau » et « Nourrir » partent chercher sur le web.
 - **V19** : plus d'Ollama ni de code Staff, chatbot qui répond depuis le web avec ses sources, mots de passe PBKDF2 (8 caractères minimum), bouton « Passer » sur l'écran de chargement.
 - **V18** : écran de chargement de 10 secondes avant la connexion, README complet, cache `synapse-v18`.
 - **V17** : application installable et hors ligne ; vue 2D avec légende cliquable, Timeline, Présentation et export PNG.

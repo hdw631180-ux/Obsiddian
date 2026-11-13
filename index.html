@@ -157,6 +157,24 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 @keyframes bpulse{50%{opacity:.55}}
 @media (prefers-reduced-motion:reduce){#boot .bt{animation:none}}
 .ol{display:none!important}
+#bs{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;padding:14vh 20px 20px;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);color:#fff;overflow:auto;animation:bsfade .35s ease}
+#bs[hidden]{display:none}
+.bsr{position:relative;width:70px;height:70px;margin-bottom:18px;flex:none}
+.bsr i{position:absolute;inset:0;border:1px solid #6fe8ff;border-radius:50%;animation:bsring 2.6s ease-out infinite}
+.bsr i:nth-child(2){animation-delay:.85s}.bsr i:nth-child(3){animation-delay:1.7s}
+.bsr::after{content:"";position:absolute;inset:26px;border-radius:50%;background:#6fe8ff;box-shadow:0 0 24px #6fe8ff}
+.bst{font:11px var(--mo);letter-spacing:.35em;text-transform:uppercase;color:var(--mu);margin-bottom:14px}
+#bsq{width:min(560px,100%);background:transparent;border:0;border-bottom:1px solid var(--ln);color:#fff;font-size:clamp(20px,4vw,30px);font-weight:300;text-align:center;padding:10px 0;outline:0;transition:border-color .3s,box-shadow .3s}
+#bsq:focus{border-color:#6fe8ff;box-shadow:0 12px 24px -16px #6fe8ff}
+.bss{font:12px var(--mo);color:var(--mu);margin:12px 0 6px;min-height:18px}
+#bsl{list-style:none;margin:0;padding:0;width:min(560px,100%)}
+#bsl li{padding:12px 4px;border-bottom:1px solid var(--ln);cursor:pointer;animation:bsin .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d)}
+#bsl li:hover{background:rgba(111,232,255,.07)}
+#bsl b{font-weight:500;display:block}#bsl span{display:block;color:var(--mu);font-size:13px;margin-top:3px}#bsl em{font:11px var(--mo);color:#6fe8ff;font-style:normal}
+.bsb{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:20px}
+@keyframes bsring{from{transform:scale(.4);opacity:.8}to{transform:scale(2.4);opacity:0}}
+@keyframes bsin{from{opacity:0;transform:translateY(10px)}}
+@keyframes bsfade{from{opacity:0}}
 #auth{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:#000;padding:24px}
 #auth[hidden]{display:none}
 #authbox{width:min(400px,100%);border:1px solid var(--ln);padding:32px 28px;background:rgba(0,0,0,.92)}
@@ -629,6 +647,14 @@ body.g2pres>*:not(#g2):not(.ix):not(#g2t):not(#g2q):not(#g2l):not(script):not(st
   <menu style="margin-top:18px;display:flex;justify-content:flex-end"><button type="button" id="kbclose">Fermer</button></menu>
 </div></div>
 <div id="bot"><div id="ans" hidden></div><div id="dock" role="toolbar" aria-label="Cellules"></div></div>
+<div id="bs" hidden role="dialog" aria-label="Chercher dans le cerveau">
+  <div class="bsr"><i></i><i></i><i></i></div>
+  <div class="bst">Chercher dans le cerveau</div>
+  <input id="bsq" autocomplete="off" placeholder="Un sujet, une idée, une note…" aria-label="Chercher dans le cerveau">
+  <div class="bss" id="bss"></div>
+  <ul id="bsl"></ul>
+  <div class="bsb"><button type="button" id="bsW">Chercher aussi sur le web ↵</button><button type="button" id="bsP">Questions prédéfinies</button><button type="button" id="bsX">Fermer</button></div>
+</div>
 <div id="qp" hidden><button type="button" id="qx">Fermer</button><div class="qt">Questions sur ton coffre</div><div id="ser" aria-label="Séries de questions"></div><div id="qs"></div><form id="ask"><input id="q" placeholder="Filtre les questions ou tape un mot à chercher" autocomplete="off" aria-label="Filtrer les questions"></form></div>
 <aside id="pn" aria-label="Note"><button id="x" type="button">Fermer</button><div id="nt"></div></aside>
 <dialog id="dc"><form id="fc" method="dialog">
@@ -1055,10 +1081,11 @@ const spineG=new THREE.Group(),spL=new THREE.LineBasicMaterial({color:0xffffff,t
  sl.frustumCulled=sp2.frustumCulled=sk2.frustumCulled=false;brain.add(spineG)}
 
 /* ===== Cube central : animé, il ouvre les questions quand on clique dessus ===== */
-const cube=new THREE.Group(),cubeS={x:-99,y:-99,r:0,h:0,over:false};
+let bsOn=false;const cube=new THREE.Group(),cubeS={x:-99,y:-99,r:0,h:0,over:false};
 {const cm2=o=>new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:o,depthWrite:false,blending:THREE.AdditiveBlending}),bx=new THREE.BoxGeometry(.18,.18,.18),ob=new THREE.LineSegments(new THREE.EdgesGeometry(bx),cm2(.9)),ib=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.1,.1,.1)),cm2(.95)),
  fm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.05,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide});
- ob.material.color.set(0xff2020);ib.material.color.set(0xff7a45);fm.color.set(0xff1010);ob.add(new THREE.Mesh(bx,fm));cube.add(ob,ib);cube.userData={ob,ib};brain.add(cube)}
+ ob.material.color.set(0xff2020);ib.material.color.set(0xff7a45);fm.color.set(0xff1010);ob.add(new THREE.Mesh(bx,fm));cube.add(ob,ib);const rings=new THREE.Group();[0,1,2].forEach(i=>{const pts=[];for(let k=0;k<=64;k++){const a=k/64*Math.PI*2,r=.25+i*.045;pts.push(new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r))}const l=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x6fe8ff,transparent:true,opacity:.3,depthWrite:false,blending:THREE.AdditiveBlending}));l.rotation.set(i*1.05,i*.7,0);rings.add(l)});cube.add(rings);
+ cube.userData={ob,ib,rings};brain.add(cube)}
 
 /* ===== 100 capsules alimentees par le coffre ===== */
 const ZONE_COL={
@@ -1199,7 +1226,7 @@ let flatMode=false,flatT=0;
 
 function cubeFrame(t,dt){const{ob,ib}=cube.userData,W=innerWidth,H=innerHeight;
   ob.rotation.set(t*.22,t*.32,t*.12);ib.rotation.set(-t*.28,-t*.4,-t*.16);cube.position.y=Math.sin(t*.7)*.012;
-  cubeS.h+=((cubeS.over?1:0)-cubeS.h)*Math.min(1,dt*8);cube.scale.setScalar((flatMode?.7:1)*(1+.02*Math.sin(t*1.2)+.18*cubeS.h));
+  cubeS.h+=((cubeS.over?1:0)-cubeS.h)*Math.min(1,dt*8);{const rg=cube.userData.rings;if(rg){const sp=bsOn?3.2:.5;rg.rotation.y+=dt*sp;rg.rotation.x+=dt*sp*.6;rg.children.forEach((l,i)=>l.material.opacity=.22+(bsOn?.5:.12)*(.5+.5*Math.sin(t*4+i*1.3)))}}cube.scale.setScalar((flatMode?.7:1)*(1+.02*Math.sin(t*1.2)+.18*cubeS.h));
   v3.copy(cube.position).applyMatrix4(brain.matrixWorld).project(cam);v4.set(.3,0,0).add(cube.position).applyMatrix4(brain.matrixWorld).project(cam);
   cubeS.x=(v3.x+1)/2*W;cubeS.y=(1-v3.y)/2*H;cubeS.r=Math.hypot((v4.x-v3.x)*W/2,(v4.y-v3.y)*H/2)+14;
   cubeS.over=!drag&&Math.hypot(ptr.x-cubeS.x,ptr.y-cubeS.y)<cubeS.r;
@@ -1394,7 +1421,7 @@ cv.onpointermove=e=>{if(tp.has(e.pointerId))tp.set(e.pointerId,{x:e.clientX,y:e.
   ptr={x:e.clientX,y:e.clientY};if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);
   rot.y+=dx*.0055;rot.x=Math.max(-1,Math.min(1,rot.x+dy*.0038));iv.y=dx*.005;iv.x=dy*.0035;lm=performance.now();drag.x=e.clientX;drag.y=e.clientY}};
 cv.onpointerup=e=>{tp.delete(e.pointerId);if(pinch){if(tp.size<2)pinch=null;drag=null;return}
-  if(performance.now()-lm>90)iv.x=iv.y=0;if(drag&&drag.m<(e.pointerType==='touch'?12:6)){if(Math.hypot(e.clientX-cubeS.x,e.clientY-cubeS.y)<cubeS.r)openQ();else{const i=pick(e.clientX,e.clientY);if(i>=0)location.hash=N[i].id}}
+  if(performance.now()-lm>90)iv.x=iv.y=0;if(drag&&drag.m<(e.pointerType==='touch'?12:6)){if(Math.hypot(e.clientX-cubeS.x,e.clientY-cubeS.y)<cubeS.r)window.openBS();else{const i=pick(e.clientX,e.clientY);if(i>=0)location.hash=N[i].id}}
   drag=null;if(e.pointerType==='touch')ptr={x:-99,y:-99}};
 cv.onpointercancel=e=>{tp.delete(e.pointerId);if(tp.size<2)pinch=null;drag=null;ptr={x:-99,y:-99}};
 cv.onwheel=e=>{e.preventDefault();zfT=Math.max(.55,Math.min(3,zfT*(1+e.deltaY*.0009)))};
@@ -1838,7 +1865,7 @@ $('#ask').onsubmit=e=>{const t=$('#q').value.trim();if(t){e.preventDefault();$('
 $('#q').placeholder='Pose ta question au cerveau Synapse (Entrée)';
 const f=$('#ask');f.insertAdjacentHTML('beforeend','<button type="button" id="aiBtn" style="margin-top:8px">Demander à Synapse</button>');
 $('#aiBtn').onclick=()=>{const t=$('#q').value.trim();if(!t)return $('#q').focus();$('#q').value='';askAI(t)};
-document.addEventListener('keydown',e=>{if(e.key!=='i'||e.ctrlKey||e.metaKey||e.altKey)return;const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName))return;e.preventDefault();openQ();setTimeout(()=>$('#q').focus(),0)});
+document.addEventListener('keydown',e=>{if(e.key!=='i'||e.ctrlKey||e.metaKey||e.altKey)return;const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName))return;e.preventDefault();openBS()});
 
 /* ---- Cellules explorateurs v2 : le navigateur va chercher, Ollama planifie et synthétise ---- */
 const J=async(u,ms=7000)=>{const r=await fetch(u,{signal:AbortSignal.timeout(ms)});if(!r.ok)throw 0;return r.json()};
@@ -1853,12 +1880,12 @@ async function gen(pr,np=90){const a=A(),r=await fetch(base()+'/api/generate',{m
 const DMAX=12,dAll=()=>store.get('disc')||{},dd=n=>dAll()[n.id]||[];
 function dAdd(n,o){const m=dAll(),l=m[n.id]||[];if(l.some(x=>x.u===o.u))return 0;l.push(o);if(l.length>DMAX)l.shift();m[n.id]=l;store.set('disc',m);return 1}
 window.discHTML=n=>{const l=dd(n);return l.length?'<h2>Découvertes du web</h2><ul>'+l.slice().reverse().map(d=>'<li><span class="tg"><i class="lg" data-m="'+MO(d.k)+'">'+LG(d.k,d.u)+'</i>'+esc(d.k||'web')+'</span> '+esc(d.t)+' <a class="wl" href="'+esc(d.u)+'" target="_blank" rel="noopener">'+esc(d.s)+'</a></li>').join('')+'</ul>':''};
-const TAGS=[],ST={off:['#ff3b3b','hors ligne'],down:['#ff3b3b','injoignable'],idle:['#6fe8ff','prêt'],think:['#ff4fa3','réfléchit']};
+const TAGS=[],ST={sea:['#6fe8ff','recherche'],off:['#ff3b3b','hors ligne'],down:['#ff3b3b','injoignable'],idle:['#6fe8ff','prêt'],think:['#ff4fa3','réfléchit']};
 let act=0;
 /* le cube est le cerveau Ollama : sa couleur, son halo et son étiquette disent ce qu’il fait */
 document.body.insertAdjacentHTML('beforeend','<div id="bh"></div><div id="bl"></div><div id="feed"><div class="fh" id="fh">Flux du cerveau</div></div>');
 $('#fh').onclick=()=>$('#feed').classList.toggle('off');
-const stOf=()=>(busy||act)?'think':'idle';
+const stOf=()=>bsOn?'sea':(busy||act)?'think':'idle';
 function feedAdd(n,txt,k,rgb){const f=$('#feed'),d=document.createElement('div');d.className='fi';d.style.setProperty('--c','rgb('+rgb.map(v=>Math.min(255,v*255+70|0)).join(',')+')');
  d.innerHTML='<b><i class="lg" data-m="'+MO(k)+'">'+LG(k)+'</i></b><em>'+esc(n.title.slice(0,18))+'</em>';d.onclick=()=>{location.hash=n.id};$('#fh').after(d);while(f.querySelectorAll('.fi').length>4)f.querySelector('.fi:last-child').remove()}
 /* l’info voyage sur la fibre, de la cellule vers la note, dans la couleur de la cellule */
@@ -1890,6 +1917,33 @@ $('#aiCtx').parentNode.insertAdjacentHTML('afterend','<label style="display:flex
 $('#expOn').onchange=e=>store.set('exp',+e.target.checked);$('#expN').onchange=e=>store.set('expN',+e.target.value);$('#expW').onchange=e=>store.set('expW',+e.target.value);
 $('#bcfg').addEventListener('click',()=>{$('#expOn').checked=XO();$('#expN').value=XN();$('#expW').value=XW()});
 hud('prêt');
+{const bs=$('#bs'),bq=$('#bsq'),bl=$('#bsl'),bss=$('#bss');let tm=0;
+ const toks=q=>nz(q).split(/[^a-z0-9]+/).filter(w=>w.length>1);
+ const score=(n,K,q)=>{const t=nz(n.title),b=nz(plain(n.body)),d=nz(dd(n).map(x=>x.t).join(' ')),Q=nz(q).trim();let s=Q.length>2&&t.includes(Q)?8:0,w=0;K.forEach(k=>{if(t.includes(k))s+=4;if((n.tags||[]).some(g=>nz(g).includes(k)))s+=3;if(b.includes(k))s+=1.5;if(d.includes(k)){s+=1;w=1}});return{s,w}};
+ function run(){const q=bq.value.trim(),K=toks(q);bl.innerHTML='';
+  if(!K.length){bss.textContent=real().length+' notes dans le cerveau';return}
+  const R=real().map(n=>({n,...score(n,K,q)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,8);
+  bss.textContent=R.length?R.length+' piste'+(R.length>1?'s':'')+' dans le cerveau':'Rien dans le coffre : Entrée pour chercher sur le web';
+  bl.innerHTML=R.map((x,i)=>{const b=plain(x.n.body),m=K.map(k=>nz(b).indexOf(k)).filter(p=>p>=0).sort((a,c)=>a-c)[0]||0;
+   return '<li data-id="'+esc(x.n.id)+'" style="--d:'+i*55+'ms"><b>'+esc(x.n.title)+'</b><span>'+esc(cut(b.slice(Math.max(0,m-40)),140))+'</span><em>'+esc(dirOf(x.n))+(x.w?' · trouvé dans les découvertes web':'')+'</em></li>'}).join('');
+  if(!busy&&!busyQ){try{scanP.geometry.setFromPoints(SAMP);srch={ci:[...Array(CORT).keys()]};setTimeout(()=>{if(!busy&&!busyQ)srch=null},1300)}catch{}}}
+ const closeBS=()=>{bs.hidden=true;bsOn=false;if(!busy&&!busyQ)srch=null};
+ window.openBS=()=>{bs.hidden=false;bsOn=true;bq.value='';run();setTimeout(()=>bq.focus(),30)};
+ bl.onclick=e=>{const li=e.target.closest('li');if(!li)return;closeBS();location.hash='#'+li.dataset.id};
+ bq.oninput=()=>{clearTimeout(tm);tm=setTimeout(run,160)};
+ const web=()=>{const q=bq.value.trim();if(!q)return;closeBS();askAI(q)};
+ bq.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();web()}};
+ $('#bsW').onclick=web;$('#bsX').onclick=closeBS;$('#bsP').onclick=()=>{closeBS();openQ()};
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!bs.hidden)closeBS()})}
+/* Nourrir le réseau : le cerveau part aussi chercher sur le web */
+function feedWeb(kind){const R=real();if(!R.length)return say('Le coffre est vide : ajoute une note, le cerveau ira chercher autour.');
+ if(!navigator.onLine)return say('Hors ligne : le cerveau ne peut pas partir chercher sur le web.');
+ const n=Math.min(R.length,kind==='pulse'?6:10),L=[...R].sort(()=>Math.random()-.5).slice(0,n);
+ say('Le cerveau part chercher '+n+' piste'+(n>1?'s':'')+' sur le web…',1);
+ L.forEach((x,j)=>setTimeout(()=>explore(x,Math.random()*CORT|0),j*700));
+ setTimeout(()=>{const a=$('#ans');if(a&&a.classList.contains('busy'))a.hidden=true},n*700+3000)}
+$('#brPulse')&&$('#brPulse').addEventListener('click',()=>feedWeb('pulse'));
+$('#brFeed')&&$('#brFeed').addEventListener('click',()=>feedWeb('notes'));
 /* ---- Synthèse : web (Wikipédia, HN, OpenAlex) puis Ollama analyse ---- */
 async function chat(msgs){const c=msgs[msgs.length-1].content,B=c.split(/\n\n(?=NOTE « )/),oth=((c.match(/Autres notes du coffre : ([^\n]*)/)||[])[1]||'').split(', ').filter(Boolean).slice(0,6),sn=t=>cut((t||'').split(/(?<=[.!?])\s/)[0],220),R=[],W=[],Kw=[];
  B.forEach(b=>{const m=b.match(/^NOTE « (.*?) » : ([\s\S]*?)\nWEB :\n([\s\S]*)$/);if(!m)return;R.push('- **'+m[1]+'** : '+(sn(m[2])||'note vide'));m[3].split('\n').forEach(l=>{const w=l.match(/^- \((.*?)\) (.*?) : (.*)$/);if(w){W.push('- **'+m[1]+'** — '+sn(w[3])+' *('+w[1]+' · '+w[2]+')*');Kw.push(...kw(w[2]).slice(0,2))}})});
