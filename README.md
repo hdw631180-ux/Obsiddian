@@ -108,3 +108,8 @@ L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'auto
 - **Sources** : 28 Wikipédias de plus, 35 projets Wikimédia (Wiktionnaire, Wikilivres, Wikiquote, Wikisource, Wikivoyage, Wikinews, Wikiversité en 5 langues), 36 communautés Stack Exchange, Semantic Scholar, DOAJ, INSPIRE, Zenodo, iNaturalist, GBIF, PubChem, NASA, Art Institute, Open Food Facts, TheMealDB, Gutenberg, npm, crates.io, Packagist, RubyGems, Hugging Face (modèles, jeux de données, démos), OpenStreetMap, Datamuse et 4 variantes OpenAlex.
 - Chaque requête interroge les 4 sources de base plus **10 sources tirées au hasard** parmi celles activées : les cellules varient sans saturer les limites des API.
 - **Mémoire du compte** : nombre d'enrichissements par source et par jour, en plus des centres d'intérêt. Réglages : exporter et importer toutes les données du compte (fichier JSON), et voir l'espace de stockage du navigateur (demande de stockage durable activée).
+
+## V17 : hors ligne et vue 2D en plus
+
+- **Application installable et hors ligne** (`sw.js`, `manifest.json`, icônes) : après un premier chargement en ligne, Synapse s'ouvre sans connexion avec tes notes ; l'enrichissement reprend au retour du réseau. Bouton « Installer l'application » dans Réglages (si le navigateur le propose). Les 4 fichiers `sw.js`, `manifest.json`, `icon-192.png` et `icon-512.png` doivent être déposés à côté de `index.html`.
+- **Vue 2D** : clic sur la légende (Savoir, Science, Tech) pour masquer une couleur de cellules ; **Timeline** (curseur et lecture pour revoir l'enrichissement dans le temps) ; **Présentation** (plein écran, interface masquée, visite automatique des hubs, Échap pour quitter) ; **Image** (export PNG du graphe).
