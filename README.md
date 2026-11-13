@@ -91,3 +91,20 @@ L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'auto
 - Disposition recalculée avec une vraie simulation de forces (répulsion Barnes-Hut, liens pondérés par le nombre de voisins) : les hubs se dégagent en étoiles et les groupes se séparent. Le graphe s'affiche déjà stabilisé.
 - Bouton ⚙ (en haut à gauche en vue 2D) : répulsion, force et distance des liens, gravité, taille des nœuds, épaisseur des liens, affichage du texte, notes orphelines, **couleurs par dossier**, **voisinage de la note ouverte** (profondeur 1 à 4), mouvement doux. Les réglages sont gardés par compte.
 - Survol plus doux (fondu, halo), texte qui apparaît progressivement avec le zoom, nœuds qui respirent légèrement.
+
+## V14 : vagues de cellules
+
+- Toutes les **5 secondes**, une vague de plusieurs cellules explorateurs (3 par défaut, de 1 à 8 dans Réglages → « Cellules par vague ») est lancée sur des notes différentes. Les cellules d'une vague partent à intervalles réguliers pour que les bulles arrivent en continu.
+- GitHub, Stack Overflow et Crossref sont espacés de quelques secondes pour ne pas dépasser leurs limites.
+
+## V15 : cellules d'enrichissement en vue 2D
+
+- Chaque découverte ajoute une petite **cellule colorée** en orbite autour de sa note dans le graphe 2D : plus une note s'enrichit, plus elle a de cellules (et plus elle grossit). Une cellule apparaît avec une onde, quand la bulle de logo arrive.
+- **Bleu** = savoir (Wikipédia, Open Library, Internet Archive, pages web), **vert** = science (OpenAlex, Crossref, Europe PMC), **rouge** = tech et communauté (Hacker News, Stack Overflow, GitHub). Un anneau blanc marque les découvertes que tu as aimées (👍).
+- Survol d'une cellule : nom de la source. Clic : ouvre la note.
+
+## V16 : ~120 sources supplémentaires, sauvegarde
+
+- **Sources** : 28 Wikipédias de plus, 35 projets Wikimédia (Wiktionnaire, Wikilivres, Wikiquote, Wikisource, Wikivoyage, Wikinews, Wikiversité en 5 langues), 36 communautés Stack Exchange, Semantic Scholar, DOAJ, INSPIRE, Zenodo, iNaturalist, GBIF, PubChem, NASA, Art Institute, Open Food Facts, TheMealDB, Gutenberg, npm, crates.io, Packagist, RubyGems, Hugging Face (modèles, jeux de données, démos), OpenStreetMap, Datamuse et 4 variantes OpenAlex.
+- Chaque requête interroge les 4 sources de base plus **10 sources tirées au hasard** parmi celles activées : les cellules varient sans saturer les limites des API.
+- **Mémoire du compte** : nombre d'enrichissements par source et par jour, en plus des centres d'intérêt. Réglages : exporter et importer toutes les données du compte (fichier JSON), et voir l'espace de stockage du navigateur (demande de stockage durable activée).

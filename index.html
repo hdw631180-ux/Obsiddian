@@ -398,7 +398,7 @@ html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 .lg{position:relative;display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:#111;font:700 9px var(--ui);overflow:hidden;vertical-align:middle;margin-right:6px;flex:none;box-shadow:0 0 10px color-mix(in srgb,var(--c,#fff) 70%,transparent)}
 .lg::before{content:attr(data-m)}.lg img{position:absolute;inset:2px;width:calc(100% - 4px);height:calc(100% - 4px);object-fit:contain;background:#fff;border-radius:50%}
 .ix i.lg{animation:none;width:22px;height:22px;margin:0;background:#fff}.fi b{display:flex;align-items:center}.tg .lg{width:16px;height:16px;margin-right:5px}
-.srcs{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}.srcc{display:flex!important;align-items:center;gap:6px;margin:4px 0!important;font-size:13px;text-transform:none!important;letter-spacing:0!important}.srcc input{width:auto!important}
+.srcs{max-height:240px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}.srcc{display:flex!important;align-items:center;gap:6px;margin:4px 0!important;font-size:13px;text-transform:none!important;letter-spacing:0!important}.srcc input{width:auto!important}
 #padTx{font:15px/1.6 ui-monospace,Consolas,monospace;min-height:46vh;resize:vertical}#dpad{width:min(720px,94vw)}
 .ix{display:grid;place-items:center;padding:5px;border-radius:50%;max-width:none;width:auto}.ix i.lg{width:26px;height:26px}.fi em{text-align:left}
 .dact{display:inline-flex;gap:4px;margin-left:6px;vertical-align:middle}.dact button{padding:1px 7px;font-size:12px;border-radius:6px;opacity:.8}li.liked{border-left:2px solid #3ddc84;padding-left:8px}
@@ -410,6 +410,7 @@ body.flat-mode #g2{display:block}body.flat-mode #cv,body.flat-mode #labels,body.
 #g2p{position:fixed;left:14px;top:106px;z-index:5;width:min(290px,86vw);max-height:70vh;overflow:auto;background:rgba(0,0,0,.88);border:1px solid var(--ln);padding:10px 12px;backdrop-filter:blur(8px)}#g2p[hidden]{display:none}
 #g2p .lr{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0;font-size:13px;color:var(--mu)}#g2p .lr input[type=range]{width:45%;border:0;padding:0}#g2p .lr input[type=checkbox]{width:auto}#g2r{width:100%;margin-top:6px}
 body.light #g2p{background:rgba(244,241,234,.96)}
+#g2l{position:fixed;left:58px;top:72px;z-index:5;display:none;gap:12px;font:11px var(--mo);color:var(--mu)}body.flat-mode #g2l{display:flex}#g2l span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:5px}
 </style>
 </head>
 <body>
@@ -1860,14 +1861,15 @@ async function explore(n,i){act++;hud('explore ×'+act);
  try{fire(i,U.uT.value,.5);const q=await plan(n),R=(await ALL(q)).map(r=>r.value).filter(Boolean),seen=new Set([...dd(n).map(d=>d.u),...(store.get('dis')||[])]),L=[...R,...(await PG(n))].filter(r=>!seen.has(r.u));if(!L.length)return;
   const w=rk(q,n,L)[0]||L[0];let txt=cut(w.x.split(/(?<=[.!?])\s/).slice(0,2).join(' '),240);
   if(A().on){try{const g=await gen('Note « '+n.title+' » : '+plain(n.body).slice(0,300)+'\n\nSource ('+w.k+') : '+w.x.slice(0,700)+'\n\nÉcris en français UN fait nouveau et utile (30 mots maximum) tiré de la source, qui enrichit la note. Réponds uniquement par la phrase.');if(g&&g.length>15)txt=cut(g,260)}catch{}}
-  if(dAdd(n,{t:txt,u:w.u,s:w.s,k:w.k,q,d:Date.now()}))flow(n,i,txt,w.k)}
+  if(dAdd(n,{t:txt,u:w.u,s:w.s,k:w.k,q,d:Date.now()})){memUse(w.k);flow(n,i,txt,w.k)}}
  catch{}finally{act--;hud(act?'explore ×'+act:A().on?'prêt':'off')}}
 const XO=()=>store.get('exp')!==0,XN=()=>store.get('expN')||2;
-setInterval(()=>{if(!XO()||document.hidden||!ready||!navigator.onLine||act>=XN())return;const R=real();if(!R.length)return;
- const n=R.map(x=>[x,Math.random()*(1+DMAX-dd(x).length)]).sort((a,b)=>b[1]-a[1])[0][0];explore(n,Math.random()*CORT|0)},4500);
-$('#aiCtx').parentNode.insertAdjacentHTML('afterend','<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="expOn" style="width:auto"> Cellules explorateurs (sources du web + Ollama)</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules en vol en même temps <select id="expN" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option></select></label>');
-$('#expOn').onchange=e=>store.set('exp',+e.target.checked);$('#expN').onchange=e=>store.set('expN',+e.target.value);
-$('#bcfg').addEventListener('click',()=>{$('#expOn').checked=XO();$('#expN').value=XN()});
+const XW=()=>store.get('expW')||3;
+setInterval(()=>{if(!XO()||document.hidden||!ready||!navigator.onLine)return;const R=real();if(!R.length)return;const K=XW(),used=new Set();
+ for(let j=0;j<K;j++)setTimeout(()=>{if(act>=Math.max(XN(),K*2))return;const pool=R.filter(x=>!used.has(x.id)),L=pool.length?pool:R,n=L.map(x=>[x,Math.random()*(1+DMAX-dd(x).length)]).sort((a,b)=>b[1]-a[1])[0][0];used.add(n.id);explore(n,Math.random()*CORT|0)},j*5000/K)},5000);
+$('#aiCtx').parentNode.insertAdjacentHTML('afterend','<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="expOn" style="width:auto"> Cellules explorateurs (sources du web + Ollama)</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules en vol en même temps <select id="expN" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option></select></label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules par vague, toutes les 5 s <select id="expW" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>');
+$('#expOn').onchange=e=>store.set('exp',+e.target.checked);$('#expN').onchange=e=>store.set('expN',+e.target.value);$('#expW').onchange=e=>store.set('expW',+e.target.value);
+$('#bcfg').addEventListener('click',()=>{$('#expOn').checked=XO();$('#expN').value=XN();$('#expW').value=XW()});
 hud(A().on?'…':'off');if(A().on)setTimeout(test,1500);setInterval(()=>{if(A().on&&!document.hidden)test()},30000);
 /* ---- Synthèse : web (Wikipédia, HN, OpenAlex) puis Ollama analyse ---- */
 async function chat(msgs,onTok){const a=A();ctl=new AbortController();const r=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:.3,num_ctx:4096}})});if(!r.ok)throw new Error(r.status==404?'modèle introuvable : ollama pull '+a.model:'erreur '+r.status);
@@ -1917,12 +1919,48 @@ const PG=async n=>{if(!store.get('pg'))return[];const seen=new Set(dd(n).map(d=>
   t=t.replace(/!?\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/\s+/g,' ').trim();return t.length<60?[]:[{s:ti,x:cut(t,600),u,k:'Web · '+hostOf(u)}]}catch{return[]}};
 const SRC=[{n:'Wikipédia FR',d:'wikipedia.org',m:'W',f:(q,ms)=>WK(q,'fr',ms)},{n:'Wikipédia EN',d:'wikipedia.org',m:'W',f:(q,ms)=>WK(q,'en',ms)},{n:'Hacker News',d:'news.ycombinator.com',m:'Y',f:HN},{n:'OpenAlex',d:'openalex.org',m:'OA',f:OA},
  {n:'Crossref',d:'crossref.org',m:'CR',f:CR},{n:'Europe PMC',d:'europepmc.org',m:'PM',f:EP},{n:'Stack Overflow',d:'stackoverflow.com',m:'SO',f:SE},{n:'GitHub',d:'github.com',m:'GH',f:GH},{n:'Open Library',d:'openlibrary.org',m:'OL',f:OL},{n:'Internet Archive',d:'archive.org',m:'IA',f:IAr}];
+/* ===== V16 : ~120 sources supplémentaires (générateurs + API ouvertes), tirage varié, sauvegarde du compte ===== */
+const MW=(host,n,d,m)=>({n,d,m,f:async(q,ms)=>{const j=await J('https://'+host+'/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=1&prop=extracts&exintro=1&explaintext=1&exsentences=3&gsrsearch='+encodeURIComponent(q),ms),p=j.query&&Object.values(j.query.pages)[0];return p&&p.extract?{s:p.title,x:p.extract.replace(/\s+/g,' ').trim(),u:'https://'+host+'/?curid='+p.pageid,k:n}:null}});
+const SEx=(site,n,d)=>({n,d,m:'SE',f:async q=>{const j=await J('https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=votes&pagesize=3&site='+site+'&q='+encodeURIComponent(q)),w=(j.items||[]).find(x=>x.title&&x.score>1);return w?{s:dec(w.title),x:'Question « '+dec(w.title)+' » ('+w.score+' votes, '+w.answer_count+' réponses).',u:w.link,k:n}:null}});
+const XA=(n,d,m,url,fn)=>({n,d,m,f:async(q,ms)=>{const r=fn(await J(url(encodeURIComponent(q)),ms));return r&&r[0]&&r[2]?{s:dec(String(r[0])),x:cut(dec(String(r[1]||r[0])).replace(/<[^>]+>/g,' ').replace(/\s+/g,' '),400),u:r[2],k:n}:null}});
+const NEW=[];
+'es de it pt nl ru ja zh ar pl sv uk ca tr ko fa he hi id cs fi hu el ro no da vi th'.split(' ').forEach(l=>NEW.push(MW(l+'.wikipedia.org','Wikipédia '+l.toUpperCase(),'wikipedia.org','W')));
+[['wiktionary','Wiktionary','Wk'],['wikibooks','Wikibooks','Wb'],['wikiquote','Wikiquote','Wq'],['wikisource','Wikisource','Ws'],['wikivoyage','Wikivoyage','Wv'],['wikinews','Wikinews','Wn'],['wikiversity','Wikiversity','Wu']].forEach(([p,L,m])=>['fr','en','es','de','it'].forEach(l=>NEW.push(MW(l+'.'+p+'.org',L+' '+l.toUpperCase(),p+'.org',m))));
+'mechanics engineering physics math chemistry biology electronics space aviation history philosophy cooking gaming workplace softwareengineering unix security datascience stats codereview ux photo diy money law travel academia scifi english french'.split(' ').forEach(s=>NEW.push(SEx(s,s[0].toUpperCase()+s.slice(1)+' SE',s+'.stackexchange.com')));
+[['askubuntu','Ask Ubuntu SE','askubuntu.com'],['superuser','Super User SE','superuser.com'],['serverfault','Server Fault SE','serverfault.com']].forEach(a=>NEW.push(SEx(...a)));
+const OAx=(p,n,fn)=>XA(n,'openalex.org','OA',q=>'https://api.openalex.org/'+p+'?per_page=1&search='+q,j=>{const r=(j.results||[])[0];return r&&fn(r,'https://openalex.org/'+r.id.split('/').pop())});
+NEW.push(
+XA('Semantic Scholar','semanticscholar.org','SS',q=>'https://api.semanticscholar.org/graph/v1/paper/search?limit=1&fields=title,abstract,year,url,citationCount&query='+q,j=>{const r=(j.data||[])[0];return r&&[r.title,r.abstract||r.title+' ('+r.year+', '+r.citationCount+' citations)',r.url]}),
+XA('DOAJ','doaj.org','DJ',q=>'https://doaj.org/api/search/articles/'+q+'?pageSize=1',j=>{const r=(j.results||[])[0];return r&&[r.bibjson.title,r.bibjson.abstract,'https://doaj.org/article/'+r.id]}),
+XA('INSPIRE','inspirehep.net','IN',q=>'https://inspirehep.net/api/literature?size=1&fields=titles,abstracts,control_number&q='+q,j=>{const r=((j.hits||{}).hits||[])[0];return r&&[r.metadata.titles[0].title,((r.metadata.abstracts||[])[0]||{}).value,'https://inspirehep.net/literature/'+r.metadata.control_number]}),
+XA('Zenodo','zenodo.org','ZE',q=>'https://zenodo.org/api/records?size=1&q='+q,j=>{const r=((j.hits||{}).hits||[])[0];return r&&[r.metadata.title,r.metadata.description,r.links.self_html]}),
+XA('iNaturalist','inaturalist.org','iN',q=>'https://api.inaturalist.org/v1/taxa?per_page=1&q='+q,j=>{const r=(j.results||[])[0];return r&&[r.name+(r.preferred_common_name?' ('+r.preferred_common_name+')':''),r.wikipedia_summary||r.name,'https://www.inaturalist.org/taxa/'+r.id]}),
+XA('GBIF','gbif.org','GB',q=>'https://api.gbif.org/v1/species/search?limit=1&q='+q,j=>{const r=(j.results||[])[0];return r&&[r.scientificName,[r.kingdom,r.family].filter(Boolean).join(' › '),'https://www.gbif.org/species/'+r.key]}),
+XA('PubChem','pubchem.ncbi.nlm.nih.gov','PC',q=>'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/'+q+'/description/JSON',j=>{const a=j.InformationList.Information,d=a.find(x=>x.Description)||a[0];return[(a[0].Title||'Composé'),d.Description,'https://pubchem.ncbi.nlm.nih.gov/compound/'+a[0].CID]}),
+XA('NASA','nasa.gov','NA',q=>'https://images-api.nasa.gov/search?media_type=image&q='+q,j=>{const i=((j.collection||{}).items||[])[0],d=i&&i.data[0];return d&&[d.title,d.description||d.title,'https://images.nasa.gov/details/'+d.nasa_id]}),
+XA('Art Institute','artic.edu','AI',q=>'https://api.artic.edu/api/v1/artworks/search?limit=1&fields=id,title,artist_display,date_display&q='+q,j=>{const r=(j.data||[])[0];return r&&[r.title,(r.artist_display||'')+' · '+(r.date_display||''),'https://www.artic.edu/artworks/'+r.id]}),
+XA('Open Food Facts','openfoodfacts.org','OF',q=>'https://world.openfoodfacts.org/cgi/search.pl?json=1&page_size=1&search_terms='+q,j=>{const r=(j.products||[])[0];return r&&[r.product_name,(r.brands||'')+' · '+(r.categories||''),'https://world.openfoodfacts.org/product/'+r.code]}),
+XA('TheMealDB','themealdb.com','MD',q=>'https://www.themealdb.com/api/json/v1/1/search.php?s='+q,j=>{const r=(j.meals||[])[0];return r&&[r.strMeal,r.strCategory+' · '+r.strArea+' : '+(r.strInstructions||'').slice(0,300),'https://www.themealdb.com/meal/'+r.idMeal]}),
+XA('Gutenberg','gutenberg.org','PG',q=>'https://gutendex.com/books?search='+q,j=>{const r=(j.results||[])[0];return r&&[r.title,(r.authors||[]).map(a=>a.name).join(', ')+' ('+r.download_count+' téléchargements)','https://www.gutenberg.org/ebooks/'+r.id]}),
+XA('npm','npmjs.com','NP',q=>'https://registry.npmjs.org/-/v1/search?size=1&text='+q,j=>{const r=((j.objects||[])[0]||{}).package;return r&&[r.name,r.description,r.links.npm]}),
+XA('crates.io','crates.io','CI',q=>'https://crates.io/api/v1/crates?per_page=1&q='+q,j=>{const r=(j.crates||[])[0];return r&&[r.name,r.description,'https://crates.io/crates/'+r.name]}),
+XA('Packagist','packagist.org','PK',q=>'https://packagist.org/search.json?per_page=1&q='+q,j=>{const r=(j.results||[])[0];return r&&[r.name,r.description,r.url]}),
+XA('RubyGems','rubygems.org','RG',q=>'https://rubygems.org/api/v1/search.json?query='+q,j=>{const r=j[0];return r&&[r.name,r.info,r.project_uri]}),
+XA('HF Modèles','huggingface.co','HF',q=>'https://huggingface.co/api/models?limit=1&search='+q,j=>{const r=j[0];return r&&[r.id,(r.pipeline_tag||'modèle')+' · '+r.downloads+' téléchargements','https://huggingface.co/'+r.id]}),
+XA('HF Datasets','huggingface.co','HD',q=>'https://huggingface.co/api/datasets?limit=1&search='+q,j=>{const r=j[0];return r&&[r.id,'Jeu de données · '+r.downloads+' téléchargements','https://huggingface.co/datasets/'+r.id]}),
+XA('HF Spaces','huggingface.co','HS',q=>'https://huggingface.co/api/spaces?limit=1&search='+q,j=>{const r=j[0];return r&&[r.id,'Démo en ligne · '+(r.likes||0)+' j’aime','https://huggingface.co/spaces/'+r.id]}),
+XA('Nominatim','openstreetmap.org','OS',q=>'https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+q,j=>{const r=j[0];return r&&[r.display_name.split(',')[0],r.display_name,'https://www.openstreetmap.org/'+r.osm_type+'/'+r.osm_id]}),
+XA('Datamuse','onelook.com','DM',q=>'https://api.datamuse.com/words?max=8&ml='+q,j=>j.length&&['Mots liés',j.map(w=>w.word).join(', '),'https://www.onelook.com/?w='+encodeURIComponent(j[0].word)]),
+OAx('concepts','OpenAlex Concepts',(r,u)=>[r.display_name,r.description||r.display_name,u]),OAx('authors','OpenAlex Auteurs',(r,u)=>[r.display_name,((r.last_known_institution||{}).display_name||'')+' · '+r.works_count+' travaux',u]),
+OAx('institutions','OpenAlex Institutions',(r,u)=>[r.display_name,(r.country_code||'')+' · '+r.works_count+' travaux',u]),OAx('sources','OpenAlex Revues',(r,u)=>[r.display_name,(r.type||'')+' · '+r.works_count+' travaux',u]));
+const pickSrc=()=>{const en=SRC.filter(s=>!SOFF().includes(s.n)&&gapOk(s)),core=en.filter(s=>/^(Wikipédia (FR|EN)|OpenAlex|Hacker News)$/.test(s.n));return[...core,...en.filter(s=>!core.includes(s)).sort(()=>Math.random()-.5).slice(0,10)]};
+SRC.push(...NEW);
 const DOM={},MG={};SRC.forEach(s=>{DOM[s.n]=s.d;MG[s.n]=s.m});
 const MO=k=>esc(MG[k]||(k||'web').replace(/^Web · /,'').slice(0,1).toUpperCase());
 const LG=(k,u)=>{const h=(k||'').startsWith('Web · ')?k.slice(6):DOM[k]||(u?hostOf(u):'');return h?'<img alt="" loading="lazy" referrerpolicy="no-referrer" src="https://www.google.com/s2/favicons?domain='+encodeURIComponent(h)+'&sz=64" onerror="this.remove()">':''};
 function rk(q,n,L){const w=kw(q+(n?' '+n.title+' '+n.tags.join(' '):'')),c={};
  return L.map(r=>{const t=nz(r.s+' '+r.x),o=w.filter(k=>t.includes(k)).length;let s=o/Math.max(1,w.length);if(n){s-=.12*dd(n).filter(d=>d.k===r.k).length;if(nz(r.s).includes(nz(n.title)))s+=.4}c[r.k]=(c[r.k]||0)+1;s-=.05*(c[r.k]-1);s+=mb(r);return{r,s,o}}).filter(x=>x.o>0||!w.length).sort((a,b)=>b.s-a.s).map(x=>x.r)}
-const SOFF=()=>store.get('srcOff')||[],ALL=(q,ms=7000)=>Promise.allSettled([...SRC.filter(s=>!SOFF().includes(s.n)).map(s=>s.f(q,ms)),SX(q)]).then(R=>rk(q,null,R.map(r=>r.value).filter(Boolean)).map(value=>({value})));
+const LAST={},gapOk=s=>{const g={'GitHub':6500,'Stack Overflow':3000,'Crossref':800}[s.n]||(/ SE$/.test(s.n)?2500:0),t=Date.now();if(t-(LAST[s.n]||0)<g)return false;LAST[s.n]=t;return true},SOFF=()=>store.get('srcOff')||[],ALL=(q,ms=7000)=>Promise.allSettled([...pickSrc().map(s=>s.f(q,ms)),SX(q)]).then(R=>rk(q,null,R.map(r=>r.value).filter(Boolean)).map(value=>({value})));
 /* réglages : sources, pages liées, SearXNG */
 $('#expN').parentNode.insertAdjacentHTML('afterend','<div id="srcCfg"><label>Sources du web</label><div class="srcs">'+SRC.map(s=>'<label class="srcc"><input type="checkbox" data-s="'+esc(s.n)+'"><i class="lg" data-m="'+s.m+'">'+LG(s.n)+'</i>'+esc(s.n)+'</label>').join('')+'</div><label class="srcc"><input type="checkbox" id="pgOn"> Lire les liens présents dans mes notes (via r.jina.ai)</label><input id="sxUrl" placeholder="Recherche web générale : instance SearXNG (https://…)" aria-label="SearXNG"><p class="hint">Les recherches partent de ton navigateur vers ces sites. Les logos viennent du service de favicons de Google.</p></div>');
 const srcFill=()=>{const o=SOFF();document.querySelectorAll('#srcCfg [data-s]').forEach(i=>i.checked=!o.includes(i.dataset.s));$('#pgOn').checked=!!store.get('pg');$('#sxUrl').value=store.get('sx')||''};
@@ -2000,11 +2038,19 @@ window.discHTML=n=>{const l=dd(n);let h=l.length?'<h2>Découvertes du web</h2><u
 /* réglages : mémoire du compte + recherche par le sens */
 $('#srcCfg').insertAdjacentHTML('afterend','<div id="memCfg"><label>Mémoire du compte</label><label class="srcc"><input type="checkbox" id="memOn"> Apprendre de mes actions (notes ouvertes, questions, 👍 / 👎)</label><p class="hint" id="memSum"></p><button type="button" id="memClr">Effacer la mémoire de ce compte</button><label class="srcc" style="margin-top:14px!important"><input type="checkbox" id="semOn"> Recherche par le sens (embeddings Ollama)</label><input id="emModel" placeholder="nomic-embed-text" aria-label="Modèle d’embeddings"><p class="hint" id="semSt"></p><p class="hint">Installe le modèle : <code>ollama pull nomic-embed-text</code>. La mémoire reste dans ce navigateur, séparée pour chaque compte.</p></div>');
 const memFill=()=>{$('#memOn').checked=mOn();$('#semOn').checked=store.get('semOn')!==0;$('#emModel').value=EM();const m=MM(),E=Object.entries,k=E(m.kw).filter(x=>x[1]>.5).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]),bad=E(m.kw).filter(x=>x[1]<-.5).sort((a,b)=>a[1]-b[1]).slice(0,5).map(x=>x[0]),s=E(m.src).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]),o=E(m.open).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>(byKey[x[0].toLowerCase()]||{title:x[0]}).title);
- $('#memSum').textContent='Intérêts : '+(k.join(', ')||'rien encore')+' · Sources appréciées : '+(s.join(', ')||'—')+' · À éviter : '+(bad.join(', ')||'—')+' · Les plus ouvertes : '+(o.join(', ')||'—')+' · '+m.q.length+' questions, '+m.n+' réactions';$('#semSt').textContent=Object.keys(EMB()).length+' / '+real().length+' notes indexées'+(semErr?' · '+semErr:'')};
+ $('#memSum').textContent='Intérêts : '+(k.join(', ')||'rien encore')+' · Sources appréciées : '+(s.join(', ')||'—')+' · À éviter : '+(bad.join(', ')||'—')+' · Les plus ouvertes : '+(o.join(', ')||'—')+' · '+m.q.length+' questions, '+m.n+' réactions, '+Object.values(m.use||{}).reduce((a,b)=>a+b,0)+' enrichissements ('+((m.days||{})[iso()]||0)+' aujourd’hui)';$('#semSt').textContent=Object.keys(EMB()).length+' / '+real().length+' notes indexées'+(semErr?' · '+semErr:'')};
 $('#bcfg').addEventListener('click',memFill);
 $('#memCfg').addEventListener('change',e=>{if(e.target.id=='memOn')store.set('memOn',+e.target.checked);if(e.target.id=='semOn')store.set('semOn',+e.target.checked);if(e.target.id=='emModel'){store.set('emModel',e.target.value.trim()||'nomic-embed-text');store.set('emb',{})}});
 $('#memClr').onclick=()=>{if(confirm('Effacer ce que Synapse a appris de ce compte ?')){store.set('mem',{});store.set('dis',[]);memFill()}};
 
+/* sauvegarde du compte + stockage durable */
+const BK=['loc','disc','mem','dis','emb','ai','exp','expN','expW','srcOff','pg','sx','g2cfg','memOn','semOn','emModel'];
+$('#memCfg').insertAdjacentHTML('beforeend','<div style="margin-top:12px"><button type="button" id="bkExp">Exporter les données du compte</button> <button type="button" id="bkImp">Importer</button><input type="file" id="bkIn" accept=".json" hidden><p class="hint" id="stoSt"></p></div>');
+$('#bkExp').onclick=()=>{const o={};BK.forEach(k=>{const v=store.get(k);if(v!=null)o[k]=v});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o)],{type:'application/json'}));a.download='synapse-compte-'+iso()+'.json';a.click()};
+$('#bkImp').onclick=()=>$('#bkIn').click();$('#bkIn').onchange=async e=>{try{const o=JSON.parse(await e.target.files[0].text());BK.forEach(k=>{if(k in o)store.set(k,o[k])});load();say('Données importées.')}catch{say('Fichier invalide.')}e.target.value=''};
+const stoFill=()=>navigator.storage&&navigator.storage.estimate&&navigator.storage.estimate().then(e=>{$('#stoSt').textContent='Stockage du navigateur : '+(e.usage/1048576|0)+' Mo utilisés sur '+(e.quota/1048576|0)+' Mo disponibles.'});
+$('#bcfg').addEventListener('click',stoFill);try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}
+const memUse=k=>{if(!mOn())return;const m=MM();m.use=m.use||{};m.use[k]=(m.use[k]||0)+1;m.days=m.days||{};const d=iso();m.days[d]=(m.days[d]||0)+1;m.days=Object.fromEntries(Object.keys(m.days).sort().slice(-60).map(x=>[x,m.days[x]]));mSave(m)};
 window.SYN_LG={MO,LG};window.SYN_AI={ask:askAI,test,synth,imp,semS};
 })();
 </script>
@@ -2013,7 +2059,7 @@ window.SYN_LG={MO,LG};window.SYN_AI={ask:askAI,test,synth,imp,semS};
 (()=>{
 const $=s=>document.querySelector(s),c2=document.createElement('canvas');c2.id='g2';$('#cv').after(c2);const x=c2.getContext('2d');
 const DEF={rep:1,lk:1,dist:1,grav:1,size:1,thick:1,txt:1,dep:2,orph:1,grp:0,loc:0,anim:1},cf=()=>({...DEF,...(store.get('g2cfg')||{})});let C=cf();
-let G=[],S=[],SE=[],GE=[],GM={},V={x:0,y:0,k:1},alpha=1,HV=null,auto=true,lN=null,lL=-1,lE=-1,lH='',E2=new Set(),tE=0,B=[],fc=0,drag=null,mv=0,pd=0;const P=new Map();
+let G=[],S=[],SE=[],GE=[],GM={},V={x:0,y:0,k:1},alpha=1,HV=null,auto=true,lN=null,lL=-1,lE=-1,lH='',E2=new Set(),HS=null,SAT={},firstS=true,tE=0,B=[],fc=0,drag=null,mv=0,pd=0;const P=new Map();
 const on=()=>document.body.classList.contains('flat-mode'),light=()=>document.body.classList.contains('light'),cur=()=>location.hash.slice(1).toLowerCase();
 const res=k=>GM[k]||(k&&byKey[String(k).toLowerCase()]&&GM[byKey[String(k).toLowerCase()].id]);
 const dirC=d=>{let h=0;for(const c of String(d||'')){h=(h*31+c.charCodeAt(0))%360}return 'hsl('+h+',62%,'+(light()?'42':'66')+'%)'};
@@ -2045,37 +2091,45 @@ function draw(now){const W=innerWidth,H=innerHeight,dpr=Math.min(devicePixelRati
  S.forEach(g=>{const t=(!hv||hv.has(g))&&(!fs||fs.has(g.id))?1:.14;g.a+=(t-g.a)*.18;g.h+=((g===HV?1:0)-g.h)*.25;g.px=g.x+(br?Math.sin(now/1400+g.ph)*.9:0);g.py=g.y+(br?Math.cos(now/1700+g.ph)*.9:0)});
  x.lineWidth=.9*C.thick/V.k;x.strokeStyle='rgba('+ec+','+(hv||fs?.07:.3)+')';x.beginPath();SE.forEach(([p,q])=>{x.moveTo(p.px,p.py);x.lineTo(q.px,q.py)});x.stroke();
  if(hv){x.strokeStyle='rgba('+ec+',.85)';x.lineWidth=1.3*C.thick/V.k;x.beginPath();SE.forEach(([p,q])=>{if(p===HV||q===HV){x.moveTo(p.px,p.py);x.lineTo(q.px,q.py)}});x.stroke()}
- S.forEach(g=>{const r=Math.max(g.r*C.size,1.4/V.k)*(1+.35*g.h),open=g.id.toLowerCase()==cu,red=E2.has(g.id);x.globalAlpha=g.a;
+ S.forEach(g=>{const r=Math.max((g.r+Math.min((SAT[g.id]||[]).length,10)*.35)*C.size,1.4/V.k)*(1+.35*g.h),open=g.id.toLowerCase()==cu,red=E2.has(g.id);x.globalAlpha=g.a;
   if(g.h>.05){x.globalAlpha=g.a*.18*g.h;x.fillStyle=L?'#000':'#fff';x.beginPath();x.arc(g.px,g.py,r*2.4,0,6.283);x.fill();x.globalAlpha=g.a}
-  x.fillStyle=red?'#e05252':C.grp?dirC(g.n.dir):L?(g.d>5?'#333':'#666'):(g.d>5?'#dcdcdc':'#a9a9a9');x.beginPath();x.arc(g.px,g.py,r,0,6.283);x.fill();
+  x.fillStyle=C.grp?dirC(g.n.dir):L?(g.d>5?'#333':'#666'):(g.d>5?'#dcdcdc':'#a9a9a9');x.beginPath();x.arc(g.px,g.py,r,0,6.283);x.fill();
   if(open||(fs&&fs.has(g.id))){x.lineWidth=1.6/V.k;x.strokeStyle=open?(L?'#000':'#fff'):'#6fe8ff';x.beginPath();x.arc(g.px,g.py,r+3/V.k,0,6.283);x.stroke()}
   if(g.p&&now-g.p<900){const u=(now-g.p)/900;x.globalAlpha=1-u;x.lineWidth=1.5/V.k;x.strokeStyle='#6fe8ff';x.beginPath();x.arc(g.px,g.py,r+u*22/V.k,0,6.283);x.stroke()}
   let la=Math.min(1,Math.max(0,V.k*C.txt*(.5+Math.min(g.d,12)*.12)-.8));if(open||(hv&&hv.has(g)))la=1;
   if(la>.05&&g.a>.2){x.globalAlpha=la*g.a;const big=g===HV;x.font=(big?13:11)/V.k+'px system-ui,sans-serif';x.textAlign='center';x.lineWidth=3/V.k;x.strokeStyle=L?'#f4f1ea':'#1e1e1e';const t=g.n.title.slice(0,40),y=g.py+r+13/V.k;x.strokeText(t,g.px,y);x.fillStyle=big||open?(L?'#111':'#fff'):(L?'#444':'#b0b0b0');x.fillText(t,g.px,y)}});
+ S.forEach(g=>{const L2=SAT[g.id];if(!L2||!L2.length)return;const r0=Math.max((g.r+Math.min(L2.length,10)*.35)*C.size,1.4/V.k)+7/V.k;L2.forEach((s,i)=>{const ring=i/8|0,pos=i%8,per=Math.min(8,L2.length-ring*8),a=pos/per*6.283+ring*.6+now/(9000+ring*3000)*(ring%2?-1:1),rad=r0+ring*6/V.k,u=Math.min(1,(now-s.born)/700),e=s.born?1-Math.pow(1-u,3):1;
+  s.g=g;s.x=g.px+Math.cos(a)*rad*e;s.y=g.py+Math.sin(a)*rad*e;const sr=Math.max(2.4*C.size,1.6/V.k)*e*(s===HS?1.5:1);x.globalAlpha=g.a;x.fillStyle=s.c;x.beginPath();x.arc(s.x,s.y,sr,0,6.283);x.fill();
+  if(s.l){x.lineWidth=1.2/V.k;x.strokeStyle=L?'#000':'#fff';x.beginPath();x.arc(s.x,s.y,sr+1.5/V.k,0,6.283);x.stroke()}
+  if(s.born&&u<1){x.globalAlpha=(1-u)*g.a;x.lineWidth=1.4/V.k;x.strokeStyle=s.c;x.beginPath();x.arc(s.x,s.y,sr+u*12/V.k,0,6.283);x.stroke()}})});
+ if(HS){x.globalAlpha=1;x.font=12/V.k+'px system-ui,sans-serif';x.textAlign='center';x.lineWidth=3/V.k;x.strokeStyle=L?'#f4f1ea':'#1e1e1e';x.strokeText(HS.k,HS.x,HS.y-10/V.k);x.fillStyle=L?'#111':'#fff';x.fillText(HS.k,HS.x,HS.y-10/V.k)}
  x.globalAlpha=1;x.restore();
  for(let i=B.length-1;i>=0;i--){const b=B[i],u=Math.min(1,(now-b.t0)/2200),e=u*u*(3-2*u),gx=(b.g.px||b.g.x)*V.k+V.x,gy=(b.g.py||b.g.y)*V.k+V.y;
   b.el.style.transform='translate('+((b.sx+(gx-b.sx)*e-18)|0)+'px,'+((b.sy+(gy-b.sy)*e-18)|0)+'px)';b.el.style.opacity=String(Math.min(1,u*6)*(u>.9?(1-u)*10:1));if(u>=1){b.g.p=now;b.el.remove();B.splice(i,1)}}}
 const toW=(sx,sy)=>[(sx-V.x)/V.k,(sy-V.y)/V.k],zoom=(sx,sy,f)=>{const k=Math.max(.1,Math.min(8,V.k*f)),r=k/V.k;V.x=sx-(sx-V.x)*r;V.y=sy-(sy-V.y)*r;V.k=k};
 const pick=(sx,sy)=>{const[wx,wy]=toW(sx,sy);let b=null,bd=1e9;for(const g of S){const d=Math.hypot(g.x-wx,g.y-wy)-Math.max(g.r*C.size,1.4/V.k);if(d<8/V.k&&d<bd){b=g;bd=d}}return b};
 c2.onpointerdown=e=>{c2.setPointerCapture(e.pointerId);P.set(e.pointerId,[e.clientX,e.clientY]);mv=0;if(P.size==2){const[a,b]=[...P.values()];pd=Math.hypot(a[0]-b[0],a[1]-b[1]);if(drag){drag.fx=null;drag=null}}else{drag=pick(e.clientX,e.clientY);if(drag){drag.fx=drag.x;drag.fy=drag.y}}};
-c2.onpointermove=e=>{const p=P.get(e.pointerId);if(!p){HV=pick(e.clientX,e.clientY);c2.style.cursor=HV?'pointer':'grab';return}
+c2.onpointermove=e=>{const p=P.get(e.pointerId);if(!p){HV=pick(e.clientX,e.clientY);HS=HV?null:pickS(e.clientX,e.clientY);c2.style.cursor=HV||HS?'pointer':'grab';return}
  const dx=e.clientX-p[0],dy=e.clientY-p[1];mv+=Math.abs(dx)+Math.abs(dy);P.set(e.pointerId,[e.clientX,e.clientY]);
  if(P.size==2){const[a,b]=[...P.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1]);zoom((a[0]+b[0])/2,(a[1]+b[1])/2,d/pd);pd=d;auto=false}
  else if(drag){const[wx,wy]=toW(e.clientX,e.clientY);drag.fx=wx;drag.fy=wy;alpha=Math.max(alpha,.3)}else{V.x+=dx;V.y+=dy;auto=false}};
-c2.onpointerup=c2.onpointercancel=e=>{P.delete(e.pointerId);if(drag){if(mv<6&&e.type=='pointerup')location.hash=drag.id;drag.fx=null;drag.fy=null;drag=null}};
+c2.onpointerup=c2.onpointercancel=e=>{P.delete(e.pointerId);if(drag){if(mv<6&&e.type=='pointerup')location.hash=drag.id;drag.fx=null;drag.fy=null;drag=null}else if(mv<6&&e.type=='pointerup'){const s=pickS(e.clientX,e.clientY);if(s)location.hash=s.g.id}};
 c2.onwheel=e=>{e.preventDefault();zoom(e.clientX,e.clientY,Math.exp(-e.deltaY*.0015));auto=false};
 const refit=()=>{auto=true;alpha=Math.max(alpha,.1)};c2.ondblclick=refit;$('#brec').addEventListener('click',refit);
 /* réglages du graphe (comme Obsidian) */
 const rows=[['rep','Répulsion','r',.2,3,.1],['lk','Force des liens','r',.2,3,.1],['dist','Distance des liens','r',.5,3,.1],['grav','Gravité vers le centre','r',0,3,.1],['size','Taille des nœuds','r',.5,2.5,.1],['thick','Épaisseur des liens','r',.3,3,.1],['txt','Affichage du texte','r',.3,3,.1],['dep','Profondeur du voisinage','r',1,4,1],['orph','Notes orphelines','t'],['grp','Couleurs par dossier','t'],['loc','Voisinage de la note ouverte','t'],['anim','Mouvement doux','t']];
 document.body.insertAdjacentHTML('beforeend','<button type="button" id="g2g" aria-label="Réglages du graphe">⚙</button><div id="g2p" hidden>'+rows.map(r=>'<label class="lr"><span>'+r[1]+'</span><input data-k="'+r[0]+'" type="'+(r[2]=='t'?'checkbox':'range')+'"'+(r[2]=='r'?' min="'+r[3]+'" max="'+r[4]+'" step="'+r[5]+'"':'')+'></label>').join('')+'<button type="button" id="g2r">Réinitialiser</button></div>');
-const pf=()=>document.querySelectorAll('#g2p [data-k]').forEach(i=>{const v=C[i.dataset.k];i.type=='checkbox'?i.checked=!!v:i.value=v});
+document.body.insertAdjacentHTML('beforeend','<div id="g2l"><span style="--c:#4da3ff">Savoir</span><span style="--c:#3ddc84">Science</span><span style="--c:#ff5a5a">Tech</span></div>');const pf=()=>document.querySelectorAll('#g2p [data-k]').forEach(i=>{const v=C[i.dataset.k];i.type=='checkbox'?i.checked=!!v:i.value=v});
 $('#g2g').onclick=()=>{C=cf();pf();$('#g2p').hidden=!$('#g2p').hidden};
 $('#g2p').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;C[k]=e.target.type=='checkbox'?+e.target.checked:+e.target.value;store.set('g2cfg',C);if(k=='orph'||k=='loc'||k=='dep')relayout();else alpha=Math.max(alpha,.5)});
 $('#g2r').onclick=()=>{C={...DEF};store.set('g2cfg',C);pf();relayout()};
+const catC=k=>/OpenAlex|Crossref|PMC/.test(k||'')?'#3ddc84':/Hacker|Stack|GitHub/.test(k||'')?'#ff5a5a':'#4da3ff';
+function refreshSat(){const d=store.get('disc')||{},now=Date.now(),nw=performance.now(),out={};Object.keys(d).forEach(id=>{const m=new Map((SAT[id]||[]).map(s=>[s.u,s]));out[id]=(d[id]||[]).filter(x=>firstS||!x.d||x.d<now-2500).map(x=>{const s=m.get(x.u)||{u:x.u,k:x.k,c:catC(x.k),born:firstS?0:nw,x:0,y:0};s.l=x.l;return s})});firstS=false;SAT=out}
+const pickS=(sx,sy)=>{const[wx,wy]=toW(sx,sy);let b=null,bd=1e9;for(const g of S)for(const s of SAT[g.id]||[]){const d=Math.hypot(s.x-wx,s.y-wy);if(d<7/V.k&&d<bd){b=s;bd=d}}return b};
 window.G2={on,bubble(n,k){const g=GM[n.id];if(!g||!window.SYN_LG)return;const el=document.createElement('div');el.className='ix';el.style.setProperty('--c','#6fe8ff');el.innerHTML='<i class="lg" data-m="'+SYN_LG.MO(k)+'">'+SYN_LG.LG(k)+'</i>';el.setAttribute('aria-label',k||'web');el.onclick=()=>{location.hash=n.id};document.body.append(el);
  const a=Math.random()*6.283,R2=Math.max(innerWidth,innerHeight)*.55;B.push({g,el,t0:performance.now(),sx:innerWidth/2+Math.cos(a)*R2,sy:innerHeight/2+Math.sin(a)*R2})}};
 (function loop(){requestAnimationFrame(loop);if(!on()||document.hidden)return;if(N!==lN||N.length!==lL||E.length!==lE)build();else if(key()!==lH)relayout();const now=performance.now();
- if(now-tE>2500){tE=now;const d=store.get('disc')||{};E2=new Set(Object.keys(d).filter(k=>d[k]&&d[k].length))}
+ if(now-tE>1000){tE=now;refreshSat()}
  if(alpha>.012)tick();if(alpha>.4)tick();if(auto&&alpha>.02)fit(1);draw(now)})();
 try{R.setAnimationLoop(()=>{if(on()&&++fc%4)return;frame()})}catch{}
 })();
