@@ -85,3 +85,9 @@ L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'auto
 - **Rouge** = note enrichie par le cerveau. Anneau blanc = note ouverte. Anneau cyan = résultat de recherche.
 - Survol : la note et ses voisines restent allumées, le reste s'éteint. Clic : ouvre la note. Glisser un nœud le déplace, le fond déplace la vue, molette ou pincement pour zoomer, double-clic ou « recadrer » pour tout recentrer.
 - Les bulles de logos des sources rejoignent la note enrichie directement dans le graphe 2D. La scène 3D, cachée dans ce mode, est ralentie pour économiser la batterie.
+
+## V13 : vue 2D améliorée
+
+- Disposition recalculée avec une vraie simulation de forces (répulsion Barnes-Hut, liens pondérés par le nombre de voisins) : les hubs se dégagent en étoiles et les groupes se séparent. Le graphe s'affiche déjà stabilisé.
+- Bouton ⚙ (en haut à gauche en vue 2D) : répulsion, force et distance des liens, gravité, taille des nœuds, épaisseur des liens, affichage du texte, notes orphelines, **couleurs par dossier**, **voisinage de la note ouverte** (profondeur 1 à 4), mouvement doux. Les réglages sont gardés par compte.
+- Survol plus doux (fondu, halo), texte qui apparaît progressivement avec le zoom, nœuds qui respirent légèrement.
