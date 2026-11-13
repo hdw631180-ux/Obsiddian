@@ -156,6 +156,7 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 #boot .bp{position:relative;font:11px var(--mo);color:var(--mu);letter-spacing:.2em}
 @keyframes bpulse{50%{opacity:.55}}
 @media (prefers-reduced-motion:reduce){#boot .bt{animation:none}}
+.ol{display:none!important}
 #auth{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:#000;padding:24px}
 #auth[hidden]{display:none}
 #authbox{width:min(400px,100%);border:1px solid var(--ln);padding:32px 28px;background:rgba(0,0,0,.92)}
@@ -169,12 +170,6 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 #authbox menu{display:flex;gap:8px;justify-content:flex-end;padding:0;margin:22px 0 0}
 #authbox .hint{color:var(--mu);font-size:12px;margin:16px 0 0;text-align:center}
 #userbar{font:12px var(--mo);color:var(--mu);margin-top:4px}
-#stafflist{font:14px/1.7 var(--ui);margin:12px 0}
-#stafflist .row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--ln)}
-#stafflist .row:last-child{border-bottom:0}
-#stafflist .u{font-weight:500}
-#stafflist .d{color:var(--mu);font-size:12px}
-#staffcode{margin-top:8px}
 /* ===== Nouvelles UI ===== */
 #filters{position:fixed;left:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:4;max-height:60vh;overflow:auto;scrollbar-width:thin}
 #filters[hidden]{display:none}
@@ -436,6 +431,7 @@ body.g2pres>*:not(#g2):not(.ix):not(#g2t):not(#g2q):not(#g2l):not(script):not(st
   <div class="bs" id="bootMsg">Initialisation…</div>
   <div class="bb"><i id="bootBar"></i></div>
   <div class="bp" id="bootPct">0 %</div>
+  <button type="button" id="bootSkip" hidden style="position:relative">Passer</button>
 </div>
 <script>
 (function(){
@@ -461,6 +457,8 @@ body.g2pres>*:not(#g2):not(.ix):not(#g2t):not(#g2q):not(#g2l):not(script):not(st
     draw(k);if(k>=1)end();else requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
+  setTimeout(function(){document.getElementById('bootSkip').hidden=false},3000);
+  document.getElementById('bootSkip').onclick=end;
   setTimeout(end,D+500);
 })();
 </script>
@@ -578,7 +576,6 @@ body.g2pres>*:not(#g2):not(.ix):not(#g2t):not(#g2q):not(#g2l):not(script):not(st
           <button type="button" id="bsync">Synchroniser</button>
           <button type="button" id="bcfg">Reglages</button>
           <button type="button" id="themeBtn" title="Theme">Theme clair / sombre</button>
-          <button type="button" id="bstaff">Staff</button>
           <button type="button" id="blogout">Deconnexion</button>
         </div>
         <h3>Compte</h3>
@@ -636,7 +633,7 @@ body.g2pres>*:not(#g2):not(.ix):not(#g2t):not(#g2q):not(#g2l):not(script):not(st
 <aside id="pn" aria-label="Note"><button id="x" type="button">Fermer</button><div id="nt"></div></aside>
 <dialog id="dc"><form id="fc" method="dialog">
 <strong>Réglages</strong>
-<p class="hint">Le chatbot répond à des questions prédéfinies, calculées sur tes notes dans ce navigateur. Option : une IA locale via Ollama (ci-dessous), qui ne parle qu’à l’adresse que tu indiques.</p>
+<p class="hint">Le chatbot répond à des questions prédéfinies, calculées sur tes notes dans ce navigateur. Pour les questions libres, il cherche aussi sur le web et cite ses sources.</p>
 <label for="rp">Dépôt GitHub du coffre (public)</label><input id="rp" placeholder="pseudo/mon-coffre">
 <label for="dr">Dossier à lire (facultatif)</label><input id="dr" placeholder="vide : tout le dépôt">
 <div id="custQ">
@@ -674,29 +671,10 @@ body.g2pres>*:not(#g2):not(.ix):not(#g2t):not(#g2q):not(#g2l):not(script):not(st
 </form></dialog>
 <dialog id="dv"><strong id="dvt"></strong><div id="dvb"></div><menu><button type="button" class="cl">Fermer</button></menu></dialog>
 
-<dialog id="dstaff">
-  <strong>Accès staff</strong>
-  <p class="hint" id="staffHint">Entre le code staff pour voir la liste des comptes enregistrés sur ce navigateur.</p>
-  <div id="staffGate">
-    <label for="scode">Code staff</label>
-    <input id="scode" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••••">
-    <p class="err" id="staffErr" style="color:#ff6b6b;font-size:13px;margin:10px 0 0;min-height:1.2em"></p>
-    <menu style="display:flex;gap:8px;justify-content:flex-end;padding:0;margin:22px 0 0">
-      <button type="button" class="cl">Annuler</button>
-      <button type="button" id="bstaffGo">Valider</button>
-    </menu>
-  </div>
-  <div id="staffPanel" hidden>
-    <div id="stafflist"></div>
-    <menu style="display:flex;gap:8px;justify-content:flex-end;padding:0;margin:22px 0 0">
-      <button type="button" class="cl">Fermer</button>
-    </menu>
-  </div>
-</dialog>
 
 <script type="text/plain" id="vault">
 === accueil | | Accueil | dashboard | permanent | 2026-11-12 | index
-Synapse est un **cerveau de notes** : envoie-lui n’importe quel sujet, il va chercher sur Wikipédia et le web, puis Ollama écrit une **synthèse**.
+Synapse est un **cerveau de notes** : envoie-lui n’importe quel sujet, il va chercher sur Wikipédia et le web, puis Synapse rédige une **synthèse**.
 
 ## Comment faire
 - Clique sur **Nouvelle note** et écris ce que tu veux (idée, cours, article, projet…)
@@ -705,9 +683,9 @@ Synapse est un **cerveau de notes** : envoie-lui n’importe quel sujet, il va c
 - Lis [[comment-ca-marche|comment ça marche]] et regarde l’[[exemple-note|exemple]]
 === comment-ca-marche | 02_Areas | Comment ça marche | zettel | permanent | 2026-11-12 | methode
 1. Tu écris une note.
-2. Ollama choisit une requête de recherche.
+2. Synapse choisit une requête de recherche.
 3. Le navigateur interroge Wikipédia FR/EN, Hacker News et OpenAlex.
-4. Ollama résume : résumé, apports du web, liens possibles, questions à creuser.
+4. Synapse résume : résumé, apports du web, liens possibles, questions à creuser.
 
 Les liens `[[comme ça]]` relient les notes dans le graphe. Retour à l’[[accueil]].
 === exemple-note | 00_Inbox | Exemple : apprendre le piano | capture | inbox | 2026-11-12 | exemple,apprentissage
@@ -731,14 +709,18 @@ const $=s=>document.querySelector(s);
 /* ---------- Auth & comptes (localStorage uniquement) ---------- */
 const USERS_KEY='synapse_users';
 const SESSION_KEY='synapse_session';
-const STAFF_CODE='195180';
 const getUsers=()=>{try{return JSON.parse(localStorage.getItem(USERS_KEY))||[]}catch{return[]}};
 const setUsers=u=>{try{localStorage.setItem(USERS_KEY,JSON.stringify(u))}catch{}};
 const getSession=()=>{try{return JSON.parse(sessionStorage.getItem(SESSION_KEY)||localStorage.getItem(SESSION_KEY))}catch{return null}};
 const setSession=u=>{try{sessionStorage.setItem(SESSION_KEY,JSON.stringify(u));localStorage.setItem(SESSION_KEY,JSON.stringify(u))}catch{}};
 const clearSession=()=>{try{sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(SESSION_KEY)}catch{}};
-/* hash simple (démo uniquement — pas une vraie sécurité) */
+/* ancien hash : gardé uniquement pour migrer les comptes existants vers PBKDF2 au prochain login */
 const hash=s=>{let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return 'h'+Math.abs(h).toString(36)+s.length};
+const b64=b=>btoa(String.fromCharCode(...new Uint8Array(b))),newSalt=()=>b64(crypto.getRandomValues(new Uint8Array(16)));
+async function pbk(p,salt){if(!crypto.subtle)return 'x'+hash(p+salt);const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);return b64(await crypto.subtle.deriveBits({name:'PBKDF2',salt:Uint8Array.from(atob(salt),c=>c.charCodeAt(0)),iterations:150000,hash:'SHA-256'},k,256))}
+async function checkPw(us,u,p){const x=us.find(v=>v.user.toLowerCase()===u.toLowerCase());if(!x)return null;
+ if(x.salt)return(await pbk(p,x.salt))===x.pass?x:null;
+ if(x.pass!==hash(p))return null;x.salt=newSalt();x.pass=await pbk(p,x.salt);setUsers(us);return x}
 let currentUser=null;
 function userKey(k){return currentUser?('u_'+currentUser.user+'_'+k):k}
 const store={
@@ -786,47 +768,26 @@ function enterApp(user){
 /* UI login / register */
 $('#tabLogin').onclick=()=>{$('#tabLogin').classList.add('on');$('#tabReg').classList.remove('on');$('#fLogin').hidden=false;$('#fReg').hidden=true;$('#loginErr').textContent='';$('#regErr').textContent=''};
 $('#tabReg').onclick=()=>{$('#tabReg').classList.add('on');$('#tabLogin').classList.remove('on');$('#fReg').hidden=false;$('#fLogin').hidden=true;$('#loginErr').textContent='';$('#regErr').textContent=''};
-$('#fLogin').onsubmit=e=>{
+$('#fLogin').onsubmit=async e=>{
   e.preventDefault();
   const u=$('#lu').value.trim(),p=$('#lp').value;
-  const found=getUsers().find(x=>x.user.toLowerCase()===u.toLowerCase()&&x.pass===hash(p));
+  const found=await checkPw(getUsers(),u,p);
   if(!found){$('#loginErr').textContent='Identifiant ou mot de passe incorrect.';return}
   enterApp(found);
 };
-$('#fReg').onsubmit=e=>{
+$('#fReg').onsubmit=async e=>{
   e.preventDefault();
   const u=$('#ru').value.trim(),p=$('#rpw').value,p2=$('#rpw2').value;
   if(p!==p2){$('#regErr').textContent='Les mots de passe ne correspondent pas.';return}
   if(u.length<3){$('#regErr').textContent='Identifiant trop court (min. 3).';return}
-  if(p.length<4){$('#regErr').textContent='Mot de passe trop court (min. 4).';return}
+  if(p.length<8){$('#regErr').textContent='Mot de passe trop court (min. 8).';return}
   const users=getUsers();
   if(users.some(x=>x.user.toLowerCase()===u.toLowerCase())){$('#regErr').textContent='Cet identifiant existe déjà.';return}
-  const neu={user:u,pass:hash(p),created:new Date().toISOString()};
+  const salt=newSalt(),neu={user:u,salt,pass:await pbk(p,salt),created:new Date().toISOString()};
   users.push(neu);setUsers(users);
   enterApp(neu);
 };
 $('#blogout').onclick=()=>{clearSession();currentUser=null;location.reload()};
-/* Staff */
-$('#bstaff').onclick=()=>{
-  $('#staffGate').hidden=false;$('#staffPanel').hidden=true;
-  $('#scode').value='';$('#staffErr').textContent='';
-  $('#staffHint').textContent='Entre le code staff pour voir la liste des comptes enregistrés sur ce navigateur.';
-  $('#dstaff').showModal();
-};
-$('#bstaffGo').onclick=()=>{
-  if($('#scode').value.trim()!==STAFF_CODE){$('#staffErr').textContent='Code incorrect.';return}
-  const users=getUsers();
-  const list=$('#stafflist');
-  if(!users.length){list.innerHTML='<p class="hint">Aucun compte enregistré.</p>'}
-  else{
-    list.innerHTML=users.map(u=>{
-      const d=u.created?new Date(u.created).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
-      return `<div class="row"><span class="u">${esc(u.user)}</span><span class="d">créé ${d}</span></div>`;
-    }).join('');
-  }
-  $('#staffGate').hidden=true;$('#staffPanel').hidden=false;
-  $('#staffHint').textContent=users.length+' compte'+(users.length>1?'s':'')+' sur ce navigateur.';
-};
 const BR={'':1,'00_Inbox':.55,'01_Projects':1,'02_Areas':.85,'03_Resources':.7,'05_Daily':.5,'90_Templates':.35};
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches,MOB=matchMedia('(pointer:coarse)').matches||innerWidth<700;
 const slug=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').toLowerCase();
@@ -1816,7 +1777,7 @@ rebuild=function(){_oldRebuild();updateStatsPanel();drawFilters();drawMinimap()}
 /* ===== SYNAPSE : IA locale (Ollama) ===== */
 (()=>{
 const $=s=>document.querySelector(s),DEF={on:1,url:'http://localhost:11434',model:'qwen2.5:0.5b',ctx:1};
-const A=()=>({...DEF,...(store.get('ai')||{})}),save=o=>store.set('ai',{...A(),...o});
+const A=()=>({...DEF,...(store.get('ai')||{}),on:false}),save=o=>store.set('ai',{...A(),...o});
 const base=()=>A().url.trim().replace(/\/+$/,'');
 const origin=()=>location.origin==='null'?'*':location.origin;
 const help=()=>`Ollama est injoignable. Vérifie que **Ollama** tourne (\`ollama serve\`), que le modèle est installé (\`ollama pull ${A().model}\`) et que ce site est autorisé : définis la variable \`OLLAMA_ORIGINS\` à \`${origin()}\` puis redémarre Ollama.`;
@@ -1824,12 +1785,12 @@ let busy=false,ctl=null,hist=[],up=null;
 const hud=t=>{const e=$('#hudAI');if(e)e.textContent=t};
 const hh=$('#hud-top');if(hh)hh.insertAdjacentHTML('beforeend','<span>IA <b id="hudAI">…</b></span>');
 /* ---- Réglages (dans la fenêtre existante) ---- */
-$('#dc').querySelector('#custQ').insertAdjacentHTML('beforebegin',`<div id="aiCfg"><label>IA locale (Ollama)</label>
-<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="aiOn" style="width:auto"> Activer l’IA dans le chatbot</label>
-<input id="aiUrl" placeholder="http://localhost:11434" aria-label="Adresse d’Ollama"><input id="aiModel" list="aiModels" placeholder="qwen2.5:3b" aria-label="Modèle"><datalist id="aiModels"></datalist>
-<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="aiCtx" style="width:auto"> Envoyer les notes pertinentes comme contexte</label>
-<div style="display:flex;gap:8px;align-items:center;margin-top:10px"><button type="button" id="aiTest">Tester la connexion</button><span class="hint" id="aiSt" style="margin:0"></span></div>
-<p class="hint">Les questions et les notes de contexte ne sont envoyées qu’à l’adresse indiquée ci-dessus.</p></div>`);
+$('#dc').querySelector('#custQ').insertAdjacentHTML('beforebegin',`<div id="aiCfg"><label>Cerveau Synapse (recherche web)</label>
+<label class="ol" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="aiOn" style="width:auto"> Activer l’IA dans le chatbot</label>
+<input class="ol" id="aiUrl" placeholder="http://localhost:11434" aria-label="Adresse d’Ollama"><input class="ol" id="aiModel" list="aiModels" placeholder="qwen2.5:3b" aria-label="Modèle"><datalist id="aiModels"></datalist>
+<label class="ol" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="aiCtx" style="width:auto"> Envoyer les notes pertinentes comme contexte</label>
+<div class="ol" style="display:flex;gap:8px;align-items:center;margin-top:10px"><button type="button" id="aiTest">Tester la connexion</button><span class="hint" id="aiSt" style="margin:0"></span></div>
+<p class="hint">Le chatbot cherche sur le web (Wikipédia et les sources activées ci-dessous) et rédige sa réponse à partir des extraits trouvés. Aucune IA externe, rien n’est envoyé à un serveur de Synapse.</p></div>`);
 const fill=()=>{const a=A();$('#aiOn').checked=!!a.on;$('#aiUrl').value=a.url;$('#aiModel').value=a.model;$('#aiCtx').checked=!!a.ctx;$('#aiSt').textContent=''};
 $('#aiCfg').addEventListener('change',()=>save({on:+$('#aiOn').checked,url:$('#aiUrl').value.trim()||DEF.url,model:$('#aiModel').value.trim()||DEF.model,ctx:+$('#aiCtx').checked}));
 const oc=$('#bcfg').onclick;$('#bcfg').onclick=()=>{fill();oc()};
@@ -1846,28 +1807,36 @@ const pick=q=>{const w=nz(q).split(/[^a-z0-9]+/).filter(k=>k.length>2);if(!w.len
 const render=(txt,run)=>{const a=$('#ans');a.hidden=false;a.classList.toggle('busy',run);a.innerHTML=md(txt||'…');
  if(run){const b=document.createElement('button');b.type='button';b.className='ax';b.textContent='Arrêter';b.onclick=()=>ctl&&ctl.abort();a.prepend(b)}a.scrollTop=a.scrollHeight};
 /* ---- Question à l'IA : réponse affichée au fil de l'eau ---- */
-async function askAI(q){if(busy)return;memQ(q);const a=A();busy=true;$('#qp').hidden=true;hud('réfléchit');
- const webs=(await ALL(q,3500)).map(r=>r.value).filter(Boolean).slice(0,3),web=webs[0]||null;
- const src=a.ctx?await pickS(q):[],sys='Tu es Synapse, le cerveau du coffre de notes de l’utilisateur : des cellules explorent le web pour l’enrichir. Réponds en français, de façon courte et précise. '+prof()+'Notes du coffre : '+real().slice(0,40).map(n=>n.title).join(', ')+'.\n\n'+(webs.length?'Sources web récentes :\n'+webs.map(w=>'- ('+w.k+') '+w.s+' : '+w.x.slice(0,500)).join('\n')+'\n\n':'')+(src.length?'Appuie-toi sur les notes ci-dessous ; si la réponse n’y est pas, dis-le.\n\n'+src.map(n=>'### '+n.title+'\n'+plain(n.body).slice(0,600)+dd(n).map(d=>'\n- (web) '+d.t).join('')).join('\n\n'):''),
-  msgs=[{role:'system',content:sys},...hist.slice(-6),{role:'user',content:q}];
- let out='',brain=null;try{brain=[...Array(CORT).keys()];srch={ci:brain};scanP.geometry.setFromPoints(SAMP)}catch{}
- ctl=new AbortController();render('',true);
- try{const r=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:.4,num_ctx:4096}})});
-  if(!r.ok)throw new Error(r.status==404?'modèle introuvable : ollama pull '+a.model:'erreur '+r.status);
-  const rd=r.body.getReader(),dc=new TextDecoder();let buf='',last=0;
-  for(;;){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});const ls2=buf.split('\n');buf=ls2.pop();
-   for(const l of ls2){if(!l.trim())continue;const j=JSON.parse(l);if(j.error)throw new Error(j.error);if(j.message)out+=j.message.content;}
-   const n=performance.now();if(n-last>60){last=n;render(out,true)}}
-  hist.push({role:'user',content:q},{role:'assistant',content:out});up=true;hud('prêt');
-  webs.forEach((w,k)=>{const nn=src[k%Math.max(1,src.length)];if(nn&&dAdd(nn,{t:cut(w.x.split(/(?<=[.!?])\s/)[0],240),u:w.u,s:w.s,k:w.k,d:Date.now()}))setTimeout(()=>flow(nn,Math.random()*CORT|0,cut(w.x,140),w.k),k*700)});
-  show('IA · '+q,(out.trim()||'Réponse vide.')+(webs.length?'\n\n**Sources web**\n'+webs.map(w=>'- '+w.k+' · '+w.s).join('\n'):'')+(src.length?'\n\n**Notes utilisées**\n'+ls(src,lk):''))}
- catch(e){if(e.name==='AbortError'){hud('prêt');show('IA · '+q,(out||'')+'\n\n*(interrompu)*')}else{hud('hors ligne');render(e instanceof TypeError||/Failed|fetch/i.test(e.message)?help():'**Erreur IA :** '+e.message+'\n\n'+help(),false)}}
- finally{srch=null;busy=false;ctl=null}}
+const typeOut=async t=>{const st=Math.max(3,t.length/60|0);for(let i=0;i<t.length;i+=st){render(t.slice(0,i),true);await new Promise(r=>setTimeout(r,18))}render(t,false)};
+async function askAI(q){if(busy)return;memQ(q);busy=true;$('#qp').hidden=true;hud('recherche');
+ try{srch={ci:[...Array(CORT).keys()]};scanP.geometry.setFromPoints(SAMP)}catch{}
+ render('Je cherche sur le web…',true);
+ try{
+  const low=nz(q).trim();
+  if(/^(salut|bonjour|coucou|hello|hey|bonsoir)\b/.test(low)){await typeOut('Bonjour ! Pose-moi une question : je cherche sur Wikipédia et les autres sources du web, puis je te réponds avec mes sources.');return}
+  if(/^(merci|super|parfait)\b/.test(low)){await typeOut('Avec plaisir ! Une autre question ?');return}
+  if(/\bqui es.tu\b|\btu es quoi\b/.test(low)){await typeOut('Je suis le cerveau de Synapse. Je n’utilise aucune IA externe : je cherche dans ton coffre et sur le web, je garde les phrases les plus pertinentes et je cite mes sources.');return}
+  const prev=[...hist].reverse().find(h=>h.role==='user'),qq=kw(q).length<2&&prev?prev.content+' '+q:q,
+   raw=(await ALL(qq,6500)).map(r=>r.value).filter(w=>w&&w.x).slice(0,8),K=kw(qq),nt=pick(q).slice(0,3),S=[];
+  raw.forEach((w,wi)=>{const ss=w.x.split(/(?<=[.!?])\s+/).filter(t=>t.length>25);(ss.length?ss:[w.x]).forEach((t,si)=>{const n=nz(t);S.push({t:cut(t,320),w,s:K.reduce((a,k)=>a+(n.includes(k)?3:0),0)-wi*.4-si*.3})})});
+  S.sort((a,b)=>b.s-a.s);const used={},top=[];
+  for(const x of S){if(top.length>=4)break;if((used[x.w.k]||0)>=2||top.some(y=>y.t===x.t))continue;used[x.w.k]=(used[x.w.k]||0)+1;top.push(x)}
+  let out;
+  if(!top.length)out='Je n’ai rien trouvé sur le web pour « '+q+' ». Reformule avec d’autres mots, ou vérifie ta connexion : j’ai besoin d’Internet pour chercher.';
+  else{out=top[0].t+' *('+top[0].w.k+')*';if(top.length>1)out+='\n\n**Ce que disent les autres sources**\n'+top.slice(1).map(x=>'- '+x.t+' *('+x.w.k+')*').join('\n')}
+  if(nt.length)out+='\n\n**Dans ton coffre**\n'+ls(nt,lk);
+  hist.push({role:'user',content:q},{role:'assistant',content:out});
+  await typeOut(out);
+  const ok=raw.filter(w=>/^https?:/.test(w.u));
+  if(ok.length)$('#ans').insertAdjacentHTML('beforeend','<p class="hint"><b>Sources</b><br>'+ok.map(w=>'<a href="'+esc(w.u).replace(/"/g,'%22')+'" target="_blank" rel="noopener">'+esc(w.k+' · '+w.s)+'</a>').join('<br>')+'</p>');
+  raw.slice(0,3).forEach((w,k)=>{const nn=nt[k%Math.max(1,nt.length)];if(nn&&dAdd(nn,{t:cut(w.x.split(/(?<=[.!?])\s/)[0],240),u:w.u,s:w.s,k:w.k,d:Date.now()}))setTimeout(()=>flow(nn,Math.random()*CORT|0,cut(w.x,140),w.k),k*700)})}
+ catch(e){render('**Erreur :** '+e.message,false)}
+ finally{srch=null;busy=false;ctl=null;hud('prêt')}}
 /* ---- Intégration au chatbot : Entrée sans question correspondante => l'IA répond ---- */
 const old=$('#ask').onsubmit;
-$('#ask').onsubmit=e=>{const t=$('#q').value.trim();if(t&&A().on){e.preventDefault();$('#q').value='';return askAI(t)}return old(e)};
+$('#ask').onsubmit=e=>{const t=$('#q').value.trim();if(t){e.preventDefault();$('#q').value='';return askAI(t)}return old(e)};
 $('#q').placeholder='Pose ta question au cerveau Synapse (Entrée)';
-const f=$('#ask');f.insertAdjacentHTML('beforeend','<button type="button" id="aiBtn" style="margin-top:8px">Demander à l’IA</button>');
+const f=$('#ask');f.insertAdjacentHTML('beforeend','<button type="button" id="aiBtn" style="margin-top:8px">Demander à Synapse</button>');
 $('#aiBtn').onclick=()=>{const t=$('#q').value.trim();if(!t)return $('#q').focus();$('#q').value='';askAI(t)};
 document.addEventListener('keydown',e=>{if(e.key!=='i'||e.ctrlKey||e.metaKey||e.altKey)return;const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName))return;e.preventDefault();openQ();setTimeout(()=>$('#q').focus(),0)});
 
@@ -1889,7 +1858,7 @@ let act=0;
 /* le cube est le cerveau Ollama : sa couleur, son halo et son étiquette disent ce qu’il fait */
 document.body.insertAdjacentHTML('beforeend','<div id="bh"></div><div id="bl"></div><div id="feed"><div class="fh" id="fh">Flux du cerveau</div></div>');
 $('#fh').onclick=()=>$('#feed').classList.toggle('off');
-const stOf=()=>!A().on?'off':up===false?'down':(busy||act)?'think':'idle';
+const stOf=()=>(busy||act)?'think':'idle';
 function feedAdd(n,txt,k,rgb){const f=$('#feed'),d=document.createElement('div');d.className='fi';d.style.setProperty('--c','rgb('+rgb.map(v=>Math.min(255,v*255+70|0)).join(',')+')');
  d.innerHTML='<b><i class="lg" data-m="'+MO(k)+'">'+LG(k)+'</i></b><em>'+esc(n.title.slice(0,18))+'</em>';d.onclick=()=>{location.hash=n.id};$('#fh').after(d);while(f.querySelectorAll('.fi').length>4)f.querySelector('.fi:last-child').remove()}
 /* l’info voyage sur la fibre, de la cellule vers la note, dans la couleur de la cellule */
@@ -1901,10 +1870,10 @@ function flow(n,i,txt,k){if(window.G2&&G2.on()){feedAdd(n,txt,k,[.4,.9,1]);G2.bu
  const u=Math.min(1,(t-g.t0)/g.dur),p=bz(g.a,g.c,g.b,u).applyMatrix4(brain.matrixWorld).project(cam),fi=Math.min(1,(t-g.t0)*3);
  g.el.style.opacity=p.z<1?String(fi*(t>g.end-1.5?Math.max(0,g.end-t)/1.5:.97)):'0';g.el.style.transform='translate('+(((p.x+1)/2*innerWidth+10)|0)+'px,'+((((1-p.y)/2*innerHeight)-14)|0)+'px)'}
  const s=stOf(),[c,l]=ST[s],h=$('#bh'),b=$('#bl'),o=cube.userData;if(h&&cubeS.r>0){const r=cubeS.r*1.7;h.style.cssText='--c:'+c+';width:'+r*2+'px;height:'+r*2+'px;transform:translate('+(cubeS.x-r)+'px,'+(cubeS.y-r)+'px)';h.className=s=='think'?'think':'';
-  b.style.cssText='--c:'+c+';transform:translate('+cubeS.x+'px,'+(cubeS.y+r+8)+'px) translateX(-50%)';b.textContent='Ollama · '+A().model+' · '+l+(act?' · '+act+' cellule'+(act>1?'s':'')+' en vol':'');
+  b.style.cssText='--c:'+c+';transform:translate('+cubeS.x+'px,'+(cubeS.y+r+8)+'px) translateX(-50%)';b.textContent='Synapse · '+l+(act?' · '+act+' cellule'+(act>1?'s':'')+' en vol':'');
   o.ob.material.color.set(c);o.ib.material.color.set(s=='think'?0xffd0e8:s=='idle'?0xffffff:0xff7a45)}
  requestAnimationFrame(tk)})();
-/* chaque cellule du cerveau peut partir : Ollama choisit la recherche, le web répond, Ollama résume */
+/* chaque cellule du cerveau peut partir : Ollama choisit la recherche, le web répond, Synapse résume */
 async function plan(n){const f=n.title+(n.tags[0]&&Math.random()<.4?' '+n.tags[0]:'')+(Math.random()<.5?' '+(topK(n)[Math.random()*3|0]||''):'');if(!A().on)return f;
  try{const g=await gen('Note « '+n.title+' » : '+plain(n.body).slice(0,260)+'\n\nDéjà trouvé : '+dd(n).map(d=>d.s).join(' ; ')+'\n\nDonne UNE requête de recherche (2 à 5 mots, sans guillemets) pour découvrir une information nouvelle liée à cette note. Réponds uniquement par la requête.',24),q=g.split('\n')[0].replace(/["«»]/g,'').trim();return q.length>2&&q.length<60?q:f}catch{return f}}
 async function explore(n,i){act++;hud('explore ×'+act);
@@ -1912,28 +1881,30 @@ async function explore(n,i){act++;hud('explore ×'+act);
   const w=rk(q,n,L)[0]||L[0];let txt=cut(w.x.split(/(?<=[.!?])\s/).slice(0,2).join(' '),240);
   if(A().on){try{const g=await gen('Note « '+n.title+' » : '+plain(n.body).slice(0,300)+'\n\nSource ('+w.k+') : '+w.x.slice(0,700)+'\n\nÉcris en français UN fait nouveau et utile (30 mots maximum) tiré de la source, qui enrichit la note. Réponds uniquement par la phrase.');if(g&&g.length>15)txt=cut(g,260)}catch{}}
   if(dAdd(n,{t:txt,u:w.u,s:w.s,k:w.k,q,d:Date.now()})){memUse(w.k);flow(n,i,txt,w.k)}}
- catch{}finally{act--;hud(act?'explore ×'+act:A().on?'prêt':'off')}}
+ catch{}finally{act--;hud(act?'explore ×'+act:'prêt')}}
 const XO=()=>store.get('exp')!==0,XN=()=>store.get('expN')||2;
 const XW=()=>store.get('expW')||3;
 setInterval(()=>{if(!XO()||document.hidden||!ready||!navigator.onLine)return;const R=real();if(!R.length)return;const K=XW(),used=new Set();
  for(let j=0;j<K;j++)setTimeout(()=>{if(act>=Math.max(XN(),K*2))return;const pool=R.filter(x=>!used.has(x.id)),L=pool.length?pool:R,n=L.map(x=>[x,Math.random()*(1+DMAX-dd(x).length)]).sort((a,b)=>b[1]-a[1])[0][0];used.add(n.id);explore(n,Math.random()*CORT|0)},j*5000/K)},5000);
-$('#aiCtx').parentNode.insertAdjacentHTML('afterend','<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="expOn" style="width:auto"> Cellules explorateurs (sources du web + Ollama)</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules en vol en même temps <select id="expN" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option></select></label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules par vague, toutes les 5 s <select id="expW" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>');
+$('#aiCtx').parentNode.insertAdjacentHTML('afterend','<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="expOn" style="width:auto"> Cellules explorateurs (sources du web)</label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules en vol en même temps <select id="expN" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option></select></label><label style="display:flex;gap:8px;align-items:center;margin-top:8px">Cellules par vague, toutes les 5 s <select id="expW" style="background:#000;color:#fff;border:1px solid var(--ln);padding:3px 6px"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>');
 $('#expOn').onchange=e=>store.set('exp',+e.target.checked);$('#expN').onchange=e=>store.set('expN',+e.target.value);$('#expW').onchange=e=>store.set('expW',+e.target.value);
 $('#bcfg').addEventListener('click',()=>{$('#expOn').checked=XO();$('#expN').value=XN();$('#expW').value=XW()});
-hud(A().on?'…':'off');if(A().on)setTimeout(test,1500);setInterval(()=>{if(A().on&&!document.hidden)test()},30000);
+hud('prêt');
 /* ---- Synthèse : web (Wikipédia, HN, OpenAlex) puis Ollama analyse ---- */
-async function chat(msgs,onTok){const a=A();ctl=new AbortController();const r=await fetch(base()+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},signal:ctl.signal,body:JSON.stringify({model:a.model,messages:msgs,stream:true,options:{temperature:.3,num_ctx:4096}})});if(!r.ok)throw new Error(r.status==404?'modèle introuvable : ollama pull '+a.model:'erreur '+r.status);
- const rd=r.body.getReader(),dc=new TextDecoder();let buf='',out='',last=0;for(;;){const{done,value}=await rd.read();if(done)break;buf+=dc.decode(value,{stream:true});const L=buf.split('\n');buf=L.pop();for(const l of L){if(!l.trim())continue;const j=JSON.parse(l);if(j.error)throw new Error(j.error);if(j.message)out+=j.message.content}const t=performance.now();if(t-last>80){last=t;onTok(out)}}return out}
+async function chat(msgs){const c=msgs[msgs.length-1].content,B=c.split(/\n\n(?=NOTE « )/),oth=((c.match(/Autres notes du coffre : ([^\n]*)/)||[])[1]||'').split(', ').filter(Boolean).slice(0,6),sn=t=>cut((t||'').split(/(?<=[.!?])\s/)[0],220),R=[],W=[],Kw=[];
+ B.forEach(b=>{const m=b.match(/^NOTE « (.*?) » : ([\s\S]*?)\nWEB :\n([\s\S]*)$/);if(!m)return;R.push('- **'+m[1]+'** : '+(sn(m[2])||'note vide'));m[3].split('\n').forEach(l=>{const w=l.match(/^- \((.*?)\) (.*?) : (.*)$/);if(w){W.push('- **'+m[1]+'** — '+sn(w[3])+' *('+w[1]+' · '+w[2]+')*');Kw.push(...kw(w[2]).slice(0,2))}})});
+ const K2=[...new Set(Kw)].slice(0,5);
+ return '**Résumé**\n'+(R.join('\n')||'- rien')+'\n\n**Ce que le web ajoute**\n'+(W.slice(0,8).join('\n')||'- rien trouvé')+'\n\n**Liens possibles**\n'+(oth.length?oth.map(t=>'- '+t).join('\n'):'- aucun')+'\n\n**À creuser**\n'+(K2.length?K2.map(k=>'- '+k).join('\n'):'- –')}
 const SY=()=>store.get('sy')||{};
 window.synHTML=n=>{const s=SY()[n.id];return s?'<h2>Synthèse IA</h2>'+md(s.t)+'<p class="hint">'+new Date(s.d).toLocaleDateString('fr-FR')+'</p>':''};
 async function synth(n,quiet){
- if(busy)return;if(!A().on)return quiet?0:show('Synthèse','Active l’IA (Ollama) dans les réglages.');
+ if(busy)return;
  const T=n?[n]:real().filter(x=>x.type!='template').slice(0,8);if(!T.length)return show('Synthèse','Le coffre est vide.');
  busy=true;hud('analyse');render('**1/2** Recherche sur Wikipédia et le web…',true);
  try{const parts=[];
   for(const x of T){const q=await plan(x),R=(await ALL(q)).map(r=>r.value).filter(Boolean);
    R.slice(0,3).forEach(w=>dAdd(x,{t:cut(w.x.split(/(?<=[.!?])\s/)[0],240),u:w.u,s:w.s,k:w.k,q,d:Date.now()}));if(R[0])flow(x,Math.random()*CORT|0,cut(R[0].x,140),R[0].k);parts.push({x,R})}
-  render('**2/2** Ollama analyse…',true);
+  render('**2/2** Synapse assemble la synthèse…',true);
   const ctx=parts.map(p=>'NOTE « '+p.x.title+' » : '+plain(p.x.body).slice(0,800)+'\nWEB :\n'+(p.R.slice(0,3).map(w=>'- ('+w.k+') '+w.s+' : '+w.x.slice(0,450)).join('\n')||'- rien trouvé')).join('\n\n'),
    oth=real().filter(r=>!T.includes(r)).slice(0,25).map(r=>r.title).join(', '),
    out=await chat([{role:'system',content:'Tu es Synapse, analyste de notes. Réponds en français, en Markdown. N’invente rien : appuie-toi uniquement sur les notes et les sources web fournies.'},{role:'user',content:ctx+'\n\nAutres notes du coffre : '+(oth||'aucune')+'\n\nÉcris une synthèse avec exactement ces titres :\n## Résumé\n(3 phrases maximum)\n## Ce que le web ajoute\n(3 puces maximum, source entre parenthèses)\n## Liens possibles\n(notes du coffre à relier, écrites [[titre]])\n## À creuser\n(2 questions)'}],t=>render(t,true)),
@@ -2086,7 +2057,7 @@ window.doSearch=q=>{ds(q);clearTimeout(st2);if(!q||q.trim().length<3||store.get(
 window.discHTML=n=>{const l=dd(n);let h=l.length?'<h2>Découvertes du web</h2><ul>'+l.slice().reverse().map(d=>'<li class="'+(d.l?'liked':'')+'"><span class="tg"><i class="lg" data-m="'+MO(d.k)+'">'+LG(d.k,d.u)+'</i>'+esc(d.k||'web')+'</span> '+esc(d.t)+' <a class="wl" href="'+esc(d.u)+'" target="_blank" rel="noopener">'+esc(d.s)+'</a> <span class="dact" data-n="'+esc(n.id)+'" data-u="'+esc(d.u)+'"><button type="button" data-a="up" aria-label="Utile">👍</button><button type="button" data-a="dn" aria-label="Pas utile">👎</button><button type="button" data-a="mk">→ note</button></span></li>').join('')+'</ul>':'';
  const nb=near(n);if(nb.length)h+='<h2>Notes proches (par le sens)</h2><ul>'+nb.map(x=>'<li><a class="wl" href="#'+esc(x.id)+'">'+esc(x.title)+'</a></li>').join('')+'</ul>';return h};
 /* réglages : mémoire du compte + recherche par le sens */
-$('#srcCfg').insertAdjacentHTML('afterend','<div id="memCfg"><label>Mémoire du compte</label><label class="srcc"><input type="checkbox" id="memOn"> Apprendre de mes actions (notes ouvertes, questions, 👍 / 👎)</label><p class="hint" id="memSum"></p><button type="button" id="memClr">Effacer la mémoire de ce compte</button><label class="srcc" style="margin-top:14px!important"><input type="checkbox" id="semOn"> Recherche par le sens (embeddings Ollama)</label><input id="emModel" placeholder="nomic-embed-text" aria-label="Modèle d’embeddings"><p class="hint" id="semSt"></p><p class="hint">Installe le modèle : <code>ollama pull nomic-embed-text</code>. La mémoire reste dans ce navigateur, séparée pour chaque compte.</p></div>');
+$('#srcCfg').insertAdjacentHTML('afterend','<div id="memCfg"><label>Mémoire du compte</label><label class="srcc"><input type="checkbox" id="memOn"> Apprendre de mes actions (notes ouvertes, questions, 👍 / 👎)</label><p class="hint" id="memSum"></p><button type="button" id="memClr">Effacer la mémoire de ce compte</button><label class="srcc ol"><input type="checkbox" id="semOn"> Recherche par le sens</label><input class="ol" id="emModel" placeholder="nomic-embed-text" aria-label="Modèle d’embeddings"><p class="hint ol" id="semSt"></p><p class="hint">La mémoire reste dans ce navigateur, séparée pour chaque compte.</p></div>');
 const memFill=()=>{$('#memOn').checked=mOn();$('#semOn').checked=store.get('semOn')!==0;$('#emModel').value=EM();const m=MM(),E=Object.entries,k=E(m.kw).filter(x=>x[1]>.5).sort((a,b)=>b[1]-a[1]).slice(0,8).map(x=>x[0]),bad=E(m.kw).filter(x=>x[1]<-.5).sort((a,b)=>a[1]-b[1]).slice(0,5).map(x=>x[0]),s=E(m.src).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]),o=E(m.open).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>(byKey[x[0].toLowerCase()]||{title:x[0]}).title);
  $('#memSum').textContent='Intérêts : '+(k.join(', ')||'rien encore')+' · Sources appréciées : '+(s.join(', ')||'—')+' · À éviter : '+(bad.join(', ')||'—')+' · Les plus ouvertes : '+(o.join(', ')||'—')+' · '+m.q.length+' questions, '+m.n+' réactions, '+Object.values(m.use||{}).reduce((a,b)=>a+b,0)+' enrichissements ('+((m.days||{})[iso()]||0)+' aujourd’hui)';$('#semSt').textContent=Object.keys(EMB()).length+' / '+real().length+' notes indexées'+(semErr?' · '+semErr:'')};
 $('#bcfg').addEventListener('click',memFill);
