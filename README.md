@@ -1,115 +1,186 @@
 # Synapse
 
-Coffre de notes en graphe 3D (style cerveau), avec chatbot à questions prédéfinies, cellules personnalisables, et comptes locaux.
+> Ton second cerveau : un coffre de notes en **graphe 3D / 2D**, enrichi automatiquement par des cellules explorateurs et un cerveau IA local (Ollama).
 
-## Démo
+Aucun serveur, aucune clé API, aucune installation obligatoire : tout tourne dans le navigateur et les données restent sur ton appareil.
 
-Ouvre simplement `index.html` dans un navigateur moderne (WebGL requis), ou déploie sur **GitHub Pages**.
+## Sommaire
+
+1. [Aperçu](#aperçu)
+2. [Démarrage rapide](#démarrage-rapide)
+3. [Déploiement sur GitHub Pages](#déploiement-sur-github-pages)
+4. [Fonctionnalités](#fonctionnalités)
+5. [IA locale avec Ollama](#ia-locale-avec-ollama)
+6. [Sources du web](#sources-du-web)
+7. [Application installable et hors ligne](#application-installable-et-hors-ligne)
+8. [Données et confidentialité](#données-et-confidentialité)
+9. [Structure du projet](#structure-du-projet)
+10. [Dépannage](#dépannage)
+11. [Historique des versions](#historique-des-versions)
+
+## Aperçu
+
+| | |
+|---|---|
+| **Graphe** | Vue 3D (Three.js) ou vue 2D façon Obsidian avec simulation de forces |
+| **Notes** | Bloc-notes intégré, import de fichiers (PDF, Word, PowerPoint, Excel…) |
+| **Cerveau** | Le cube central : étiquette vivante d'Ollama (cyan prêt, rose réfléchit, rouge hors ligne) |
+| **Cellules** | Toutes les 5 s, une vague de cellules part chercher des informations et les rattache aux notes |
+| **Mémoire** | Centres d'intérêt et sources préférées retenus **par compte** |
+| **Mobile** | Même interface sur téléphone, `m.html` en version légère sans 3D |
+
+Au lancement, un **écran de chargement de 10 secondes** (réseau de neurones animé, barre de progression) précède la page de connexion. Il s'affiche à chaque ouverture de l'application.
+
+## Démarrage rapide
+
+**Sans installation** : ouvre `index.html` dans un navigateur récent (WebGL requis).
+
+**Avec un petit serveur local** (recommandé, nécessaire pour le mode hors ligne et l'installation) :
+
+```bash
+cd synapse-ghpages
+python -m http.server 8000
+# puis ouvre http://localhost:8000
+```
+
+Au premier lancement, crée un compte (stocké uniquement dans ton navigateur). Le coffre démarre avec 3 notes d'accueil.
+
+## Déploiement sur GitHub Pages
+
+1. Crée un dépôt GitHub (ex. `synapse`).
+2. Envoie **tous** les fichiers du dossier : `index.html`, `m.html`, `sw.js`, `manifest.json`, `icon-192.png`, `icon-512.png`.
+3. **Settings → Pages → Deploy from a branch** → branche `main`, dossier `/ (root)`.
+4. Après 1 à 2 minutes : `https://TON_PSEUDO.github.io/synapse/`.
+
+> Les 4 fichiers `sw.js`, `manifest.json` et les deux icônes doivent rester à côté de `index.html`, sinon l'installation et le hors ligne ne fonctionnent pas.
 
 ## Fonctionnalités
 
-- Graphe 3D interactif des notes
-- Login / création de compte (stockage local navigateur uniquement)
-- Accès **Staff** avec le code `195180` pour voir la liste des comptes
-- Synchronisation optionnelle depuis un dépôt GitHub public
-- Cellules (raccourcis) personnalisables
-- Chatbot de questions prédéfinies (pas d’IA externe)
+### Notes et graphe
 
-## Déploiement GitHub Pages
+- Graphe 3D interactif : rotation à un doigt ou à la souris, **pincement à deux doigts** pour zoomer.
+- **Vue 2D** (bouton `2D`) : nœuds gris, hubs plus gros, fibres fines.
+  - Rouge : note enrichie. Anneau blanc : note ouverte. Anneau cyan : résultat de recherche.
+  - Survol : la note et ses voisines restent allumées. Clic : ouvre la note. Glisser : déplace un nœud. Double-clic : recadre.
+  - Bouton ⚙ : répulsion, force et distance des liens, gravité, taille, épaisseur, texte, orphelines, couleurs par dossier, voisinage (profondeur 1 à 4), mouvement doux. Réglages gardés par compte.
+  - **Timeline** pour revoir l'enrichissement dans le temps, **Présentation** (plein écran, visite automatique des hubs, `Échap` pour quitter), **Image** (export PNG).
+  - **Cellules d'enrichissement** en orbite autour de chaque note : bleu = savoir, vert = science, rouge = tech et communauté. Clic sur la légende pour masquer une couleur.
+- **Bloc-notes** (menu +) : la première ligne est le titre, enregistrement automatique, « Enregistrer et enrichir » lance 3 cellules.
+- **Import de fichiers** par bouton ou glisser-déposer : PDF (avec texte), `.docx`, `.pptx`, `.xlsx`, `.odt`, `.txt`, `.md`, `.csv`, `.json`, `.html`, `.rtf` (30 000 caractères maximum par fichier). Les PDF scannés et les anciens `.doc` ne sont pas lus.
 
-1. Crée un nouveau dépôt sur GitHub (ex. `synapse`)
-2. Upload le contenu de ce dossier (au minimum `index.html`)
-3. Va dans **Settings → Pages**
-4. Source : **Deploy from a branch** → branche `main` → dossier `/ (root)`
-5. Après 1–2 minutes, le site sera en ligne sur `https://TON_PSEUDO.github.io/synapse/`
+### Recherche
 
-## Notes
+- Barre de recherche classique dans les notes.
+- **Recherche par le sens** (embeddings `nomic-embed-text`) : section « PAR LE SENS », « Notes proches » sur chaque note.
 
-- Les comptes et les données restent dans le navigateur de chaque visiteur (localStorage).
-- Aucune clé API. Rien n’est envoyé vers un serveur, sauf vers ton Ollama local si tu actives l’IA (voir plus bas).
+### Enrichissement et retours
 
-## IA locale (Ollama + qwen2.5:0.5b)
+- **Synthèse IA** d'une note ou du coffre : Résumé, Ce que le web ajoute, Liens possibles, À creuser.
+- Chaque nouvelle note déclenche automatiquement une analyse.
+- Sur chaque découverte : 👍 renforce la source et les sujets, 👎 la supprime et ne la reproposera plus, « → note » en fait une vraie note liée.
+- Section « Découvertes du web » (8 maximum par note) et **Flux du cerveau** (bas gauche, grands écrans).
 
-Dans le chatbot (clic sur le cube, ou touche `i`), tape une question libre puis Entrée : l'IA répond au fil de l'eau, avec les notes les plus proches de ta question comme contexte. Une question qui correspond à une question prédéfinie reste traitée par le chatbot classique.
+### Comptes
 
-1. Installe [Ollama](https://ollama.com) puis télécharge le modèle : `ollama pull qwen2.5:0.5b`
-2. Autorise ton site avant de lancer Ollama (sinon le navigateur bloque la requête) :
-   - Windows (PowerShell) : `$env:OLLAMA_ORIGINS="https://TON_PSEUDO.github.io"; ollama serve`
-   - macOS : `launchctl setenv OLLAMA_ORIGINS "https://TON_PSEUDO.github.io"` puis relance l'application Ollama
-   - Linux (systemd) : `sudo systemctl edit ollama` puis `Environment="OLLAMA_ORIGINS=https://TON_PSEUDO.github.io"`
-   - Test en local depuis `index.html` ouvert sans serveur : `OLLAMA_ORIGINS=*`
-3. Dans **Réglages**, vérifie l'adresse (`http://localhost:11434`) et le modèle, puis clique sur **Tester la connexion**.
+- Création de compte et connexion, en local.
+- Accès **Staff** pour consulter la liste des comptes de l'appareil (le code se règle dans `index.html`, voir [Confidentialité](#données-et-confidentialité)).
+- **Mémoire du compte** (Réglages) : voir, couper ou effacer ce qui est retenu.
+- **Export / import** de toutes les données du compte en JSON.
 
-L'IA ne marche que sur la machine où tourne Ollama. Chrome peut demander l'autorisation d'accéder au réseau local : accepte.
+## IA locale avec Ollama
 
-## Cerveau Synapse et cellules explorateurs
+L'IA est **optionnelle**. Sans Ollama, Synapse garde un extrait brut des sources et le chatbot répond aux questions prédéfinies.
 
-- Le cube est le cerveau : toute question tapée dans le chatbot part vers Ollama, avec les notes proches et un extrait Wikipédia récent comme contexte.
-- Toutes les 14 s environ, une cellule du cerveau part explorer un sujet du coffre : le navigateur interroge Wikipédia (Ollama n'a pas d'accès web par lui-même), Ollama résume en un fait utile (sans Ollama, un extrait brut est gardé), et la découverte est rangée sur la note (section « Découvertes du web », 8 maximum par note, stockées dans le navigateur).
-- L'info voyage sur la fibre, dans la couleur de la cellule, jusqu'à la note ; clique sur l'étiquette pour ouvrir la note.
-- Réglage : case « Cellules explorateurs » dans les réglages.
+1. Installe [Ollama](https://ollama.com), puis télécharge un modèle :
 
-## V8 : cerveau Ollama, explorateurs multi-sources
+   ```bash
+   ollama pull qwen2.5:3b          # ou llama3.2:3b (qwen2.5:0.5b est très limité)
+   ollama pull nomic-embed-text    # pour la recherche par le sens
+   ```
 
-- Le cube est l'étiquette vivante d'Ollama : halo et couleur selon l'état (cyan prêt, rose réfléchit, rouge hors ligne), modèle et nombre de cellules en vol.
-- Chaque cellule du cerveau peut partir : Ollama choisit la requête, le navigateur interroge Wikipédia FR/EN, Hacker News et OpenAlex, Ollama résume en un fait.
-- L'info voyage sur la fibre de la couleur de la cellule dans une étiquette (source + texte), puis arrive sur la note ; le **Flux du cerveau** (bas gauche, écrans larges) liste les dernières découvertes.
-- Réglages : liste des modèles installés, bascule automatique si le modèle choisi est absent, 1 à 4 cellules en vol simultanées.
-- Conseil : `qwen2.5:0.5b` est très limité ; préfère `qwen2.5:3b` ou `llama3.2:3b`.
+2. Autorise ton site **avant** de lancer Ollama (sinon le navigateur bloque la requête) :
 
-## V9 : cerveau généraliste + mobile
+   | Système | Commande |
+   |---|---|
+   | Windows (PowerShell) | `$env:OLLAMA_ORIGINS="https://TON_PSEUDO.github.io"; ollama serve` |
+   | macOS | `launchctl setenv OLLAMA_ORIGINS "https://TON_PSEUDO.github.io"` puis relance Ollama |
+   | Linux (systemd) | `sudo systemctl edit ollama` puis `Environment="OLLAMA_ORIGINS=https://TON_PSEUDO.github.io"` |
+   | Test local sans serveur | `OLLAMA_ORIGINS=*` |
 
-- Le coffre n’est plus limité à un sujet : il démarre avec 3 notes d’accueil, tu écris sur ce que tu veux.
-- **Synthèse IA** : bouton dans une note (ou « Synthèse du coffre » dans le chatbot). Le navigateur cherche sur Wikipédia FR/EN, Hacker News et OpenAlex, puis Ollama écrit : Résumé, Ce que le web ajoute, Liens possibles, À creuser. La synthèse est gardée sur la note.
-- Chaque **nouvelle note** déclenche automatiquement cette analyse.
-- **Version mobile** : `index.html` s’adapte maintenant à l’écran du téléphone, avec la même interface que sur PC (graphe 3D, menu +, recherche, cellules, chatbot, notes). Rotation à un doigt, **pincement à deux doigts pour zoomer**, zones de toucher agrandies, résolution adaptée pour rester fluide. Plus aucune redirection automatique. `m.html` (version légère sans 3D) reste disponible si besoin. Les notes sont partagées entre les deux (même navigateur).
-- **Ollama depuis le téléphone** : `localhost` désigne le téléphone. Lance Ollama sur le PC avec `OLLAMA_HOST=0.0.0.0` et `OLLAMA_ORIGINS=*`, puis mets `http://IP-DU-PC:11434` dans Réglages. Une page https (GitHub Pages) ne peut pas appeler un Ollama en http : ouvre `m.html` depuis le PC (`python -m http.server 8000`, puis `http://IP-DU-PC:8000/m.html`) ou passe par un tunnel https (Tailscale, Cloudflare).
+3. Dans **Réglages**, vérifie l'adresse (`http://localhost:11434`) et le modèle, puis **Tester la connexion**.
 
-## V10 : sources du web, logos, bloc-notes, fichiers
+Le chatbot s'ouvre en cliquant sur le cube ou avec la touche `i`. Une question libre part vers Ollama avec les notes proches et un extrait du web comme contexte ; une question prédéfinie reste traitée sans IA.
 
-- **10 sources** interrogées en parallèle (Wikipédia FR/EN, Hacker News, OpenAlex, Crossref, Europe PMC, Stack Overflow, GitHub, Open Library, Internet Archive), activables une à une dans Réglages. Les résultats sont classés par pertinence avec la note, et une source déjà beaucoup utilisée sur une note passe après les autres.
-- **Tout le web** : un navigateur ne peut pas explorer n'importe quel site tout seul. Deux options dans Réglages : une instance **SearXNG** (recherche web générale, JSON activé) et la lecture des **liens présents dans tes notes** (via r.jina.ai).
-- **Logos** : chaque bulle qui voyage sur la fibre, le Flux du cerveau et la liste « Découvertes du web » affichent le logo du site d'origine (Wikipédia, Hacker News, GitHub…, ou le site exact d'un résultat web).
-- **Bloc-notes** (bouton dans le menu +) : la première ligne est le titre, enregistrement automatique, « Enregistrer et enrichir » lance 3 cellules explorateurs. Les notes sont les mêmes que partout ailleurs dans Synapse.
-- **Fichiers** : bouton « Importer des fichiers » ou glisser-déposer n'importe où sur la page. PDF (avec texte), Word `.docx`, PowerPoint `.pptx`, Excel `.xlsx`, OpenDocument `.odt`, `.txt`, `.md`, `.csv`, `.json`, `.html`, `.rtf`. Le texte devient une note (30 000 caractères maximum) puis est enrichi. Les PDF scannés (images) et les anciens `.doc` ne sont pas lus.
+### Depuis un téléphone
 
-## V11 : mémoire par compte, retours, recherche par le sens
+`localhost` désigne alors le téléphone. Lance Ollama sur le PC avec `OLLAMA_HOST=0.0.0.0` et `OLLAMA_ORIGINS=*`, puis saisis `http://IP-DU-PC:11434` dans Réglages. Une page **https** (GitHub Pages) ne peut pas appeler un Ollama en **http** : ouvre plutôt `m.html` depuis le PC (`python -m http.server 8000`, puis `http://IP-DU-PC:8000/m.html`) ou passe par un tunnel https (Tailscale, Cloudflare).
 
-- **Mémoire par compte** : Synapse retient, pour chaque compte séparément, tes centres d'intérêt (notes ouvertes, questions posées, 👍/👎) et tes sources préférées. Elle sert à classer les découvertes, à éviter ce que tu rejettes et à orienter les réponses d'Ollama. Réglages → « Mémoire du compte » : voir ce qui est retenu, couper, effacer.
-- **👍 / 👎 / → note** sur chaque découverte : 👍 renforce la source et les sujets, 👎 supprime la découverte et ne la reproposera plus, « → note » en fait une vraie note liée à l'originale.
-- **Recherche par le sens** : `ollama pull nomic-embed-text`. Les notes sont indexées en arrière-plan (vecteurs gardés dans le compte). La barre de recherche ajoute une section « PAR LE SENS », chaque note affiche des « Notes proches », et le chatbot utilise ces notes comme contexte.
+## Sources du web
 
-## V12 : vue 2D façon graphe Obsidian
+Les cellules interrogent le web **depuis ton navigateur** (Ollama n'a pas d'accès web par lui-même). Chaque requête utilise les 4 sources de base plus **10 sources tirées au hasard** parmi celles activées, pour varier sans dépasser les limites des API. Les résultats sont classés par pertinence avec la note ; une source déjà très utilisée passe après les autres.
 
-- Le bouton **2D** affiche un vrai graphe à plat : nœuds gris, hubs plus gros, fibres fines, regroupement automatique par liens (simulation de forces).
-- **Rouge** = note enrichie par le cerveau. Anneau blanc = note ouverte. Anneau cyan = résultat de recherche.
-- Survol : la note et ses voisines restent allumées, le reste s'éteint. Clic : ouvre la note. Glisser un nœud le déplace, le fond déplace la vue, molette ou pincement pour zoomer, double-clic ou « recadrer » pour tout recentrer.
-- Les bulles de logos des sources rejoignent la note enrichie directement dans le graphe 2D. La scène 3D, cachée dans ce mode, est ralentie pour économiser la batterie.
+| Famille | Exemples |
+|---|---|
+| Encyclopédies | Wikipédia (FR/EN + 28 langues), 35 projets Wikimédia (Wiktionnaire, Wikisource, Wikivoyage…) |
+| Science | OpenAlex, Crossref, Europe PMC, Semantic Scholar, DOAJ, INSPIRE, Zenodo, PubChem, NASA |
+| Nature | iNaturalist, GBIF |
+| Tech et communauté | Hacker News, Stack Overflow + 36 communautés Stack Exchange, GitHub, npm, crates.io, Packagist, RubyGems, Hugging Face |
+| Culture | Open Library, Internet Archive, Gutenberg, Art Institute |
+| Divers | Open Food Facts, TheMealDB, OpenStreetMap, Datamuse |
 
-## V13 : vue 2D améliorée
+Pour aller plus loin, Réglages propose une instance **SearXNG** (recherche web générale, JSON activé) et la lecture des **liens présents dans tes notes** (via r.jina.ai). Un navigateur ne peut pas explorer n'importe quel site seul.
 
-- Disposition recalculée avec une vraie simulation de forces (répulsion Barnes-Hut, liens pondérés par le nombre de voisins) : les hubs se dégagent en étoiles et les groupes se séparent. Le graphe s'affiche déjà stabilisé.
-- Bouton ⚙ (en haut à gauche en vue 2D) : répulsion, force et distance des liens, gravité, taille des nœuds, épaisseur des liens, affichage du texte, notes orphelines, **couleurs par dossier**, **voisinage de la note ouverte** (profondeur 1 à 4), mouvement doux. Les réglages sont gardés par compte.
-- Survol plus doux (fondu, halo), texte qui apparaît progressivement avec le zoom, nœuds qui respirent légèrement.
+Réglages utiles : activer ou couper chaque source, nombre de cellules par vague (1 à 8), cellules en vol simultanées (1 à 4), bascule automatique si le modèle choisi est absent.
 
-## V14 : vagues de cellules
+## Application installable et hors ligne
 
-- Toutes les **5 secondes**, une vague de plusieurs cellules explorateurs (3 par défaut, de 1 à 8 dans Réglages → « Cellules par vague ») est lancée sur des notes différentes. Les cellules d'une vague partent à intervalles réguliers pour que les bulles arrivent en continu.
-- GitHub, Stack Overflow et Crossref sont espacés de quelques secondes pour ne pas dépasser leurs limites.
+- Après un premier chargement en ligne, Synapse s'ouvre **sans connexion** avec tes notes ; l'enrichissement reprend au retour du réseau.
+- Bouton **Installer l'application** dans Réglages (si le navigateur le propose).
+- Le cache (`sw.js`) est versionné (`synapse-v18`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
 
-## V15 : cellules d'enrichissement en vue 2D
+## Données et confidentialité
 
-- Chaque découverte ajoute une petite **cellule colorée** en orbite autour de sa note dans le graphe 2D : plus une note s'enrichit, plus elle a de cellules (et plus elle grossit). Une cellule apparaît avec une onde, quand la bulle de logo arrive.
-- **Bleu** = savoir (Wikipédia, Open Library, Internet Archive, pages web), **vert** = science (OpenAlex, Crossref, Europe PMC), **rouge** = tech et communauté (Hacker News, Stack Overflow, GitHub). Un anneau blanc marque les découvertes que tu as aimées (👍).
-- Survol d'une cellule : nom de la source. Clic : ouvre la note.
+- Comptes, notes, mémoire et vecteurs sont dans le **localStorage / IndexedDB** du navigateur de chaque visiteur. Rien n'est envoyé à un serveur de Synapse.
+- Les requêtes de sources partent directement vers les API publiques citées plus haut. Seule exception côté IA : ton Ollama local.
+- Les comptes sont **locaux et non sécurisés** : ils séparent les données sur un même appareil mais ne protègent pas contre quelqu'un qui a accès au navigateur. N'y stocke rien de confidentiel.
+- Le code d'accès Staff est écrit dans `index.html`, donc **lisible par tout visiteur** d'un site public. Ne le considère pas comme un secret, et ne le publie pas dans le README.
+- Pense à **exporter** régulièrement ton compte (Réglages) : vider les données du navigateur efface le coffre.
 
-## V16 : ~120 sources supplémentaires, sauvegarde
+## Structure du projet
 
-- **Sources** : 28 Wikipédias de plus, 35 projets Wikimédia (Wiktionnaire, Wikilivres, Wikiquote, Wikisource, Wikivoyage, Wikinews, Wikiversité en 5 langues), 36 communautés Stack Exchange, Semantic Scholar, DOAJ, INSPIRE, Zenodo, iNaturalist, GBIF, PubChem, NASA, Art Institute, Open Food Facts, TheMealDB, Gutenberg, npm, crates.io, Packagist, RubyGems, Hugging Face (modèles, jeux de données, démos), OpenStreetMap, Datamuse et 4 variantes OpenAlex.
-- Chaque requête interroge les 4 sources de base plus **10 sources tirées au hasard** parmi celles activées : les cellules varient sans saturer les limites des API.
-- **Mémoire du compte** : nombre d'enrichissements par source et par jour, en plus des centres d'intérêt. Réglages : exporter et importer toutes les données du compte (fichier JSON), et voir l'espace de stockage du navigateur (demande de stockage durable activée).
+```
+synapse-ghpages/
+├── index.html      Application complète (3D, 2D, notes, IA, écran de chargement)
+├── m.html          Version mobile légère, sans 3D
+├── sw.js           Service worker (hors ligne)
+├── manifest.json   Manifeste d'installation (PWA)
+├── icon-192.png    Icône
+├── icon-512.png    Icône
+└── README.md
+```
 
-## V17 : hors ligne et vue 2D en plus
+## Dépannage
 
-- **Application installable et hors ligne** (`sw.js`, `manifest.json`, icônes) : après un premier chargement en ligne, Synapse s'ouvre sans connexion avec tes notes ; l'enrichissement reprend au retour du réseau. Bouton « Installer l'application » dans Réglages (si le navigateur le propose). Les 4 fichiers `sw.js`, `manifest.json`, `icon-192.png` et `icon-512.png` doivent être déposés à côté de `index.html`.
-- **Vue 2D** : clic sur la légende (Savoir, Science, Tech) pour masquer une couleur de cellules ; **Timeline** (curseur et lecture pour revoir l'enrichissement dans le temps) ; **Présentation** (plein écran, interface masquée, visite automatique des hubs, Échap pour quitter) ; **Image** (export PNG du graphe).
+| Problème | Piste |
+|---|---|
+| Cube rouge / « hors ligne » | Ollama n'est pas lancé, ou `OLLAMA_ORIGINS` ne contient pas l'adresse du site |
+| Le test de connexion échoue depuis GitHub Pages | Page https vers Ollama http : autoriser l'accès réseau local dans Chrome, ou utiliser un tunnel https |
+| Pas de « PAR LE SENS » | `ollama pull nomic-embed-text`, puis attendre l'indexation en arrière-plan |
+| Écran noir, pas de graphe | WebGL désactivé : activer l'accélération matérielle ou essayer `m.html` |
+| Le bouton Installer n'apparaît pas | Servir en https (ou `localhost`) et vérifier que `manifest.json` et les icônes sont présents |
+| Ancienne version affichée | Changer le nom du cache dans `sw.js`, puis recharger deux fois |
+| Un import de PDF reste vide | PDF scanné (image) : non lu, utiliser un PDF avec texte |
+
+## Historique des versions
+
+- **V18** : écran de chargement de 10 secondes avant la connexion, README complet, cache `synapse-v18`.
+- **V17** : application installable et hors ligne ; vue 2D avec légende cliquable, Timeline, Présentation et export PNG.
+- **V16** : ~120 sources supplémentaires, requêtes à 4 sources de base + 10 aléatoires, export/import du compte, stockage durable.
+- **V15** : cellules d'enrichissement colorées en orbite dans la vue 2D.
+- **V14** : vagues de cellules toutes les 5 s, espacement de GitHub, Stack Overflow et Crossref.
+- **V13** : vue 2D améliorée (Barnes-Hut, réglages ⚙, couleurs par dossier, voisinage).
+- **V12** : vue 2D façon graphe Obsidian.
+- **V11** : mémoire par compte, 👍 / 👎 / → note, recherche par le sens.
+- **V10** : 10 sources, logos, bloc-notes, import de fichiers, SearXNG.
+- **V9** : coffre généraliste, synthèse IA, version mobile.
+- **V8** : cerveau Ollama, explorateurs multi-sources, Flux du cerveau.
