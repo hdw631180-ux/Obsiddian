@@ -99,7 +99,7 @@ Le menu **+** contient le bouton **Araignée web**. Colle un lien ou un titre Wi
 
 - Elle lit la page, garde son résumé, puis suit les liens les plus importants (ceux cités dans l'introduction passent en premier : 6 liens au premier niveau, 4 au deuxième, 3 au troisième).
 - Chaque page devient une **note** du dossier `10_Araignee`, liée à la page d'où l'araignée vient ; le graphe se construit en direct.
-- Un petit plan animé montre la toile qui grandit. « Arrêter » ou fermer la fenêtre interrompt l'exploration.
+- L'araignée s'ouvre en **plein écran** : la page lue s'affiche à gauche avec ses liens suivis encadrés en bleu, et la toile se dessine en grand (traits lumineux, titres des pages, araignée qui se déplace de nœud en nœud, caméra qui s'ajuste toute seule). « Arrêter » interrompt l'exploration, « Fermer » ou `Échap` revient au graphe.
 - Une page déjà présente dans ton coffre n'est jamais écrasée. L'araignée respecte l'API de Wikipédia (une requête toutes les 350 ms) et ne lit que Wikipédia : les autres sites bloquent les navigateurs.
 
 ## Chatbot web
@@ -134,7 +134,7 @@ Réglages utiles : activer ou couper chaque source, nombre de cellules par vague
 
 - Après un premier chargement en ligne, Synapse s'ouvre **sans connexion** avec tes notes ; l'enrichissement reprend au retour du réseau.
 - Bouton **Installer l'application** dans Réglages (si le navigateur le propose).
-- Le cache (`sw.js`) est versionné (`synapse-v21`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
+- Le cache (`sw.js`) est versionné (`synapse-v22`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
 
 ## Données et confidentialité
 
@@ -168,6 +168,7 @@ synapse-ghpages/
 
 ## Historique des versions
 
+- **V22** : araignée en plein écran (page lue, liens encadrés, toile animée).
 - **V21** : araignée web (exploration de Wikipédia page après page, une note liée par page).
 - **V20** : cube central = recherche du cerveau (radar, résultats animés, anneaux scanner 3D) ; « Pulse réseau » et « Nourrir » partent chercher sur le web.
 - **V19** : plus d'Ollama ni de code Staff, chatbot qui répond depuis le web avec ses sources, mots de passe PBKDF2 (8 caractères minimum), bouton « Passer » sur l'écran de chargement.
