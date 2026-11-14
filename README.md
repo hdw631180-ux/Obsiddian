@@ -95,7 +95,7 @@ Le cube central est la **recherche du cerveau** (clic ou touche `i`). Une fenêt
 
 ## Araignée web
 
-Le menu **+** contient le bouton **Araignée web**. Colle un lien ou un titre Wikipédia (n'importe quelle langue), choisis la profondeur (1 à 3) et le nombre de pages (10, 25 ou 50), puis lance l'araignée.
+Le menu **+** contient le bouton **Araignée web**. Colle un lien Wikipédia (n'importe quelle langue) ou un titre : l'araignée se lance **toute seule**, sans aucun réglage (2 niveaux de profondeur, 30 pages maximum). Tu peux aussi coller le lien directement dans la recherche du cube.
 
 - Elle lit la page, garde son résumé, puis suit les liens les plus importants (ceux cités dans l'introduction passent en premier : 6 liens au premier niveau, 4 au deuxième, 3 au troisième).
 - Chaque page devient une **note** du dossier `10_Araignee`, liée à la page d'où l'araignée vient ; le graphe se construit en direct.
@@ -134,7 +134,7 @@ Réglages utiles : activer ou couper chaque source, nombre de cellules par vague
 
 - Après un premier chargement en ligne, Synapse s'ouvre **sans connexion** avec tes notes ; l'enrichissement reprend au retour du réseau.
 - Bouton **Installer l'application** dans Réglages (si le navigateur le propose).
-- Le cache (`sw.js`) est versionné (`synapse-v22`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
+- Le cache (`sw.js`) est versionné (`synapse-v23`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
 
 ## Données et confidentialité
 
@@ -168,6 +168,7 @@ synapse-ghpages/
 
 ## Historique des versions
 
+- **V23** : l'araignée se lance dès que le lien est collé (écran d'accueil plein écran, ou depuis la recherche du cube).
 - **V22** : araignée en plein écran (page lue, liens encadrés, toile animée).
 - **V21** : araignée web (exploration de Wikipédia page après page, une note liée par page).
 - **V20** : cube central = recherche du cerveau (radar, résultats animés, anneaux scanner 3D) ; « Pulse réseau » et « Nourrir » partent chercher sur le web.
