@@ -1,6 +1,8 @@
 # Synapse
 
 > Ton second cerveau : un coffre de notes en **graphe 3D / 2D**, enrichi automatiquement par des cellules explorateurs et un chatbot qui répond depuis le web, sources à l'appui.
+>
+> **V27** : l'araignée web est maintenant une vraie araignée procédurale (pattes, soie, toile).
 
 Aucun serveur, aucune clé API, aucune IA externe, aucune installation : tout tourne dans le navigateur et les données restent sur ton appareil.
 
@@ -168,6 +170,7 @@ synapse-ghpages/
 
 ## Historique des versions
 
+- **V27** : araignée procédurale (pattes IK, démarche tétrapode, fil de soie + toile entre les liens) inspirée des visualisations type « literal web crawler ».
 - **V26** : l'araignée se déplace dans le texte de haut en bas, va de lien en lien et la page la suit.
 - **V25** : correction : l'araignée ne se lançait plus (bouton supprimé mais toujours branché, ce qui bloquait le collage).
 - **V24** : colle un texte entier, l'araignée apparaît, fait défiler la page et cherche chaque sujet sur Wikipédia.

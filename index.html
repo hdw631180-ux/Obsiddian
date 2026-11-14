@@ -2113,38 +2113,124 @@ const prof=()=>{if(!mOn())return'';const m=MM(),k=Object.entries(m.kw).filter(x=
  return k.length||s.length?'Profil de l’utilisateur (appris de ses actions) : intérêts : '+(k.join(', ')||'?')+(s.length?' ; sources appréciées : '+s.join(', '):'')+'. ':''};
 /* découverte → note, pouces */
 function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'decouverte-'+Date.now(),L=LOC().filter(x=>x.id!=id);L.push({id,dir:'00_Inbox',title,type:'note',status:'inbox',date:iso(),tags:['découverte'],body:d.t+'\n\nSource ('+d.k+') : '+d.u+'\n\nVoir aussi [['+n.title+']]'});store.set('loc',L);d.l=1;fb(d,2);load();say('Note créée : '+title);setTimeout(()=>{location.hash=id},400)}
-/* ---- Araignée web : plein écran, explore Wikipédia page après page et crée une note par page ---- */
-{document.body.insertAdjacentHTML('beforeend','<div id="spf" hidden><canvas id="spc"></canvas><div id="sph"><div class="bst">Araignée web</div><textarea id="spU" rows="2" placeholder="Colle un lien Wikipédia, ou tout un texte…" aria-label="Lien ou texte" autocomplete="off"></textarea><div class="bss">L’araignée apparaît dès que tu colles : elle fait défiler la page et part chercher chaque sujet.</div></div><div id="spp" hidden><div id="spth" hidden></div><div id="sps" hidden><span>🕷</span></div><div id="spt"></div><div id="spx"></div><div id="spk"></div></div><div id="spbar"><span id="spS">Prête.</span><button type="button" id="spStop">Arrêter</button><button type="button" id="spX">Fermer</button></div></div>');
+/* ---- Araignée web V27 : spider procédural (style TikTok / literal web crawler) ---- */
+{document.body.insertAdjacentHTML('beforeend','<div id="spf" hidden><canvas id="spc"></canvas><div id="sph"><div class="bst">Araignée web</div><textarea id="spU" rows="2" placeholder="Colle un lien Wikipédia, ou tout un texte…" aria-label="Lien ou texte" autocomplete="off"></textarea><div class="bss">L’araignée tisse sa toile : elle marche sur la page, pose ses pattes sur les liens et crée des notes.</div></div><div id="spp" hidden><div id="spth" hidden></div><div id="sps" hidden></div><div id="spt"></div><div id="spx"></div><div id="spk"></div></div><div id="spbar"><span id="spS">Prête.</span><button type="button" id="spStop">Arrêter</button><button type="button" id="spX">Fermer</button></div></div>');
  $('#bpad').insertAdjacentHTML('afterend','<button type="button" id="bspider">Araignée web</button>');
  const spf=$('#spf'),cv=$('#spc'),cx=cv.getContext('2d'),st=m=>$('#spS').textContent=m,wait=ms=>new Promise(r=>setTimeout(r,ms));
- let run=false,stop=false,G=[],cur=null,W=0,H=0,cam={x:0,y:0,s:1},raf=0,sp={x:60,y:40},ang=0;const spp=$('#spp'),sps=$('#sps'),th=$('#spth');
+ let run=false,stop=false,G=[],cur=null,W=0,H=0,cam={x:0,y:0,s:1},raf=0;const spp=$('#spp'),sps=$('#sps'),th=$('#spth');
+
+ /* === Modèle d'araignée procédurale (pattes IK + soie) === */
+ function createSpider(cx,opt){
+  const cfg=Object.assign({scale:1.25,legReach:38,bodyR:6.5,color:'#d4ecff',silk:'rgba(160,210,255,.5)',silkW:1.15,speed:1},opt||{});
+  const LEG_DEF=[[.55,1,.6],[1.15,.92,.3],[1.95,.92,-.2],[2.55,1.08,-.6]];
+  const legs=[];
+  for(const side of [1,-1]) LEG_DEF.forEach(([ang,rm,hip],i)=>{
+    const reach=cfg.legReach*rm*cfg.scale;
+    legs.push({side,ang0:ang*side,reach,hip:hip*cfg.scale,L1:reach*.54,L2:reach*.58,foot:{x:0,y:0},next:null,from:null,t:1,dur:.16,stepping:false});
+  });
+  const S={x:80,y:70,vx:0,vy:0,heading:Math.PI/2,phase:0,silk:[],drag:[],target:null,idle:true};
+  function solve(leg,tx,ty){
+    const hx=S.x+Math.cos(S.heading)*leg.hip, hy=S.y+Math.sin(S.heading)*leg.hip;
+    let dx=tx-hx,dy=ty-hy,d=Math.hypot(dx,dy);const max=leg.L1+leg.L2-1;
+    if(d>max){dx*=max/d;dy*=max/d;d=max}
+    const a=(leg.L1*leg.L1+d*d-leg.L2*leg.L2)/(2*leg.L1*d);
+    const ang=Math.atan2(dy,dx)+Math.acos(Math.max(-1,Math.min(1,a)))*leg.side;
+    return {hx,hy,kx:hx+Math.cos(ang)*leg.L1,ky:hy+Math.sin(ang)*leg.L1,fx:tx,fy:ty};
+  }
+  function step(leg,tx,ty,dur){leg.from={...leg.foot};leg.next={x:tx,y:ty};leg.t=0;leg.dur=dur||.15;leg.stepping=true}
+  return {
+    S,legs,
+    update(dt){
+      S.phase+=dt*9.5*cfg.speed;
+      if(S.target){
+        const dx=S.target.x-S.x,dy=S.target.y-S.y,d=Math.hypot(dx,dy);
+        if(d>7){const sp=Math.min(210*cfg.speed,d*4.5);S.vx=(dx/d)*sp;S.vy=(dy/d)*sp;S.heading=Math.atan2(S.vy,S.vx);S.idle=false}
+        else{S.vx*=.65;S.vy*=.65;S.idle=true}
+      }
+      S.x+=S.vx*dt;S.y+=S.vy*dt;S.vx*=.85;S.vy*=.85;
+      legs.forEach((leg,i)=>{
+        const grp=(i%4)<2?0:1;
+        if(Math.sin(S.phase+grp*Math.PI)>0.52&&!leg.stepping&&!S.idle){
+          const a=S.heading+leg.ang0,r=leg.reach*(.82+Math.random()*.3);
+          step(leg,S.x+Math.cos(a)*r+S.vx*.05,S.y+Math.sin(a)*r+S.vy*.05,.12+Math.random()*.08);
+        }
+        if(leg.stepping){
+          leg.t+=dt/leg.dur;
+          if(leg.t>=1){leg.t=1;leg.stepping=false;leg.foot={...leg.next}}
+          else{const k=leg.t<.5?2*leg.t*leg.t:1-Math.pow(-2*leg.t+2,2)/2;const lift=Math.sin(leg.t*Math.PI)*10*cfg.scale;
+            leg.foot.x=leg.from.x+(leg.next.x-leg.from.x)*k;leg.foot.y=leg.from.y+(leg.next.y-leg.from.y)*k-lift}
+        }else{leg.foot.x+=(S.x-leg.foot.x)*.018;leg.foot.y+=(S.y-leg.foot.y)*.018}
+      });
+      S.drag.push({x:S.x,y:S.y,life:1});if(S.drag.length>30)S.drag.shift();S.drag.forEach(p=>p.life*=.96);
+    },
+    draw(){
+      cx.lineCap='round';cx.lineJoin='round';
+      // toile
+      cx.strokeStyle=cfg.silk;cx.lineWidth=cfg.silkW;
+      for(let i=1;i<S.silk.length;i++){const a=S.silk[i-1],b=S.silk[i];cx.globalAlpha=.3+.45*Math.min(1,i/14);cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.stroke()}
+      // dragline
+      if(S.drag.length>1){cx.beginPath();S.drag.forEach((p,i)=>{cx.globalAlpha=p.life*.5;i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y)});cx.stroke()}
+      cx.globalAlpha=1;
+      // pattes
+      legs.forEach(leg=>{const ik=solve(leg,leg.foot.x,leg.foot.y);cx.strokeStyle=cfg.color;cx.lineWidth=1.55*cfg.scale;cx.beginPath();cx.moveTo(ik.hx,ik.hy);cx.lineTo(ik.kx,ik.ky);cx.lineTo(ik.fx,ik.fy);cx.stroke();
+        cx.fillStyle=cfg.color;cx.beginPath();cx.arc(ik.fx,ik.fy,1.7*cfg.scale,0,6.283);cx.fill()});
+      // corps
+      cx.fillStyle=cfg.color;cx.beginPath();cx.ellipse(S.x,S.y,cfg.bodyR*1.1*cfg.scale,cfg.bodyR*cfg.scale,S.heading,0,6.283);cx.fill();
+      const ax=S.x-Math.cos(S.heading)*8.5*cfg.scale,ay=S.y-Math.sin(S.heading)*8.5*cfg.scale;
+      cx.beginPath();cx.ellipse(ax,ay,cfg.bodyR*1.4*cfg.scale,cfg.bodyR*1.15*cfg.scale,S.heading,0,6.283);cx.fill();
+    },
+    goTo(x,y){S.target={x,y};S.silk.push({x,y});if(S.silk.length>45)S.silk.shift()},
+    setPos(x,y){S.x=x;S.y=y;legs.forEach(l=>{const a=S.heading+l.ang0;l.foot={x:x+Math.cos(a)*l.reach*.7,y:y+Math.sin(a)*l.reach*.7}})},
+    clearSilk(){S.silk=[];S.drag=[]},
+    get pos(){return {x:S.x,y:S.y}}
+  };
+ }
+ const spider=createSpider(cx,{scale:1.3,color:'#c8e8ff'});
+ spider.setPos(70,90);
+
  const parse=v=>{v=v.trim();const m=v.match(/^https?:\/\/([a-z-]+)\.(?:m\.)?wikipedia\.org\/wiki\/([^#?]+)/i);if(m)return{lang:m[1],title:decodeURIComponent(m[2]).replace(/_/g,' ')};if(v.length>180||/\n/.test(v))return{lang:(v.match(/\b(the|and|of)\b/gi)||[]).length>8?'en':'fr',title:(v.split('\n')[0]||'Texte collé').slice(0,60).trim(),text:v};return{lang:'fr',title:v}};
  const SW=new Set('le la les un une des de du et en est que qui dans pour par sur avec son sa ses ce cette ces il elle ils elles au aux ne pas plus ou mais comme the and of to in is that for with as on by this are was from'.split(' '));
- const terms=t=>{const f={};(t.match(/[A-ZÀ-Ý][\p{L}’'-]{2,}(?:\s+(?:de |du |des |d’|la |le )?[A-ZÀ-Ý][\p{L}’'-]{2,})*/gu)||[]).forEach(x=>{if(!SW.has(x.toLowerCase()))f[x]=(f[x]||0)+3});(t.toLowerCase().match(/\p{L}{7,}/gu)||[]).forEach(x=>{if(!SW.has(x))f[x]=(f[x]||0)+1});const u=new Set();return Object.entries(f).sort((a,b)=>b[1]-a[1]).map(e=>e[0]).filter(x=>{const k=nz(x);if(u.has(k))return false;u.add(k);return true}).slice(0,8)}
+ const terms=t=>{const f={};(t.match(/[A-ZÀ-Ý][\p{L}’'-]{2,}(?:\s+(?:de |du |des |d’|la |le )?[A-ZÀ-Ý][\p{L}’'-]{2,})*/gu)||[]).forEach(x=>{if(!SW.has(x.toLowerCase()))f[x]=(f[x]||0)+3});(t.toLowerCase().match(/\p{L}{7,}/gu)||[]).forEach(x=>{if(!SW.has(x))f[x]=(f[x]||0)+1});const u=new Set();return Object.entries(f).sort((a,b)=>b[1]-a[1]).map(e=>e[0]).filter(x=>{const k=nz(x);if(u.has(k))return false;u.add(k);return true}).slice(0,8)};
  const api=async(lang,t)=>{const c=new AbortController(),to=setTimeout(()=>c.abort(),9000);try{const r=await fetch('https://'+lang+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=extracts|links&explaintext=1&exchars=6000&pllimit=max&plnamespace=0&titles='+encodeURIComponent(t),{signal:c.signal});if(!r.ok)throw new Error(r.status);const j=await r.json(),p=Object.values(j.query.pages)[0];return p.missing!==undefined?null:p}finally{clearTimeout(to)}};
  const find=async(lang,t)=>{const p=await api(lang,t);if(p)return p;const c=new AbortController(),to=setTimeout(()=>c.abort(),9000);try{const r=await fetch('https://'+lang+'.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srlimit=1&srnamespace=0&srsearch='+encodeURIComponent(t),{signal:c.signal}),j=await r.json(),h=j.query&&j.query.search[0];return h?api(lang,h.title):null}finally{clearTimeout(to)}};
  const size=()=>{const r=devicePixelRatio||1;W=innerWidth;H=innerHeight;cv.width=W*r;cv.height=H*r;cx.setTransform(r,0,0,r,0,0)};addEventListener('resize',()=>{if(!spf.hidden)size()});
- const place=(par,ang)=>{if(!par)return{x:0,y:0,a:0,p:null};const d=[0,190,130,95][par.dep+1]||80;let best=null,bd=-1;for(let i=0;i<8;i++){const a=ang!=null?ang+(Math.random()-.5)*.5:par.a+(Math.random()-.5)*1.8,x=par.x+Math.cos(a)*d*(.85+Math.random()*.3),y=par.y+Math.sin(a)*d*(.85+Math.random()*.3),m=Math.min(...G.map(n=>Math.hypot(n.x-x,n.y-y)));if(m>bd){bd=m;best={x,y,a,p:par}}}return best};
- const showPage=(pg,L)=>{$('#spt').textContent=pg.title;let h=esc((pg.extract||'').slice(0,9000));L.forEach(t=>{const e=esc(t).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');h=h.replace(new RegExp('(?<![>\\w])'+e+'(?![\\w<])','i'),m=>'<mark class="spl">'+m+'</mark>')});$('#spx').innerHTML=h;$('#spk').innerHTML=L.map(t=>'<i>'+esc(t)+'</i>').join('')};
- const frame=()=>{if(spf.hidden){raf=0;return}raf=requestAnimationFrame(frame);const now=performance.now();if(run&&!sps.hidden){const want=sp.y-spp.clientHeight*.4;spp.scrollTop+=(want-spp.scrollTop)*.1}cx.clearRect(0,0,W,H);
-  if(G.length){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;G.forEach(n=>{x0=Math.min(x0,n.x);x1=Math.max(x1,n.x);y0=Math.min(y0,n.y);y1=Math.max(y1,n.y)});
-   const ts=Math.min(1.2,(W-40)/Math.max(200,x1-x0+260),(H-120)/Math.max(200,y1-y0+160));cam.s+=(ts-cam.s)*.06;cam.x+=((x0+x1)/2-cam.x)*.06;cam.y+=((y0+y1)/2-cam.y)*.06}
-  const X=n=>(n.x-cam.x)*cam.s+W/2,Y=n=>(n.y-cam.y)*cam.s+H/2+20,K=n=>Math.min(1,(now-n.b)/700);cx.lineCap='round';
-  G.forEach(n=>{if(!n.p)return;const k=K(n),a=X(n.p),b=Y(n.p);cx.shadowColor='#3a86ff';cx.shadowBlur=14;cx.strokeStyle='rgba(90,160,255,.75)';cx.lineWidth=1.4;cx.beginPath();cx.moveTo(a,b);cx.lineTo(a+(X(n)-a)*k,b+(Y(n)-b)*k);cx.stroke()});
+ const place=(par,ang)=>{if(!par)return{x:0,y:0,a:0,p:null};const d=[0,190,130,95][par.dep+1]||80;let best=null,bd=-1;for(let i=0;i<8;i++){const a=ang!=null?ang+(Math.random()-.5)*.5:par.a+(Math.random()-.5)*1.8,x=par.x+Math.cos(a)*d,y=par.y+Math.sin(a)*d;let ok=1;for(const n of G){const dd=Math.hypot(n.x-x,n.y-y);if(dd<55)ok=0;if(dd<bd||bd<0){bd=dd;best={x,y,a,p:par}}}if(ok)return{x,y,a,p:par}}return best||{x:par.x+Math.cos(ang||0)*d,y:par.y+Math.sin(ang||0)*d,a:ang||0,p:par}};
+ const X=n=>n.x*cam.s+cam.x+W/2,Y=n=>n.y*cam.s+cam.y+H/2,K=n=>Math.min(1,(performance.now()-n.b)/420);
+ const frame=()=>{if(spf.hidden){raf=0;return}raf=requestAnimationFrame(frame);const now=performance.now();
+  if(run&&!sps.hidden){const want=spider.pos.y-spp.clientHeight*.38;spp.scrollTop+=(want-spp.scrollTop)*.12}
+  cx.clearRect(0,0,W,H);
+  // graphe de l'exploration
+  cx.strokeStyle='rgba(80,140,220,.25)';cx.lineWidth=1;
+  G.forEach(n=>{if(!n.p||K(n)<.2)return;cx.beginPath();cx.moveTo(X(n.p),Y(n.p));cx.lineTo(X(n),Y(n));cx.stroke()});
   cx.shadowBlur=0;cx.textAlign='left';cx.textBaseline='alphabetic';cx.lineJoin='round';
   G.forEach(n=>{if(K(n)<.9)return;const sz=[36,23,16,13][n.dep]*Math.max(.75,Math.min(1.15,cam.s)),x=X(n),y=Y(n);cx.fillStyle=n===cur?'#fff':'#8ec5ff';cx.shadowColor='#3a86ff';cx.shadowBlur=10;cx.beginPath();cx.arc(x,y,n===cur?6:3.5,0,6.283);cx.fill();cx.shadowBlur=0;cx.font=sz+'px Georgia,serif';cx.lineWidth=4;cx.strokeStyle='rgba(0,0,0,.9)';const lb=n.t.length>26?n.t.slice(0,25)+'…':n.t;cx.strokeText(lb,x+9,y-9);cx.fillText(lb,x+9,y-9)});
-  if(cur){const k=K(cur),x=cur.p?X(cur.p)+(X(cur)-X(cur.p))*k:X(cur),y=cur.p?Y(cur.p)+(Y(cur)-Y(cur.p))*k:Y(cur);cx.strokeStyle='#6fe8ff';cx.lineWidth=1.5;cx.beginPath();cx.arc(x,y,14+4*Math.sin(now/150),0,6.283);cx.stroke();cx.font='26px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('🕷',x,y)}};
- const openSp=()=>{spf.hidden=false;size();if(!raf)frame()},closeSp=()=>{stop=true;spf.hidden=true},idle=()=>{if(run)return openSp();G=[];cur=null;$('#sph').hidden=false;$('#spp').hidden=true;$('#spU').value='';st('Prête.');openSp();setTimeout(()=>$('#spU').focus(),30)};
- const draw2=()=>{sps.style.transform='translate('+sp.x+'px,'+sp.y+'px) translate(-50%,-50%) rotate('+ang+'deg)';th.style.left=sp.x+'px';th.style.height=sp.y+'px'};
- const go=(tx,ty)=>new Promise(res=>{const d=Math.hypot(tx-sp.x,ty-sp.y);if(d<2)return res();const dur=Math.max(160,d/.9),x0=sp.x,y0=sp.y,t0=performance.now();ang=Math.atan2(ty-y0,tx-x0)*180/Math.PI+90;sps.classList.add('mv');
-  const stp=t=>{if(stop||spf.hidden){sps.classList.remove('mv');return res()}const k=Math.min(1,(t-t0)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;sp.x=x0+(tx-x0)*e;sp.y=y0+(ty-y0)*e;draw2();if(k<1)requestAnimationFrame(stp);else{sps.classList.remove('mv');res()}};requestAnimationFrame(stp)});
- async function walk(){const marks=[...$('#spx').querySelectorAll('.spl')];sp={x:60,y:30};ang=180;draw2();sps.hidden=th.hidden=false;await go(60,110);
-  for(const m of marks){if(stop||spf.hidden)return;const r=m.getClientRects()[0],b=spp.getBoundingClientRect();if(!r)continue;await go(r.left-b.left+r.width/2,r.top-b.top+spp.scrollTop+r.height/2);m.classList.add('hit');st('🕷 Lien trouvé : '+m.textContent);await wait(260)}
-  if(!stop)await go(sp.x,Math.min(spp.scrollHeight-260,sp.y+400))}
+  // araignée procédurale
+  spider.update(0.016);spider.draw();
+ };
+ const openSp=()=>{spf.hidden=false;size();if(!raf)frame()},closeSp=()=>{stop=true;spf.hidden=true},idle=()=>{if(run)return openSp();G=[];cur=null;spider.clearSilk();spider.setPos(70,90);$('#sph').hidden=false;$('#spp').hidden=true;$('#spU').value='';st('Prête.');openSp();setTimeout(()=>$('#spU').focus(),30)};
+ const go=(tx,ty)=>new Promise(res=>{
+  spider.goTo(tx,ty);
+  const t0=performance.now(),max=Math.max(280,Math.hypot(tx-spider.pos.x,ty-spider.pos.y)*1.1);
+  const chk=t=>{if(stop||spf.hidden)return res();const d=Math.hypot(tx-spider.pos.x,ty-spider.pos.y);if(d<9||t-t0>max)return res();requestAnimationFrame(()=>chk(performance.now()))};
+  requestAnimationFrame(()=>chk(performance.now()));
+ });
+ async function walk(){
+  const marks=[...$('#spx').querySelectorAll('.spl')];
+  spider.setPos(60,40);spider.clearSilk();
+  await go(70,120);
+  for(const m of marks){if(stop||spf.hidden)return;const r=m.getClientRects()[0],b=spp.getBoundingClientRect();if(!r)continue;
+   await go(r.left-b.left+r.width/2,r.top-b.top+spp.scrollTop+r.height/2);m.classList.add('hit');st('🕷 Lien : '+m.textContent);await wait(220)}
+  if(!stop)await go(spider.pos.x,Math.min(spp.scrollHeight-240,spider.pos.y+380));
+ }
  async function crawl(){if(run)return;const{lang,title,text}=parse($('#spU').value);if(!title)return;
   if(!navigator.onLine){openSp();return st('Hors ligne : l’araignée a besoin d’Internet.')}
   $('#sph').hidden=true;$('#spp').hidden=false;run=true;stop=false;G=[];cur=null;cam={x:0,y:0,s:1};$('#spStop').disabled=false;$('#spx').textContent='';$('#spk').textContent='';openSp();
-  const D=2,M=30,seen=new Set(),Q=[{t:title,dep:0,par:null,pn:null,ang:null,pg:text?{title,extract:text,links:terms(text).map(t=>({title:t}))}:null}],L=LOC(),ids=new Set(L.map(x=>x.id));let made=0;
+  spider.clearSilk();spider.setPos(70,90);
+  const L=LOC(),ids=new Set(L.map(n=>n.id)),seen=new Set(),Q=[],M=12,D=2;let made=0;
+  if(text){const ts=terms(text);ts.forEach((t,i)=>Q.push({t,dep:0,par:null,pn:null,ang:i/ts.length*6.283}));st('🕷 Analyse du texte…')}
+  else Q.push({t:title,dep:0,par:null,pn:null,ang:0,pg:null});
+  const showPage=(pg,C)=>{const lead=(pg.extract||'').trim().slice(0,900);$('#spt').innerHTML='<h2>'+esc(pg.title)+'</h2><p>'+esc(lead)+'</p>';
+   $('#spx').innerHTML=C.map(t=>'<span class="spl">'+esc(t)+'</span>').join(' ');$('#spk').textContent=C.length?'Liens à explorer':'Fin de branche'};
   while(Q.length&&made<M&&!stop){const it=Q.shift();let pg;st('🕷 '+it.t+' — '+made+'/'+M+' notes');
    try{pg=it.pg||await find(lang,it.t)}catch(e){await wait(500);continue}
    if(!pg)continue;const k=nz(pg.title);if(seen.has(k))continue;seen.add(k);
@@ -2153,8 +2239,8 @@ function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'dec
     L.push({id,dir:'10_Araignee',title:pg.title,type:'note',status:'inbox',date:iso(),tags:['araignée','wikipédia'],body:lead+'\n\nSource (Wikipédia) : '+url+(it.pn?'\n\nVoir aussi [['+it.pn+']]':'')});store.set('loc',L);load();made++}
    let C=[];if(it.dep<D){const lead=nz(pg.extract||''),B=it.pg?8:[6,4,3][it.dep]||3;C=(pg.links||[]).map(l=>l.title).filter(t=>!/^(liste|\d{1,4}$|catégorie)/i.test(t)&&!seen.has(nz(t))).map(t=>({t,s:(lead.includes(nz(t))?3:0)+Math.random()-t.length/80})).sort((a,b)=>b.s-a.s).slice(0,B).map(c=>c.t)}
    showPage(pg,C);spp.scrollTop=0;C.forEach((t,j)=>Q.push({t,dep:it.dep+1,par:node,pn:pg.title,ang:it.dep==0?j/C.length*6.283+Math.random()*.3:null}));
-   await walk();await wait(250)}
-  run=false;cur=null;sps.hidden=true;th.hidden=true;$('#spStop').disabled=true;
+   await walk();await wait(220)}
+  run=false;cur=null;$('#spStop').disabled=true;
   st((stop?'Arrêtée : ':'Terminé : ')+made+' note'+(made>1?'s':'')+' créée'+(made>1?'s':'')+' dans le dossier 10_Araignee. Ferme pour voir le graphe.');say('Araignée : '+made+' note'+(made>1?'s':'')+' créée'+(made>1?'s':''))}
  $('#bspider').onclick=idle;window.startSpider=v=>{$('#spU').value=v;crawl()};
  $('#spStop').onclick=()=>{stop=true};$('#spX').onclick=closeSp;
