@@ -160,7 +160,7 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 #spf{position:fixed;inset:0;z-index:70;background:#000;color:#e8edf5;font-family:Georgia,serif;overflow:hidden;animation:bsfade .5s}
 #spf[hidden]{display:none}
 #spc{position:absolute;inset:0;width:100%;height:100%}
-#spp{position:absolute;left:0;top:0;bottom:0;width:min(560px,100%);padding:76px 28px 28px;overflow:hidden;opacity:.5;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.85),transparent)}
+#spp{position:absolute;left:0;top:0;bottom:0;width:min(620px,100%);padding:76px 28px 260px;overflow:hidden;opacity:.95;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.85),transparent)}
 #spt{font-size:clamp(26px,5vw,38px);border-bottom:1px solid #333;padding-bottom:6px;margin-bottom:12px}
 #spx{white-space:pre-wrap;font-size:15px;line-height:1.6;color:#c8ccd2}
 .spl{outline:1px solid #4a9bff;background:rgba(74,155,255,.18);color:#8ec5ff;padding:0 2px}
@@ -171,11 +171,14 @@ dialog .chk{display:flex;gap:8px;align-items:center;margin:2px 0 0}
 #spU{resize:none;font-family:inherit;width:min(560px,100%);background:transparent;border:0;border-bottom:1px solid #2c5a99;color:#fff;font-size:clamp(18px,3.5vw,26px);font-weight:300;text-align:center;padding:10px 0;outline:0}
 #spU:focus{border-color:#6fe8ff}
 #spbar{z-index:3;position:absolute;left:0;right:0;top:0;display:flex;gap:10px;align-items:center;padding:14px 18px;background:rgba(0,0,0,.65);font:12px var(--mo)}
-#sps{position:absolute;left:12px;top:70px;font-size:22px;z-index:2;pointer-events:none;text-shadow:0 0 10px #6fe8ff}
-#sps::before{content:"";position:absolute;left:50%;bottom:100%;height:100vh;border-left:1px solid rgba(110,232,255,.5)}
-#sps[hidden]{display:none}
+#sps{position:absolute;left:0;top:0;font-size:30px;line-height:1;z-index:2;pointer-events:none;filter:drop-shadow(0 0 8px #6fe8ff)}
+#sps[hidden],#spth[hidden]{display:none}
+#sps.mv span{display:inline-block;animation:spw .16s ease-in-out infinite alternate}
+@keyframes spw{from{transform:scale(.88,1.1)}to{transform:scale(1.12,.92)}}
+#spth{position:absolute;top:0;width:0;border-left:1px solid rgba(110,232,255,.5);pointer-events:none}
+.spl.hit{background:#6fe8ff;color:#000;outline-color:#6fe8ff;transition:background .3s}
 #spS{flex:1;color:#8ec5ff}
-@media(max-width:700px){#spp{opacity:.32}}
+@media(max-width:700px){#spp{opacity:.7}}
 #bs{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;padding:14vh 20px 20px;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);color:#fff;overflow:auto;animation:bsfade .35s ease}
 #bs[hidden]{display:none}
 .bsr{position:relative;width:70px;height:70px;margin-bottom:18px;flex:none}
@@ -2111,10 +2114,10 @@ const prof=()=>{if(!mOn())return'';const m=MM(),k=Object.entries(m.kw).filter(x=
 /* découverte → note, pouces */
 function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'decouverte-'+Date.now(),L=LOC().filter(x=>x.id!=id);L.push({id,dir:'00_Inbox',title,type:'note',status:'inbox',date:iso(),tags:['découverte'],body:d.t+'\n\nSource ('+d.k+') : '+d.u+'\n\nVoir aussi [['+n.title+']]'});store.set('loc',L);d.l=1;fb(d,2);load();say('Note créée : '+title);setTimeout(()=>{location.hash=id},400)}
 /* ---- Araignée web : plein écran, explore Wikipédia page après page et crée une note par page ---- */
-{document.body.insertAdjacentHTML('beforeend','<div id="spf" hidden><canvas id="spc"></canvas><div id="sph"><div class="bst">Araignée web</div><textarea id="spU" rows="2" placeholder="Colle un lien Wikipédia, ou tout un texte…" aria-label="Lien ou texte" autocomplete="off"></textarea><div class="bss">L’araignée apparaît dès que tu colles : elle fait défiler la page et part chercher chaque sujet.</div></div><div id="sps" hidden>🕷</div><div id="spp" hidden><div id="spt"></div><div id="spx"></div><div id="spk"></div></div><div id="spbar"><span id="spS">Prête.</span><button type="button" id="spStop">Arrêter</button><button type="button" id="spX">Fermer</button></div></div>');
+{document.body.insertAdjacentHTML('beforeend','<div id="spf" hidden><canvas id="spc"></canvas><div id="sph"><div class="bst">Araignée web</div><textarea id="spU" rows="2" placeholder="Colle un lien Wikipédia, ou tout un texte…" aria-label="Lien ou texte" autocomplete="off"></textarea><div class="bss">L’araignée apparaît dès que tu colles : elle fait défiler la page et part chercher chaque sujet.</div></div><div id="spp" hidden><div id="spth" hidden></div><div id="sps" hidden><span>🕷</span></div><div id="spt"></div><div id="spx"></div><div id="spk"></div></div><div id="spbar"><span id="spS">Prête.</span><button type="button" id="spStop">Arrêter</button><button type="button" id="spX">Fermer</button></div></div>');
  $('#bpad').insertAdjacentHTML('afterend','<button type="button" id="bspider">Araignée web</button>');
  const spf=$('#spf'),cv=$('#spc'),cx=cv.getContext('2d'),st=m=>$('#spS').textContent=m,wait=ms=>new Promise(r=>setTimeout(r,ms));
- let run=false,stop=false,G=[],cur=null,W=0,H=0,cam={x:0,y:0,s:1},raf=0,sv=0;const spp=$('#spp'),sps=$('#sps');
+ let run=false,stop=false,G=[],cur=null,W=0,H=0,cam={x:0,y:0,s:1},raf=0,sp={x:60,y:40},ang=0;const spp=$('#spp'),sps=$('#sps'),th=$('#spth');
  const parse=v=>{v=v.trim();const m=v.match(/^https?:\/\/([a-z-]+)\.(?:m\.)?wikipedia\.org\/wiki\/([^#?]+)/i);if(m)return{lang:m[1],title:decodeURIComponent(m[2]).replace(/_/g,' ')};if(v.length>180||/\n/.test(v))return{lang:(v.match(/\b(the|and|of)\b/gi)||[]).length>8?'en':'fr',title:(v.split('\n')[0]||'Texte collé').slice(0,60).trim(),text:v};return{lang:'fr',title:v}};
  const SW=new Set('le la les un une des de du et en est que qui dans pour par sur avec son sa ses ce cette ces il elle ils elles au aux ne pas plus ou mais comme the and of to in is that for with as on by this are was from'.split(' '));
  const terms=t=>{const f={};(t.match(/[A-ZÀ-Ý][\p{L}’'-]{2,}(?:\s+(?:de |du |des |d’|la |le )?[A-ZÀ-Ý][\p{L}’'-]{2,})*/gu)||[]).forEach(x=>{if(!SW.has(x.toLowerCase()))f[x]=(f[x]||0)+3});(t.toLowerCase().match(/\p{L}{7,}/gu)||[]).forEach(x=>{if(!SW.has(x))f[x]=(f[x]||0)+1});const u=new Set();return Object.entries(f).sort((a,b)=>b[1]-a[1]).map(e=>e[0]).filter(x=>{const k=nz(x);if(u.has(k))return false;u.add(k);return true}).slice(0,8)}
@@ -2123,7 +2126,7 @@ function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'dec
  const size=()=>{const r=devicePixelRatio||1;W=innerWidth;H=innerHeight;cv.width=W*r;cv.height=H*r;cx.setTransform(r,0,0,r,0,0)};addEventListener('resize',()=>{if(!spf.hidden)size()});
  const place=(par,ang)=>{if(!par)return{x:0,y:0,a:0,p:null};const d=[0,190,130,95][par.dep+1]||80;let best=null,bd=-1;for(let i=0;i<8;i++){const a=ang!=null?ang+(Math.random()-.5)*.5:par.a+(Math.random()-.5)*1.8,x=par.x+Math.cos(a)*d*(.85+Math.random()*.3),y=par.y+Math.sin(a)*d*(.85+Math.random()*.3),m=Math.min(...G.map(n=>Math.hypot(n.x-x,n.y-y)));if(m>bd){bd=m;best={x,y,a,p:par}}}return best};
  const showPage=(pg,L)=>{$('#spt').textContent=pg.title;let h=esc((pg.extract||'').slice(0,9000));L.forEach(t=>{const e=esc(t).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');h=h.replace(new RegExp('(?<![>\\w])'+e+'(?![\\w<])','i'),m=>'<mark class="spl">'+m+'</mark>')});$('#spx').innerHTML=h;$('#spk').innerHTML=L.map(t=>'<i>'+esc(t)+'</i>').join('')};
- const frame=()=>{if(spf.hidden){raf=0;return}raf=requestAnimationFrame(frame);const now=performance.now();if(sv)spp.scrollTop+=sv;{const mx=spp.scrollHeight-spp.clientHeight;sps.style.top=(70+(mx>0?spp.scrollTop/mx:0)*(H-150))+'px'}cx.clearRect(0,0,W,H);
+ const frame=()=>{if(spf.hidden){raf=0;return}raf=requestAnimationFrame(frame);const now=performance.now();if(run&&!sps.hidden){const want=sp.y-spp.clientHeight*.4;spp.scrollTop+=(want-spp.scrollTop)*.1}cx.clearRect(0,0,W,H);
   if(G.length){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;G.forEach(n=>{x0=Math.min(x0,n.x);x1=Math.max(x1,n.x);y0=Math.min(y0,n.y);y1=Math.max(y1,n.y)});
    const ts=Math.min(1.2,(W-40)/Math.max(200,x1-x0+260),(H-120)/Math.max(200,y1-y0+160));cam.s+=(ts-cam.s)*.06;cam.x+=((x0+x1)/2-cam.x)*.06;cam.y+=((y0+y1)/2-cam.y)*.06}
   const X=n=>(n.x-cam.x)*cam.s+W/2,Y=n=>(n.y-cam.y)*cam.s+H/2+20,K=n=>Math.min(1,(now-n.b)/700);cx.lineCap='round';
@@ -2132,6 +2135,12 @@ function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'dec
   G.forEach(n=>{if(K(n)<.9)return;const sz=[36,23,16,13][n.dep]*Math.max(.75,Math.min(1.15,cam.s)),x=X(n),y=Y(n);cx.fillStyle=n===cur?'#fff':'#8ec5ff';cx.shadowColor='#3a86ff';cx.shadowBlur=10;cx.beginPath();cx.arc(x,y,n===cur?6:3.5,0,6.283);cx.fill();cx.shadowBlur=0;cx.font=sz+'px Georgia,serif';cx.lineWidth=4;cx.strokeStyle='rgba(0,0,0,.9)';const lb=n.t.length>26?n.t.slice(0,25)+'…':n.t;cx.strokeText(lb,x+9,y-9);cx.fillText(lb,x+9,y-9)});
   if(cur){const k=K(cur),x=cur.p?X(cur.p)+(X(cur)-X(cur.p))*k:X(cur),y=cur.p?Y(cur.p)+(Y(cur)-Y(cur.p))*k:Y(cur);cx.strokeStyle='#6fe8ff';cx.lineWidth=1.5;cx.beginPath();cx.arc(x,y,14+4*Math.sin(now/150),0,6.283);cx.stroke();cx.font='26px serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText('🕷',x,y)}};
  const openSp=()=>{spf.hidden=false;size();if(!raf)frame()},closeSp=()=>{stop=true;spf.hidden=true},idle=()=>{if(run)return openSp();G=[];cur=null;$('#sph').hidden=false;$('#spp').hidden=true;$('#spU').value='';st('Prête.');openSp();setTimeout(()=>$('#spU').focus(),30)};
+ const draw2=()=>{sps.style.transform='translate('+sp.x+'px,'+sp.y+'px) translate(-50%,-50%) rotate('+ang+'deg)';th.style.left=sp.x+'px';th.style.height=sp.y+'px'};
+ const go=(tx,ty)=>new Promise(res=>{const d=Math.hypot(tx-sp.x,ty-sp.y);if(d<2)return res();const dur=Math.max(160,d/.9),x0=sp.x,y0=sp.y,t0=performance.now();ang=Math.atan2(ty-y0,tx-x0)*180/Math.PI+90;sps.classList.add('mv');
+  const stp=t=>{if(stop||spf.hidden){sps.classList.remove('mv');return res()}const k=Math.min(1,(t-t0)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;sp.x=x0+(tx-x0)*e;sp.y=y0+(ty-y0)*e;draw2();if(k<1)requestAnimationFrame(stp);else{sps.classList.remove('mv');res()}};requestAnimationFrame(stp)});
+ async function walk(){const marks=[...$('#spx').querySelectorAll('.spl')];sp={x:60,y:30};ang=180;draw2();sps.hidden=th.hidden=false;await go(60,110);
+  for(const m of marks){if(stop||spf.hidden)return;const r=m.getClientRects()[0],b=spp.getBoundingClientRect();if(!r)continue;await go(r.left-b.left+r.width/2,r.top-b.top+spp.scrollTop+r.height/2);m.classList.add('hit');st('🕷 Lien trouvé : '+m.textContent);await wait(260)}
+  if(!stop)await go(sp.x,Math.min(spp.scrollHeight-260,sp.y+400))}
  async function crawl(){if(run)return;const{lang,title,text}=parse($('#spU').value);if(!title)return;
   if(!navigator.onLine){openSp();return st('Hors ligne : l’araignée a besoin d’Internet.')}
   $('#sph').hidden=true;$('#spp').hidden=false;run=true;stop=false;G=[];cur=null;cam={x:0,y:0,s:1};$('#spStop').disabled=false;$('#spx').textContent='';$('#spk').textContent='';openSp();
@@ -2143,9 +2152,9 @@ function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'dec
    if(!ids.has(id)){ids.add(id);const lead=(pg.extract||'').trim().slice(0,it.pg?20000:1500)||'Page sans résumé.',url='https://'+lang+'.wikipedia.org/wiki/'+encodeURIComponent(pg.title.replace(/ /g,'_'));
     L.push({id,dir:'10_Araignee',title:pg.title,type:'note',status:'inbox',date:iso(),tags:['araignée','wikipédia'],body:lead+'\n\nSource (Wikipédia) : '+url+(it.pn?'\n\nVoir aussi [['+it.pn+']]':'')});store.set('loc',L);load();made++}
    let C=[];if(it.dep<D){const lead=nz(pg.extract||''),B=it.pg?8:[6,4,3][it.dep]||3;C=(pg.links||[]).map(l=>l.title).filter(t=>!/^(liste|\d{1,4}$|catégorie)/i.test(t)&&!seen.has(nz(t))).map(t=>({t,s:(lead.includes(nz(t))?3:0)+Math.random()-t.length/80})).sort((a,b)=>b.s-a.s).slice(0,B).map(c=>c.t)}
-   showPage(pg,C);spp.scrollTop=0;sps.hidden=false;sv=Math.max(0,spp.scrollHeight-spp.clientHeight)/((it.pg?6500:2000)/16.7);C.forEach((t,j)=>Q.push({t,dep:it.dep+1,par:node,pn:pg.title,ang:it.dep==0?j/C.length*6.283+Math.random()*.3:null}));
-   await wait(it.pg?6500:2000)}
-  run=false;cur=null;sv=0;sps.hidden=true;$('#spStop').disabled=true;
+   showPage(pg,C);spp.scrollTop=0;C.forEach((t,j)=>Q.push({t,dep:it.dep+1,par:node,pn:pg.title,ang:it.dep==0?j/C.length*6.283+Math.random()*.3:null}));
+   await walk();await wait(250)}
+  run=false;cur=null;sps.hidden=true;th.hidden=true;$('#spStop').disabled=true;
   st((stop?'Arrêtée : ':'Terminé : ')+made+' note'+(made>1?'s':'')+' créée'+(made>1?'s':'')+' dans le dossier 10_Araignee. Ferme pour voir le graphe.');say('Araignée : '+made+' note'+(made>1?'s':'')+' créée'+(made>1?'s':''))}
  $('#bspider').onclick=idle;window.startSpider=v=>{$('#spU').value=v;crawl()};
  $('#spStop').onclick=()=>{stop=true};$('#spX').onclick=closeSp;

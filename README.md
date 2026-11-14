@@ -97,7 +97,7 @@ Le cube central est la **recherche du cerveau** (clic ou touche `i`). Une fenêt
 
 Le menu **+** contient le bouton **Araignée web**. Colle un lien Wikipédia (n'importe quelle langue), un titre ou **tout un texte** : l'araignée se lance **toute seule**, sans aucun réglage (2 niveaux de profondeur, 30 pages maximum). Avec un texte, elle repère les sujets importants (noms propres, mots fréquents), les cherche sur Wikipédia et part de là ; le texte collé devient la note de départ. Tu peux aussi coller le lien ou le texte directement dans la recherche du cube.
 
-- Elle lit la page en entier (la colonne de gauche **défile toute seule** avec une araignée accrochée à son fil), garde son résumé, puis suit les liens les plus importants (ceux cités dans l'introduction passent en premier : 6 liens au premier niveau, 4 au deuxième, 3 au troisième).
+- Elle lit la page en entier (une vraie araignée 🕷 descend le long du texte, suspendue à son fil : elle marche jusqu'à chaque lien, le surligne et la page défile pour la suivre), garde son résumé, puis suit les liens les plus importants (ceux cités dans l'introduction passent en premier : 6 liens au premier niveau, 4 au deuxième, 3 au troisième).
 - Chaque page devient une **note** du dossier `10_Araignee`, liée à la page d'où l'araignée vient ; le graphe se construit en direct.
 - L'araignée s'ouvre en **plein écran** : la page lue s'affiche à gauche avec ses liens suivis encadrés en bleu, et la toile se dessine en grand (traits lumineux, titres des pages, araignée qui se déplace de nœud en nœud, caméra qui s'ajuste toute seule). « Arrêter » interrompt l'exploration, « Fermer » ou `Échap` revient au graphe.
 - Une page déjà présente dans ton coffre n'est jamais écrasée. L'araignée respecte l'API de Wikipédia (une requête toutes les 350 ms) et ne lit que Wikipédia : les autres sites bloquent les navigateurs.
@@ -134,7 +134,7 @@ Réglages utiles : activer ou couper chaque source, nombre de cellules par vague
 
 - Après un premier chargement en ligne, Synapse s'ouvre **sans connexion** avec tes notes ; l'enrichissement reprend au retour du réseau.
 - Bouton **Installer l'application** dans Réglages (si le navigateur le propose).
-- Le cache (`sw.js`) est versionné (`synapse-v25`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
+- Le cache (`sw.js`) est versionné (`synapse-v26`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
 
 ## Données et confidentialité
 
@@ -168,6 +168,7 @@ synapse-ghpages/
 
 ## Historique des versions
 
+- **V26** : l'araignée se déplace dans le texte de haut en bas, va de lien en lien et la page la suit.
 - **V25** : correction : l'araignée ne se lançait plus (bouton supprimé mais toujours branché, ce qui bloquait le collage).
 - **V24** : colle un texte entier, l'araignée apparaît, fait défiler la page et cherche chaque sujet sur Wikipédia.
 - **V23** : l'araignée se lance dès que le lien est collé (écran d'accueil plein écran, ou depuis la recherche du cube).
