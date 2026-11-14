@@ -8,6 +8,7 @@ Aucun serveur, aucune clé API, aucune IA externe, aucune installation : tout to
 
 1. [Aperçu](#aperçu)
    - [Cube de recherche](#cube-de-recherche)
+   - [Araignée web](#araignée-web)
 2. [Démarrage rapide](#démarrage-rapide)
 3. [Déploiement sur GitHub Pages](#déploiement-sur-github-pages)
 4. [Fonctionnalités](#fonctionnalités)
@@ -92,6 +93,15 @@ Le cube central est la **recherche du cerveau** (clic ou touche `i`). Une fenêt
 
 **Nourrir le réseau** : les boutons « Pulse réseau » et « Nourrir depuis les notes » envoient aussi des cellules explorateurs sur le web (6 ou 10 notes tirées au hasard, une cellule toutes les 0,7 s) pour rapporter de nouvelles découvertes.
 
+## Araignée web
+
+Le menu **+** contient le bouton **Araignée web**. Colle un lien ou un titre Wikipédia (n'importe quelle langue), choisis la profondeur (1 à 3) et le nombre de pages (10, 25 ou 50), puis lance l'araignée.
+
+- Elle lit la page, garde son résumé, puis suit les liens les plus importants (ceux cités dans l'introduction passent en premier : 6 liens au premier niveau, 4 au deuxième, 3 au troisième).
+- Chaque page devient une **note** du dossier `10_Araignee`, liée à la page d'où l'araignée vient ; le graphe se construit en direct.
+- Un petit plan animé montre la toile qui grandit. « Arrêter » ou fermer la fenêtre interrompt l'exploration.
+- Une page déjà présente dans ton coffre n'est jamais écrasée. L'araignée respecte l'API de Wikipédia (une requête toutes les 350 ms) et ne lit que Wikipédia : les autres sites bloquent les navigateurs.
+
 ## Chatbot web
 
 Le chatbot n'utilise **aucune IA externe** et n'a besoin d'aucune installation. Clique sur le cube ou appuie sur `i`, puis pose une question.
@@ -124,7 +134,7 @@ Réglages utiles : activer ou couper chaque source, nombre de cellules par vague
 
 - Après un premier chargement en ligne, Synapse s'ouvre **sans connexion** avec tes notes ; l'enrichissement reprend au retour du réseau.
 - Bouton **Installer l'application** dans Réglages (si le navigateur le propose).
-- Le cache (`sw.js`) est versionné (`synapse-v20`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
+- Le cache (`sw.js`) est versionné (`synapse-v21`). Pour forcer une mise à jour chez les utilisateurs, change ce numéro à chaque déploiement.
 
 ## Données et confidentialité
 
@@ -158,6 +168,7 @@ synapse-ghpages/
 
 ## Historique des versions
 
+- **V21** : araignée web (exploration de Wikipédia page après page, une note liée par page).
 - **V20** : cube central = recherche du cerveau (radar, résultats animés, anneaux scanner 3D) ; « Pulse réseau » et « Nourrir » partent chercher sur le web.
 - **V19** : plus d'Ollama ni de code Staff, chatbot qui répond depuis le web avec ses sources, mots de passe PBKDF2 (8 caractères minimum), bouton « Passer » sur l'écran de chargement.
 - **V18** : écran de chargement de 10 secondes avant la connexion, README complet, cache `synapse-v18`.
