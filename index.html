@@ -2118,78 +2118,111 @@ const prof=()=>{if(!mOn())return'';const m=MM(),k=Object.entries(m.kw).filter(x=
  return k.length||s.length?'Profil de l’utilisateur (appris de ses actions) : intérêts : '+(k.join(', ')||'?')+(s.length?' ; sources appréciées : '+s.join(', '):'')+'. ':''};
 /* découverte → note, pouces */
 function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'decouverte-'+Date.now(),L=LOC().filter(x=>x.id!=id);L.push({id,dir:'00_Inbox',title,type:'note',status:'inbox',date:iso(),tags:['découverte'],body:d.t+'\n\nSource ('+d.k+') : '+d.u+'\n\nVoir aussi [['+n.title+']]'});store.set('loc',L);d.l=1;fb(d,2);load();say('Note créée : '+title);setTimeout(()=>{location.hash=id},400)}
-/* ---- Araignée web V27c : silhouette noire simple (style image) ---- */
-{document.body.insertAdjacentHTML('beforeend','<div id="spf" hidden><canvas id="spc"></canvas><div id="sph"><div class="bst">Araignée web</div><textarea id="spU" rows="2" placeholder="Colle un lien Wikipédia, ou tout un texte…" aria-label="Lien ou texte" autocomplete="off"></textarea><div class="bss">L’araignée descend le long de la page et s’arrête sur chaque lien.</div></div><div id="spp" hidden><div id="spth" hidden></div><div id="sps" hidden></div><div id="spt"></div><div id="spx"></div><div id="spk"></div></div><div id="spbar"><span id="spS">Prête.</span><button type="button" id="spStop">Arrêter</button><button type="button" id="spX">Fermer</button></div></div>');
+/* ---- Araignée web : silhouette noire fidèle à l'image + toile + scroll ---- */
+{document.body.insertAdjacentHTML('beforeend','<div id="spf" hidden><canvas id="spc"></canvas><div id="sph"><div class="bst">Araignée web</div><textarea id="spU" rows="2" placeholder="Colle un lien Wikipédia, ou tout un texte…" aria-label="Lien ou texte" autocomplete="off"></textarea><div class="bss">L’araignée descend sur la page, tisse sa soie entre les liens et le texte suit.</div></div><div id="spp" hidden><div id="spt"></div><div id="spx"></div><div id="spk"></div></div><div id="spbar"><span id="spS">Prête.</span><button type="button" id="spStop">Arrêter</button><button type="button" id="spX">Fermer</button></div></div>');
  $('#bpad').insertAdjacentHTML('afterend','<button type="button" id="bspider">Araignée web</button>');
  const spf=$('#spf'),cv=$('#spc'),cx=cv.getContext('2d'),st=m=>$('#spS').textContent=m,wait=ms=>new Promise(r=>setTimeout(r,ms));
  let run=false,stop=false,G=[],cur=null,W=0,H=0,cam={x:0,y:0,s:1},raf=0;const spp=$('#spp');
 
- /* Silhouette noire simple – style photo */
+ /* Silhouette noire – style image (corps ovale + 8 pattes) */
  function createSpider(cx){
-  const S={x:90,y:80,tx:90,ty:80,rot:0,phase:0,silk:[],drag:[],sc:1.35};
-  // pattes fixes (silhouette)
+  const S={x:100,y:90,tx:100,ty:90,rot:Math.PI/2,phase:0,silk:[],drag:[],sc:1.4};
+  // angles de pattes (vue de dessus / légèrement de côté)
   const LEGS=[
-    [-1.25,26],[ -0.7,30],[0.15,28],[0.75,24],
-    [ Math.PI+1.25,26],[Math.PI+0.7,30],[Math.PI-0.15,28],[Math.PI-0.75,24]
+    {a:-1.35,l:34},{a:-0.75,l:38},{a:0.25,l:36},{a:0.85,l:30},
+    {a: Math.PI+1.35,l:34},{a:Math.PI+0.75,l:38},{a:Math.PI-0.25,l:36},{a:Math.PI-0.85,l:30}
   ];
   function update(dt){
-    S.phase+=dt*8;
+    S.phase+=dt*9;
     const dx=S.tx-S.x, dy=S.ty-S.y, d=Math.hypot(dx,dy);
-    if(d>2){
-      const sp=Math.min(240,d*4.8);
+    if(d>2.5){
+      const sp=Math.min(220,d*4.2);
       S.x+=(dx/d)*sp*dt; S.y+=(dy/d)*sp*dt;
       S.rot=Math.atan2(dy,dx);
     }
     S.drag.push({x:S.x,y:S.y,life:1});
-    if(S.drag.length>28)S.drag.shift();
-    S.drag.forEach(p=>p.life*=.96);
+    if(S.drag.length>40)S.drag.shift();
+    S.drag.forEach(p=>p.life*=.958);
   }
   function draw(){
-    // fil
-    if(S.drag.length>1){
-      cx.beginPath(); cx.strokeStyle='rgba(20,20,20,.4)'; cx.lineWidth=1;
-      S.drag.forEach((p,i)=>{cx.globalAlpha=p.life*.65; i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y)});
-      cx.stroke(); cx.globalAlpha=1;
-    }
+    // --- fils de soie (toile entre les points visités) ---
     if(S.silk.length>1){
-      cx.strokeStyle='rgba(15,15,15,.2)'; cx.lineWidth=.8;
+      cx.strokeStyle='rgba(10,10,10,.28)';
+      cx.lineWidth=1.1;
       for(let i=1;i<S.silk.length;i++){
-        cx.globalAlpha=.2+.35*Math.min(1,i/8);
-        cx.beginPath(); cx.moveTo(S.silk[i-1].x,S.silk[i-1].y); cx.lineTo(S.silk[i].x,S.silk[i].y); cx.stroke();
+        const a=S.silk[i-1],b=S.silk[i];
+        cx.globalAlpha=.25+.5*Math.min(1,i/12);
+        cx.beginPath();
+        // légère courbe
+        const mx=(a.x+b.x)/2, my=(a.y+b.y)/2 + (i%2?6:-6);
+        cx.moveTo(a.x,a.y); cx.quadraticCurveTo(mx,my,b.x,b.y);
+        cx.stroke();
       }
       cx.globalAlpha=1;
     }
+    // dragline derrière
+    if(S.drag.length>1){
+      cx.beginPath();
+      cx.strokeStyle='rgba(0,0,0,.45)';
+      cx.lineWidth=1.3;
+      S.drag.forEach((p,i)=>{cx.globalAlpha=p.life*.7; i?cx.lineTo(p.x,p.y):cx.moveTo(p.x,p.y)});
+      cx.stroke(); cx.globalAlpha=1;
+    }
+
     cx.save();
     cx.translate(S.x,S.y);
-    cx.rotate(S.rot-Math.PI/2);
+    cx.rotate(S.rot - Math.PI/2);
     const sc=S.sc;
-    // légère oscillation des pattes
-    const walk=Math.sin(S.phase)*0.12;
-    LEGS.forEach(([a,len],i)=>{
+    const walk=Math.sin(S.phase)*0.18;
+
+    // 8 pattes noires
+    LEGS.forEach((leg,i)=>{
       const side=i<4?1:-1;
-      const ang=a+walk*(i%2?1:-1)*side;
-      const l=len*sc;
-      const x1=Math.cos(ang)*l*.45, y1=Math.sin(ang)*l*.45;
-      const x2=Math.cos(ang)*l, y2=Math.sin(ang)*l;
-      cx.strokeStyle='#0d0d0d'; cx.lineWidth=2.4*sc; cx.lineCap='round';
-      cx.beginPath(); cx.moveTo(0,0); cx.lineTo(x1,y1); cx.lineTo(x2,y2); cx.stroke();
+      const ang=leg.a + walk*(i%2===0?1:-1)*side*0.9;
+      const len=leg.l*sc;
+      // 2 segments
+      const k1=len*0.48, k2=len*0.55;
+      const x1=Math.cos(ang)*k1, y1=Math.sin(ang)*k1;
+      const x2=x1+Math.cos(ang+0.7*side)*k2, y2=y1+Math.sin(ang+0.7*side)*k2;
+      cx.strokeStyle='#050505';
+      cx.lineWidth=2.6*sc;
+      cx.lineCap='round';
+      cx.beginPath();
+      cx.moveTo(side*2*sc, 2*sc);
+      cx.lineTo(x1,y1);
+      cx.lineTo(x2,y2);
+      cx.stroke();
+      // pied
+      cx.fillStyle='#050505';
+      cx.beginPath(); cx.arc(x2,y2,1.8*sc,0,Math.PI*2); cx.fill();
     });
-    // corps noir uni
+
+    // corps (céphalothorax)
     cx.fillStyle='#0a0a0a';
-    cx.beginPath(); cx.ellipse(0,-1.5*sc,8*sc,6.5*sc,0,0,Math.PI*2); cx.fill(); // tête
-    cx.beginPath(); cx.ellipse(0,10*sc,10*sc,12*sc,0,0,Math.PI*2); cx.fill(); // abdomen
+    cx.beginPath();
+    cx.ellipse(0, -2*sc, 9*sc, 7.5*sc, 0, 0, Math.PI*2);
+    cx.fill();
+    // abdomen
+    cx.beginPath();
+    cx.ellipse(0, 12*sc, 11*sc, 13*sc, 0, 0, Math.PI*2);
+    cx.fill();
+    // yeux très discrets
+    cx.fillStyle='#1a1a1a';
+    cx.beginPath(); cx.arc(-3.5*sc,-4*sc,1.4*sc,0,Math.PI*2); cx.fill();
+    cx.beginPath(); cx.arc( 3.5*sc,-4*sc,1.4*sc,0,Math.PI*2); cx.fill();
+
     cx.restore();
   }
   return{
     update,draw,
-    goTo(x,y){S.tx=x;S.ty=y;S.silk.push({x,y});if(S.silk.length>35)S.silk.shift()},
+    goTo(x,y){S.tx=x;S.ty=y;S.silk.push({x,y});if(S.silk.length>50)S.silk.shift()},
     setPos(x,y){S.x=x;S.y=y;S.tx=x;S.ty=y},
     clearSilk(){S.silk=[];S.drag=[]},
     get pos(){return{x:S.x,y:S.y}}
   };
  }
  const spider=createSpider(cx);
- spider.setPos(80,100);
+ spider.setPos(90,100);
 
  const parse=v=>{v=v.trim();const m=v.match(/^https?:\/\/([a-z-]+)\.(?:m\.)?wikipedia\.org\/wiki\/([^#?]+)/i);if(m)return{lang:m[1],title:decodeURIComponent(m[2]).replace(/_/g,' ')};if(v.length>180||/\n/.test(v))return{lang:(v.match(/\b(the|and|of)\b/gi)||[]).length>8?'en':'fr',title:(v.split('\n')[0]||'Texte collé').slice(0,60).trim(),text:v};return{lang:'fr',title:v}};
  const SW=new Set('le la les un une des de du et en est que qui dans pour par sur avec son sa ses ce cette ces il elle ils elles au aux ne pas plus ou mais comme the and of to in is that for with as on by this are was from'.split(' '));
@@ -2205,41 +2238,46 @@ function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'dec
   raf=requestAnimationFrame(frame);
   // scroll qui suit l'araignée
   if(run&&spp&&!spp.hidden){
-    const target=spider.pos.y-spp.clientHeight*0.32;
-    spp.scrollTop+=(target-spp.scrollTop)*0.2;
+    const target=spider.pos.y - spp.clientHeight*0.30;
+    spp.scrollTop += (target - spp.scrollTop)*0.22;
   }
   cx.clearRect(0,0,W,H);
-  // graphe léger
-  cx.strokeStyle='rgba(80,140,220,.15)';cx.lineWidth=1;
+  // graphe léger en fond
+  cx.strokeStyle='rgba(70,130,200,.12)';cx.lineWidth=1;
   G.forEach(n=>{if(!n.p||K(n)<.2)return;cx.beginPath();cx.moveTo(X(n.p),Y(n.p));cx.lineTo(X(n),Y(n));cx.stroke()});
   G.forEach(n=>{if(K(n)<.9)return;const x=X(n),y=Y(n);
-    cx.fillStyle=n===cur?'#fff':'#8ec5ff';cx.beginPath();cx.arc(x,y,n===cur?5:3,0,6.283);cx.fill();
-    cx.font='14px Georgia,serif';cx.fillStyle='#bcd';cx.fillText(n.t.length>22?n.t.slice(0,21)+'…':n.t,x+7,y-6)});
-  spider.update(0.016); spider.draw();
+    cx.fillStyle=n===cur?'#fff':'#8ec5ff';cx.beginPath();cx.arc(x,y,n===cur?5:2.8,0,6.283);cx.fill();
+    cx.font='13px Georgia,serif';cx.fillStyle='#b8c8d8';cx.fillText(n.t.length>20?n.t.slice(0,19)+'…':n.t,x+7,y-5)});
+  spider.update(0.016);
+  spider.draw();
  };
 
  const openSp=()=>{spf.hidden=false;size();if(!raf)frame()},closeSp=()=>{stop=true;spf.hidden=true};
- const idle=()=>{if(run)return openSp();G=[];cur=null;spider.clearSilk();spider.setPos(80,100);$('#sph').hidden=false;$('#spp').hidden=true;$('#spU').value='';st('Prête.');openSp();setTimeout(()=>$('#spU').focus(),30)};
+ const idle=()=>{if(run)return openSp();G=[];cur=null;spider.clearSilk();spider.setPos(90,100);$('#sph').hidden=false;$('#spp').hidden=true;$('#spU').value='';st('Prête.');openSp();setTimeout(()=>$('#spU').focus(),30)};
 
  const go=(tx,ty)=>new Promise(res=>{
   spider.goTo(tx,ty);
-  const t0=performance.now(), max=Math.max(380,Math.hypot(tx-spider.pos.x,ty-spider.pos.y)*1.35);
-  const check=()=>{if(stop||spf.hidden)return res();const d=Math.hypot(tx-spider.pos.x,ty-spider.pos.y);if(d<11||performance.now()-t0>max)return res();requestAnimationFrame(check)};
+  const t0=performance.now(), max=Math.max(420,Math.hypot(tx-spider.pos.x,ty-spider.pos.y)*1.5);
+  const check=()=>{if(stop||spf.hidden)return res();const d=Math.hypot(tx-spider.pos.x,ty-spider.pos.y);if(d<12||performance.now()-t0>max)return res();requestAnimationFrame(check)};
   requestAnimationFrame(check);
  });
 
  async function walk(){
   const marks=[...$('#spx').querySelectorAll('.spl')];
-  spider.setPos(70,45); spider.clearSilk();
-  await go(95,150);
+  spider.setPos(80,40); spider.clearSilk();
+  await go(110,140);
   for(const m of marks){
     if(stop||spf.hidden)return;
     const r=m.getClientRects()[0], b=spp.getBoundingClientRect();
     if(!r)continue;
-    await go(r.left-b.left+r.width/2, r.top-b.top+spp.scrollTop+r.height/2);
-    m.classList.add('hit'); st('🕷 '+m.textContent); await wait(260);
+    const tx=r.left-b.left+r.width/2;
+    const ty=r.top-b.top+spp.scrollTop+r.height/2;
+    await go(tx,ty);
+    m.classList.add('hit');
+    st('🕷 '+m.textContent);
+    await wait(300);
   }
-  if(!stop) await go(spider.pos.x, Math.min(spp.scrollHeight-180, spider.pos.y+300));
+  if(!stop) await go(spider.pos.x, Math.min(spp.scrollHeight-160, spider.pos.y+280));
  }
 
  async function crawl(){
@@ -2248,14 +2286,14 @@ function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'dec
   if(!navigator.onLine){openSp();return st('Hors ligne : l’araignée a besoin d’Internet.')}
   $('#sph').hidden=true;$('#spp').hidden=false; run=true;stop=false;G=[];cur=null;cam={x:0,y:0,s:1};
   $('#spStop').disabled=false;$('#spx').textContent='';$('#spk').textContent=''; openSp();
-  spider.clearSilk(); spider.setPos(80,70);
+  spider.clearSilk(); spider.setPos(90,70);
 
   const L=LOC(),ids=new Set(L.map(n=>n.id)),seen=new Set(),Q=[],M=12,D=2; let made=0;
   if(text){terms(text).forEach((t,i)=>Q.push({t,dep:0,par:null,pn:null,ang:i/8*6.283}));st('🕷 Analyse du texte…')}
   else Q.push({t:title,dep:0,par:null,pn:null,ang:0,pg:null});
 
   const showPage=(pg,C)=>{
-    const lead=(pg.extract||'').trim().slice(0,1100);
+    const lead=(pg.extract||'').trim().slice(0,1200);
     $('#spt').innerHTML='<h2>'+esc(pg.title)+'</h2><p>'+esc(lead)+'</p>';
     $('#spx').innerHTML=C.map(t=>'<span class="spl">'+esc(t)+'</span>').join(' ');
     $('#spk').textContent=C.length?'Liens à explorer':'Fin de branche';
@@ -2285,7 +2323,7 @@ function mkNote(n,d){const title=cut(d.s,80)||'Découverte',id=slug(title)||'dec
     }
     showPage(pg,C); spp.scrollTop=0;
     C.forEach((t,j)=>Q.push({t,dep:it.dep+1,par:node,pn:pg.title,ang:it.dep===0?j/C.length*6.283+Math.random()*.3:null}));
-    await walk(); await wait(180);
+    await walk(); await wait(200);
   }
   run=false;cur=null;$('#spStop').disabled=true;
   st((stop?'Arrêtée : ':'Terminé : ')+made+' note'+(made>1?'s':'')+' créée'+(made>1?'s':'')+' dans le dossier 10_Araignee. Ferme pour voir le graphe.');
