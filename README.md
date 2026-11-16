@@ -2,7 +2,7 @@
 
 > Ton second cerveau : un coffre de notes en **graphe 3D / 2D**, enrichi automatiquement par des cellules explorateurs et un chatbot qui répond depuis le web, sources à l'appui.
 >
-> **V27** : l'araignée web est maintenant une vraie araignée procédurale (pattes, soie, toile).
+> **V27** : l'araignée web est maintenant une araignée néon rouge procédurale (pattes courbes lumineuses, soie, toile).
 
 Aucun serveur, aucune clé API, aucune IA externe, aucune installation : tout tourne dans le navigateur et les données restent sur ton appareil.
 
